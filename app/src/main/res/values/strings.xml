@@ -4,4 +4,35 @@
     <string name="tab_history">History</string>
     <string name="tab_exercises">Exercises</string>
     <string name="tab_progress">Progress</string>
+
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+
+    <string name="exercises_search">Search exercises</string>
+    <string name="filter_all">All</string>
+    <string name="exercise_new">New exercise</string>
+    <string name="exercise_edit">Edit exercise</string>
+    <string name="exercise_name">Name</string>
+    <string name="muscle_group">Muscle group</string>
+    <string name="exercise_type">Tracking</string>
+
+    <string name="muscle_chest">Chest</string>
+    <string name="muscle_back">Back</string>
+    <string name="muscle_shoulders">Shoulders</string>
+    <string name="muscle_biceps">Biceps</string>
+    <string name="muscle_triceps">Triceps</string>
+    <string name="muscle_forearms">Forearms</string>
+    <string name="muscle_quads">Quads</string>
+    <string name="muscle_hamstrings">Hamstrings</string>
+    <string name="muscle_glutes">Glutes</string>
+    <string name="muscle_calves">Calves</string>
+    <string name="muscle_abs">Abs</string>
+    <string name="muscle_cardio">Cardio</string>
+    <string name="muscle_other">Other</string>
+
+    <string name="type_weight_reps">Weight × reps</string>
+    <string name="type_reps">Reps only</string>
+    <string name="type_duration">Time</string>
+    <string name="type_distance">Distance and time</string>
 </resources>

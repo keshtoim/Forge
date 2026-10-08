@@ -3,4 +3,35 @@
     <string name="tab_history">История</string>
     <string name="tab_exercises">Упражнения</string>
     <string name="tab_progress">Прогресс</string>
+
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="delete">Удалить</string>
+
+    <string name="exercises_search">Поиск упражнений</string>
+    <string name="filter_all">Все</string>
+    <string name="exercise_new">Новое упражнение</string>
+    <string name="exercise_edit">Редактирование</string>
+    <string name="exercise_name">Название</string>
+    <string name="muscle_group">Группа мышц</string>
+    <string name="exercise_type">Что записываем</string>
+
+    <string name="muscle_chest">Грудь</string>
+    <string name="muscle_back">Спина</string>
+    <string name="muscle_shoulders">Плечи</string>
+    <string name="muscle_biceps">Бицепс</string>
+    <string name="muscle_triceps">Трицепс</string>
+    <string name="muscle_forearms">Предплечья</string>
+    <string name="muscle_quads">Квадрицепс</string>
+    <string name="muscle_hamstrings">Бицепс бедра</string>
+    <string name="muscle_glutes">Ягодицы</string>
+    <string name="muscle_calves">Икры</string>
+    <string name="muscle_abs">Пресс</string>
+    <string name="muscle_cardio">Кардио</string>
+    <string name="muscle_other">Другое</string>
+
+    <string name="type_weight_reps">Вес × повторы</string>
+    <string name="type_reps">Только повторы</string>
+    <string name="type_duration">Время</string>
+    <string name="type_distance">Дистанция и время</string>
 </resources>

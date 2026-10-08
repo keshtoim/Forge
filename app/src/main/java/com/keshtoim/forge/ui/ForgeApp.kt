@@ -29,6 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.keshtoim.forge.R
+import com.keshtoim.forge.ui.exercises.ExercisesScreen
 import kotlinx.serialization.Serializable
 
 @Serializable object WorkoutRoute
@@ -76,7 +77,7 @@ fun ForgeApp() {
         ) {
             composable<WorkoutRoute> { TabTitle(R.string.tab_workout) }
             composable<HistoryRoute> { TabTitle(R.string.tab_history) }
-            composable<ExercisesRoute> { TabTitle(R.string.tab_exercises) }
+            composable<ExercisesRoute> { ExercisesScreen() }
             composable<ProgressRoute> { TabTitle(R.string.tab_progress) }
         }
     }
