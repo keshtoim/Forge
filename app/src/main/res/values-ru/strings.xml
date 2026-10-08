@@ -55,6 +55,17 @@
     <string name="metric_max_duration">Макс. время</string>
     <string name="metric_max_distance">Макс. дистанция</string>
 
+    <string name="settings">Настройки</string>
+    <string name="backup_export">Экспорт данных</string>
+    <string name="backup_export_hint">Сохранить тренировки, шаблоны и упражнения в JSON-файл</string>
+    <string name="backup_import">Импорт данных</string>
+    <string name="backup_import_hint">Восстановить из JSON-файла</string>
+    <string name="backup_import_warning">Все текущие данные будут заменены содержимым файла. Отменить это нельзя.</string>
+    <string name="backup_import_confirm">Выбрать файл</string>
+    <string name="backup_exported">Данные экспортированы</string>
+    <string name="backup_imported">Данные импортированы</string>
+    <string name="backup_failed">Не получилось. Возможно, файл повреждён.</string>
+
     <string name="unit_kg">кг</string>
     <string name="unit_reps">повт</string>
     <string name="unit_min">мин</string>

@@ -56,6 +56,17 @@
     <string name="metric_max_duration">Longest</string>
     <string name="metric_max_distance">Longest distance</string>
 
+    <string name="settings">Settings</string>
+    <string name="backup_export">Export data</string>
+    <string name="backup_export_hint">Save all workouts, templates and exercises to a JSON file</string>
+    <string name="backup_import">Import data</string>
+    <string name="backup_import_hint">Restore from a JSON file</string>
+    <string name="backup_import_warning">All current data will be replaced with the contents of the file. This cannot be undone.</string>
+    <string name="backup_import_confirm">Choose file</string>
+    <string name="backup_exported">Data exported</string>
+    <string name="backup_imported">Data imported</string>
+    <string name="backup_failed">Something went wrong. The file may be damaged.</string>
+
     <string name="unit_kg">kg</string>
     <string name="unit_reps">reps</string>
     <string name="unit_min">min</string>

@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
 enum class MuscleGroup {
     CHEST, BACK, SHOULDERS, BICEPS, TRICEPS, FOREARMS,
@@ -12,6 +13,7 @@ enum class MuscleGroup {
 
 enum class ExerciseType { WEIGHT_REPS, REPS, DURATION, DISTANCE }
 
+@Serializable
 @Entity(tableName = "exercises", indices = [Index(value = ["builtInKey"], unique = true)])
 data class Exercise(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -23,12 +25,14 @@ data class Exercise(
     val archived: Boolean = false,
 )
 
+@Serializable
 @Entity(tableName = "templates")
 data class Template(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
 )
 
+@Serializable
 @Entity(
     tableName = "template_exercises",
     foreignKeys = [
@@ -45,6 +49,7 @@ data class TemplateExercise(
     val targetSets: Int,
 )
 
+@Serializable
 @Entity(
     tableName = "workouts",
     foreignKeys = [ForeignKey(Template::class, ["id"], ["templateId"], onDelete = ForeignKey.SET_NULL)],
@@ -59,6 +64,7 @@ data class Workout(
     val finishedAt: Long? = null,
 )
 
+@Serializable
 @Entity(
     tableName = "workout_exercises",
     foreignKeys = [
@@ -74,6 +80,7 @@ data class WorkoutExercise(
     val position: Int,
 )
 
+@Serializable
 @Entity(
     tableName = "workout_sets",
     foreignKeys = [ForeignKey(WorkoutExercise::class, ["id"], ["workoutExerciseId"], onDelete = ForeignKey.CASCADE)],

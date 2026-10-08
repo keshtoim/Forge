@@ -47,6 +47,7 @@ import com.keshtoim.forge.ui.history.HistoryScreen
 import com.keshtoim.forge.ui.history.WorkoutDetailScreen
 import com.keshtoim.forge.ui.progress.ExerciseProgressScreen
 import com.keshtoim.forge.ui.progress.ProgressScreen
+import com.keshtoim.forge.ui.settings.SettingsScreen
 import com.keshtoim.forge.ui.templates.TemplateEditorScreen
 import com.keshtoim.forge.ui.workout.ActiveWorkoutScreen
 import com.keshtoim.forge.ui.workout.WorkoutHomeScreen
@@ -63,6 +64,7 @@ import kotlinx.serialization.Serializable
 @Serializable data class ActiveWorkoutRoute(val id: Long)
 @Serializable data class WorkoutDetailRoute(val id: Long)
 @Serializable data class ExerciseProgressRoute(val exerciseId: Long)
+@Serializable object SettingsRoute
 
 private enum class Tab(val route: Any, @StringRes val label: Int, val icon: ImageVector) {
     Workout(WorkoutRoute, R.string.tab_workout, Icons.Filled.FitnessCenter),
@@ -118,6 +120,7 @@ fun ForgeApp(viewModel: ForgeViewModel = viewModel(factory = ForgeViewModel.Fact
                 WorkoutHomeScreen(
                     onOpenTemplate = { navController.navigate(TemplateEditorRoute(it)) },
                     onOpenWorkout = { navController.navigate(ActiveWorkoutRoute(it)) },
+                    onOpenSettings = { navController.navigate(SettingsRoute) },
                 )
             }
             composable<HistoryRoute> {
@@ -150,6 +153,9 @@ fun ForgeApp(viewModel: ForgeViewModel = viewModel(factory = ForgeViewModel.Fact
                     },
                     onAddExercises = { navController.navigate(ExercisePickerRoute) },
                 )
+            }
+            composable<SettingsRoute> {
+                SettingsScreen(onBack = { navController.popBackStack() })
             }
             composable<ExercisePickerRoute> {
                 ExercisePickerScreen(

@@ -17,7 +17,8 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 fun Exercise.displayName(context: Context): String =
-    builtInKey?.let { context.getString(BuiltInExercise.valueOf(it).nameRes) } ?: name.orEmpty()
+    BuiltInExercise.entries.firstOrNull { it.name == builtInKey }?.let { context.getString(it.nameRes) }
+        ?: name ?: builtInKey.orEmpty()
 
 fun WorkoutSet.summary(type: ExerciseType, context: Context): String {
     fun unit(value: Double?, @StringRes res: Int) = value?.let { "${formatNumber(it)} ${context.getString(res)}" }

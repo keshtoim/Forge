@@ -13,6 +13,7 @@ abstract class ForgeDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
     abstract fun templateDao(): TemplateDao
     abstract fun workoutDao(): WorkoutDao
+    abstract fun backupDao(): BackupDao
 
     companion object {
         fun build(context: Context): ForgeDatabase =
