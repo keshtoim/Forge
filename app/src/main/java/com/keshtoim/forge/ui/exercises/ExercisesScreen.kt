@@ -1,39 +1,26 @@
 package com.keshtoim.forge.ui.exercises
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -51,88 +37,30 @@ import com.keshtoim.forge.R
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.MuscleGroup
-import com.keshtoim.forge.ui.displayName
 import com.keshtoim.forge.ui.labelRes
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExercisesScreen(viewModel: ExercisesViewModel = viewModel(factory = ExercisesViewModel.Factory)) {
     val exercises by viewModel.exercises.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    var query by rememberSaveable { mutableStateOf("") }
-    var group by rememberSaveable { mutableStateOf<MuscleGroup?>(null) }
     var editing by remember { mutableStateOf<Exercise?>(null) }
 
-    val grouped = remember(exercises, query, group, context) {
-        exercises
-            .map { it to it.displayName(context) }
-            .filter { (e, name) -> (group == null || e.muscleGroup == group) && name.contains(query.trim(), ignoreCase = true) }
-            .sortedWith(compareBy({ it.first.muscleGroup.ordinal }, { it.second.lowercase() }))
-            .groupBy { it.first.muscleGroup }
-    }
-
     Scaffold(
-        contentWindowInsets = WindowInsets(0),
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_exercises)) }) },
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                editing = Exercise(name = "", muscleGroup = group ?: MuscleGroup.CHEST, type = ExerciseType.WEIGHT_REPS)
+                editing = Exercise(name = "", muscleGroup = MuscleGroup.CHEST, type = ExerciseType.WEIGHT_REPS)
             }) { Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.exercise_new)) }
         },
     ) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize()) {
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { Text(stringResource(R.string.exercises_search)) },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                trailingIcon = {
-                    if (query.isNotEmpty()) {
-                        IconButton(onClick = { query = "" }) { Icon(Icons.Filled.Close, contentDescription = null) }
-                    }
-                },
-                singleLine = true,
-            )
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                item {
-                    FilterChip(selected = group == null, onClick = { group = null }, label = { Text(stringResource(R.string.filter_all)) })
-                }
-                items(MuscleGroup.entries) { g ->
-                    FilterChip(
-                        selected = group == g,
-                        onClick = { group = if (group == g) null else g },
-                        label = { Text(stringResource(g.labelRes)) },
-                    )
-                }
-            }
-            LazyColumn(contentPadding = PaddingValues(bottom = 88.dp)) {
-                grouped.forEach { (muscle, items) ->
-                    stickyHeader(key = muscle) {
-                        Text(
-                            stringResource(muscle.labelRes),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.background)
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                        )
-                    }
-                    items(items, key = { it.first.id }) { (exercise, name) ->
-                        val custom = exercise.builtInKey == null
-                        ListItem(
-                            headlineContent = { Text(name) },
-                            supportingContent = { Text(stringResource(exercise.type.labelRes)) },
-                            modifier = if (custom) Modifier.clickable { editing = exercise } else Modifier,
-                        )
-                    }
-                }
-            }
-        }
+        ExerciseCatalog(
+            exercises = exercises,
+            onClick = { editing = it },
+            isClickable = { it.builtInKey == null },
+            modifier = Modifier.padding(padding).fillMaxSize(),
+        )
     }
+
 
     editing?.let { exercise ->
         ExerciseDialog(

@@ -8,6 +8,19 @@
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
+    <string name="back">Back</string>
+    <string name="remove">Remove</string>
+    <string name="move_up">Move up</string>
+    <string name="move_down">Move down</string>
+
+    <string name="templates">Templates</string>
+    <string name="templates_empty">No templates yet. Create one to start workouts faster.</string>
+    <string name="template_new">New template</string>
+    <string name="template_edit">Edit template</string>
+    <string name="template_name">Template name</string>
+    <string name="sets_count">Sets</string>
+    <string name="add_exercises">Add exercises</string>
+    <string name="add_count">Add (%d)</string>
 
     <string name="exercises_search">Search exercises</string>
     <string name="filter_all">All</string>

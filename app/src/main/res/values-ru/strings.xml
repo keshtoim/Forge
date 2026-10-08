@@ -7,6 +7,19 @@
     <string name="save">Сохранить</string>
     <string name="cancel">Отмена</string>
     <string name="delete">Удалить</string>
+    <string name="back">Назад</string>
+    <string name="remove">Убрать</string>
+    <string name="move_up">Выше</string>
+    <string name="move_down">Ниже</string>
+
+    <string name="templates">Шаблоны</string>
+    <string name="templates_empty">Шаблонов пока нет. Создай шаблон, чтобы быстрее начинать тренировки.</string>
+    <string name="template_new">Новый шаблон</string>
+    <string name="template_edit">Редактирование шаблона</string>
+    <string name="template_name">Название шаблона</string>
+    <string name="sets_count">Подходов</string>
+    <string name="add_exercises">Добавить упражнения</string>
+    <string name="add_count">Добавить (%d)</string>
 
     <string name="exercises_search">Поиск упражнений</string>
     <string name="filter_all">Все</string>

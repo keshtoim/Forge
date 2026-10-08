@@ -12,6 +12,10 @@ interface ExerciseDao {
     @Query("SELECT * FROM exercises WHERE archived = 0")
     fun observeActive(): Flow<List<Exercise>>
 
+    // Includes archived ones: templates and history may still reference them.
+    @Query("SELECT * FROM exercises")
+    fun observeAll(): Flow<List<Exercise>>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIgnore(exercises: List<Exercise>)
 

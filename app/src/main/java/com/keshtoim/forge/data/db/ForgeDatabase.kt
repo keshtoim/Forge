@@ -11,6 +11,7 @@ import androidx.room.RoomDatabase
 )
 abstract class ForgeDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
+    abstract fun templateDao(): TemplateDao
 
     companion object {
         fun build(context: Context): ForgeDatabase =
