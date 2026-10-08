@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.keshtoim.forge.ForgeApplication
 import com.keshtoim.forge.data.db.Backup
 import com.keshtoim.forge.data.db.BackupDao
+import com.keshtoim.forge.data.db.ExerciseDao
 import com.keshtoim.forge.rest.RestTimer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,6 +19,7 @@ import kotlinx.serialization.json.Json
 
 class SettingsViewModel(
     private val backupDao: BackupDao,
+    private val exerciseDao: ExerciseDao,
     private val contentResolver: ContentResolver,
     private val restTimer: RestTimer,
 ) : ViewModel() {
@@ -44,6 +46,8 @@ class SettingsViewModel(
                 val backup = json.decodeFromString(Backup.serializer(), text)
                 restTimer.stop()
                 backupDao.replaceAll(backup)
+                // An older backup lacks built-in exercises added since it was made.
+                exerciseDao.seedBuiltIns()
             }.isSuccess
             onResult(ok)
         }
@@ -53,7 +57,7 @@ class SettingsViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as ForgeApplication
-                SettingsViewModel(app.database.backupDao(), app.contentResolver, app.restTimer)
+                SettingsViewModel(app.database.backupDao(), app.database.exerciseDao(), app.contentResolver, app.restTimer)
             }
         }
     }

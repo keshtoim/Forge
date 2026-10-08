@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.keshtoim.forge.data.BuiltInExercise
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -169,6 +170,18 @@ class DaoTest {
         assertNotNull(restored)
         assertEquals(2, restored!!.exercises.single().sets.count { it.completed })
         target.close()
+    }
+
+    @Test
+    fun `seeding built-ins is idempotent and restores ones missing after import`() = runTest {
+        val builtIns = BuiltInExercise.entries.size
+        db.exerciseDao().seedBuiltIns()
+        db.exerciseDao().seedBuiltIns()
+        assertEquals(builtIns, db.backupDao().exercises().size)
+
+        db.backupDao().replaceAll(Backup(exercises = emptyList(), templates = emptyList(), templateExercises = emptyList(), workouts = emptyList(), workoutExercises = emptyList(), workoutSets = emptyList()))
+        db.exerciseDao().seedBuiltIns()
+        assertEquals(builtIns, db.backupDao().exercises().size)
     }
 
     @Test

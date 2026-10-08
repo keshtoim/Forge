@@ -47,9 +47,6 @@ import com.keshtoim.forge.ui.displayName
 import com.keshtoim.forge.ui.formatDate
 import com.keshtoim.forge.ui.workout.formatNumber
 import java.time.format.FormatStyle
-import kotlin.math.roundToLong
-
-private fun formatValue(value: Double) = formatNumber((value * 10).roundToLong() / 10.0)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -127,25 +124,25 @@ fun ExerciseProgressScreen(onBack: () -> Unit, viewModel: ExerciseProgressViewMo
                     val last = series.lastOrNull()
                     Text(stringResource(metric.labelRes), style = MaterialTheme.typography.labelLarge)
                     Text(
-                        last?.let { "${formatValue(it.value)} $unit" } ?: "—",
+                        last?.let { "${formatNumber(it.value)} $unit" } ?: "—",
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.primary,
                     )
                     if (series.size > 1) {
                         val delta = series.last().value - series.first().value
                         Text(
-                            stringResource(R.string.progress_delta, (if (delta >= 0) "+" else "") + formatValue(delta) + " " + unit),
+                            stringResource(R.string.progress_delta, (if (delta >= 0) "+" else "") + formatNumber(delta) + " " + unit),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     Spacer(Modifier.height(16.dp))
                     if (series.isNotEmpty()) {
-                        Text(formatValue(series.maxOf { it.value }), style = MaterialTheme.typography.labelSmall)
+                        Text(formatNumber(series.maxOf { it.value }), style = MaterialTheme.typography.labelSmall)
                     }
                     LineChart(series, Modifier.fillMaxWidth().height(180.dp))
                     if (series.isNotEmpty()) {
-                        Text(formatValue(series.minOf { it.value }), style = MaterialTheme.typography.labelSmall)
+                        Text(formatNumber(series.minOf { it.value }), style = MaterialTheme.typography.labelSmall)
                         Row(Modifier.fillMaxWidth()) {
                             Text(formatDate(series.first().time, FormatStyle.SHORT), style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f))
                             Text(formatDate(series.last().time, FormatStyle.SHORT), style = MaterialTheme.typography.labelSmall)
@@ -161,7 +158,7 @@ fun ExerciseProgressScreen(onBack: () -> Unit, viewModel: ExerciseProgressViewMo
                     headlineContent = { Text(stringResource(m.labelRes)) },
                     supportingContent = { Text(formatDate(best.time)) },
                     trailingContent = {
-                        Text("${formatValue(best.value)} ${stringResource(m.unitRes)}", style = MaterialTheme.typography.titleMedium)
+                        Text("${formatNumber(best.value)} ${stringResource(m.unitRes)}", style = MaterialTheme.typography.titleMedium)
                     },
                 )
             }

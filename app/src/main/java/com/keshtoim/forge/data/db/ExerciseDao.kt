@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.keshtoim.forge.data.BuiltInExercise
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -18,6 +19,9 @@ interface ExerciseDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIgnore(exercises: List<Exercise>)
+
+    // Idempotent: the unique builtInKey makes this add only exercises missing from the table.
+    suspend fun seedBuiltIns() = insertIgnore(BuiltInExercise.entries.map { it.toEntity() })
 
     @Insert
     suspend fun insert(exercise: Exercise): Long

@@ -6,6 +6,7 @@ import com.keshtoim.forge.R
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.WorkoutSet
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 enum class SetField(@StringRes val unitRes: Int, val keyboard: KeyboardType, val step: Double, private val max: Double) {
     WEIGHT(R.string.unit_kg, KeyboardType.Decimal, 2.5, 1_000.0) {
@@ -61,4 +62,6 @@ enum class SetField(@StringRes val unitRes: Int, val keyboard: KeyboardType, val
     }
 }
 
-fun formatNumber(value: Double): String = BigDecimal.valueOf(value).stripTrailingZeros().toPlainString()
+// Rounds away floating point noise such as 10.1 * 3 = 30.299999999999997.
+fun formatNumber(value: Double): String =
+    BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString()

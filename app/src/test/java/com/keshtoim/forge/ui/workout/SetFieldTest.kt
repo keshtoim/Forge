@@ -114,6 +114,13 @@ class SetFieldTest {
     }
 
     @Test
+    fun `number formatting rounds floating point noise`() {
+        assertEquals("30.3", formatNumber(10.1 * 3))
+        assertEquals("133.33", formatNumber(400 / 3.0))
+        assertEquals("0", formatNumber(0.0))
+    }
+
+    @Test
     fun `duration formatting`() {
         assertEquals("0:05", formatDuration(5))
         assertEquals("1:30", formatDuration(90))
