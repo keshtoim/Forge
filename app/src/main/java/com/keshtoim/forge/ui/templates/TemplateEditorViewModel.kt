@@ -18,15 +18,13 @@ import com.keshtoim.forge.data.db.Template
 import com.keshtoim.forge.data.db.TemplateDao
 import com.keshtoim.forge.data.db.TemplateExercise
 import com.keshtoim.forge.ui.TemplateEditorRoute
-import com.keshtoim.forge.ui.exercises.PICKED_EXERCISES
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class TemplateEditorViewModel(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val templateDao: TemplateDao,
     exerciseDao: ExerciseDao,
 ) : ViewModel() {
@@ -40,18 +38,19 @@ class TemplateEditorViewModel(
     val items = mutableStateListOf<TemplateExercise>()
 
     init {
-        viewModelScope.launch {
-            if (templateId != 0L) {
+        if (templateId != 0L) {
+            viewModelScope.launch {
                 templateDao.get(templateId)?.let { loaded ->
                     name = loaded.template.name
+                    // Prepend: exercises picked before loading finished stay at the end.
                     items.addAll(0, loaded.items.sortedBy { it.position })
                 }
             }
-            savedStateHandle.getStateFlow<LongArray?>(PICKED_EXERCISES, null).filterNotNull().collect { ids ->
-                ids.forEach { items += TemplateExercise(templateId = templateId, exerciseId = it, position = 0, targetSets = 3) }
-                savedStateHandle[PICKED_EXERCISES] = null
-            }
         }
+    }
+
+    fun addExercises(ids: LongArray) {
+        ids.forEach { items += TemplateExercise(templateId = templateId, exerciseId = it, position = 0, targetSets = 3) }
     }
 
     fun setSets(index: Int, sets: Int) {

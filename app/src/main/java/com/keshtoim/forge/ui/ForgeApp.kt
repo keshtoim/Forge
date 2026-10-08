@@ -20,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -49,7 +51,9 @@ import com.keshtoim.forge.ui.progress.ExerciseProgressScreen
 import com.keshtoim.forge.ui.progress.ProgressScreen
 import com.keshtoim.forge.ui.settings.SettingsScreen
 import com.keshtoim.forge.ui.templates.TemplateEditorScreen
+import com.keshtoim.forge.ui.templates.TemplateEditorViewModel
 import com.keshtoim.forge.ui.workout.ActiveWorkoutScreen
+import com.keshtoim.forge.ui.workout.ActiveWorkoutViewModel
 import com.keshtoim.forge.ui.workout.WorkoutHomeScreen
 import com.keshtoim.forge.ui.workout.rememberElapsed
 import com.keshtoim.forge.ui.workout.rememberRemaining
@@ -136,15 +140,21 @@ fun ForgeApp(viewModel: ForgeViewModel = viewModel(factory = ForgeViewModel.Fact
             composable<ExerciseProgressRoute> {
                 ExerciseProgressScreen(onBack = { navController.popBackStack() })
             }
-            composable<TemplateEditorRoute> {
+            composable<TemplateEditorRoute> { entry ->
+                val editor: TemplateEditorViewModel = viewModel(factory = TemplateEditorViewModel.Factory)
+                PickedExercisesEffect(entry, editor::addExercises)
                 TemplateEditorScreen(
                     onBack = { navController.popBackStack() },
                     onAddExercises = { navController.navigate(ExercisePickerRoute) },
+                    viewModel = editor,
                 )
             }
             composable<ActiveWorkoutRoute> { entry ->
                 val workoutId = entry.toRoute<ActiveWorkoutRoute>().id
+                val workout: ActiveWorkoutViewModel = viewModel(factory = ActiveWorkoutViewModel.Factory)
+                PickedExercisesEffect(entry, workout::addExercises)
                 ActiveWorkoutScreen(
+                    viewModel = workout,
                     onClose = { navController.popBackStack() },
                     onFinished = {
                         navController.navigate(WorkoutDetailRoute(workoutId)) {
@@ -186,6 +196,18 @@ private fun ActiveWorkoutBar(workout: Workout, rest: Rest?, onClick: () -> Unit)
                 if (rest != null) stringResource(R.string.rest_remaining, rememberRemaining(rest.endsAt)) else rememberElapsed(workout.startedAt),
                 style = MaterialTheme.typography.titleSmall,
             )
+        }
+    }
+}
+
+// The picker returns its result through the previous entry's handle, which is not the one ViewModels receive.
+@Composable
+private fun PickedExercisesEffect(entry: NavBackStackEntry, onPicked: (LongArray) -> Unit) {
+    val picked by entry.savedStateHandle.getStateFlow<LongArray?>(PICKED_EXERCISES, null).collectAsStateWithLifecycle()
+    LaunchedEffect(picked) {
+        picked?.let {
+            onPicked(it)
+            entry.savedStateHandle[PICKED_EXERCISES] = null
         }
     }
 }

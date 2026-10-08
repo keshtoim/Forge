@@ -16,7 +16,6 @@ import com.keshtoim.forge.data.db.WorkoutExerciseWithSets
 import com.keshtoim.forge.data.db.WorkoutSet
 import com.keshtoim.forge.rest.RestTimer
 import com.keshtoim.forge.ui.ActiveWorkoutRoute
-import com.keshtoim.forge.ui.exercises.PICKED_EXERCISES
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -24,7 +23,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class ActiveWorkoutViewModel(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val workoutDao: WorkoutDao,
     exerciseDao: ExerciseDao,
     private val restTimer: RestTimer,
@@ -51,12 +50,10 @@ class ActiveWorkoutViewModel(
                     .forEach { previous[it] = workoutDao.previousSets(it) }
             }
         }
-        viewModelScope.launch {
-            savedStateHandle.getStateFlow<LongArray?>(PICKED_EXERCISES, null).filterNotNull().collect { ids ->
-                workoutDao.addExercises(workoutId, ids.toList())
-                savedStateHandle[PICKED_EXERCISES] = null
-            }
-        }
+    }
+
+    fun addExercises(ids: LongArray) {
+        viewModelScope.launch { workoutDao.addExercises(workoutId, ids.toList()) }
     }
 
     fun updateSet(set: WorkoutSet) {
