@@ -30,7 +30,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -91,7 +93,7 @@ fun ForgeApp(viewModel: ForgeViewModel = viewModel(factory = ForgeViewModel.Fact
             if (currentTab != null) {
                 Column {
                     activeWorkout?.let { workout ->
-                        ActiveWorkoutBar(workout, rest) { navController.navigate(ActiveWorkoutRoute(workout.id)) }
+                        ActiveWorkoutBar(workout, rest) { navController.openWorkout(workout.id) }
                     }
                     NavigationBar {
                         Tab.entries.forEach { tab ->
@@ -120,32 +122,32 @@ fun ForgeApp(viewModel: ForgeViewModel = viewModel(factory = ForgeViewModel.Fact
             startDestination = WorkoutRoute,
             modifier = Modifier.padding(bottom).consumeWindowInsets(bottom),
         ) {
-            composable<WorkoutRoute> {
+            composable<WorkoutRoute> { entry ->
                 WorkoutHomeScreen(
-                    onOpenTemplate = { navController.navigate(TemplateEditorRoute(it)) },
-                    onOpenWorkout = { navController.navigate(ActiveWorkoutRoute(it)) },
-                    onOpenSettings = { navController.navigate(SettingsRoute) },
+                    onOpenTemplate = { id -> entry.ifResumed { navController.navigate(TemplateEditorRoute(id)) } },
+                    onOpenWorkout = { id -> entry.ifResumed { navController.openWorkout(id) } },
+                    onOpenSettings = { entry.ifResumed { navController.navigate(SettingsRoute) } },
                 )
             }
-            composable<HistoryRoute> {
-                HistoryScreen(onOpen = { navController.navigate(WorkoutDetailRoute(it)) })
+            composable<HistoryRoute> { entry ->
+                HistoryScreen(onOpen = { id -> entry.ifResumed { navController.navigate(WorkoutDetailRoute(id)) } })
             }
-            composable<WorkoutDetailRoute> {
-                WorkoutDetailScreen(onBack = { navController.popBackStack() })
+            composable<WorkoutDetailRoute> { entry ->
+                WorkoutDetailScreen(onBack = { entry.ifResumed { navController.popBackStack() } })
             }
             composable<ExercisesRoute> { ExercisesScreen() }
-            composable<ProgressRoute> {
-                ProgressScreen(onOpen = { navController.navigate(ExerciseProgressRoute(it)) })
+            composable<ProgressRoute> { entry ->
+                ProgressScreen(onOpen = { id -> entry.ifResumed { navController.navigate(ExerciseProgressRoute(id)) } })
             }
-            composable<ExerciseProgressRoute> {
-                ExerciseProgressScreen(onBack = { navController.popBackStack() })
+            composable<ExerciseProgressRoute> { entry ->
+                ExerciseProgressScreen(onBack = { entry.ifResumed { navController.popBackStack() } })
             }
             composable<TemplateEditorRoute> { entry ->
                 val editor: TemplateEditorViewModel = viewModel(factory = TemplateEditorViewModel.Factory)
                 PickedExercisesEffect(entry, editor::addExercises)
                 TemplateEditorScreen(
-                    onBack = { navController.popBackStack() },
-                    onAddExercises = { navController.navigate(ExercisePickerRoute) },
+                    onBack = { entry.ifResumed { navController.popBackStack() } },
+                    onAddExercises = { entry.ifResumed { navController.navigate(ExercisePickerRoute) } },
                     viewModel = editor,
                 )
             }
@@ -155,30 +157,42 @@ fun ForgeApp(viewModel: ForgeViewModel = viewModel(factory = ForgeViewModel.Fact
                 PickedExercisesEffect(entry, workout::addExercises)
                 ActiveWorkoutScreen(
                     viewModel = workout,
-                    onClose = { navController.popBackStack() },
+                    onClose = { entry.ifResumed { navController.popBackStack() } },
                     onFinished = {
-                        navController.navigate(WorkoutDetailRoute(workoutId)) {
-                            popUpTo<ActiveWorkoutRoute> { inclusive = true }
+                        entry.ifResumed {
+                            navController.navigate(WorkoutDetailRoute(workoutId)) {
+                                popUpTo<ActiveWorkoutRoute> { inclusive = true }
+                            }
                         }
                     },
-                    onAddExercises = { navController.navigate(ExercisePickerRoute) },
+                    onAddExercises = { entry.ifResumed { navController.navigate(ExercisePickerRoute) } },
                 )
             }
-            composable<SettingsRoute> {
-                SettingsScreen(onBack = { navController.popBackStack() })
+            composable<SettingsRoute> { entry ->
+                SettingsScreen(onBack = { entry.ifResumed { navController.popBackStack() } })
             }
-            composable<ExercisePickerRoute> {
+            composable<ExercisePickerRoute> { entry ->
                 ExercisePickerScreen(
-                    onBack = { navController.popBackStack() },
+                    onBack = { entry.ifResumed { navController.popBackStack() } },
                     onDone = { ids ->
-                        navController.previousBackStackEntry?.savedStateHandle?.set(PICKED_EXERCISES, ids)
-                        navController.popBackStack()
+                        entry.ifResumed {
+                            navController.previousBackStackEntry?.savedStateHandle?.set(PICKED_EXERCISES, ids)
+                            navController.popBackStack()
+                        }
                     },
                 )
             }
         }
     }
 }
+
+// A screen that is animating out still receives clicks; without this a double tap pops or pushes twice
+// (e.g. popping the start destination leaves an empty NavHost).
+private inline fun NavBackStackEntry.ifResumed(block: () -> Unit) {
+    if (lifecycle.currentState == Lifecycle.State.RESUMED) block()
+}
+
+private fun NavController.openWorkout(id: Long) = navigate(ActiveWorkoutRoute(id)) { launchSingleTop = true }
 
 @Composable
 private fun ActiveWorkoutBar(workout: Workout, rest: Rest?, onClick: () -> Unit) {

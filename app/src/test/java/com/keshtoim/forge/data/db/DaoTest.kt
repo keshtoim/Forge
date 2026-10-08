@@ -59,6 +59,15 @@ class DaoTest {
     }
 
     @Test
+    fun `startOrResume returns the active workout instead of creating another`() = runTest {
+        val first = workouts.startOrResume("A", null, listOf(bench to 1), now = 1_000)
+        val second = workouts.startOrResume("B", null, listOf(squat to 1), now = 2_000)
+
+        assertEquals(first, second)
+        assertEquals(1, db.backupDao().workouts().size)
+    }
+
+    @Test
     fun `addExercises appends after existing ones with one set each`() = runTest {
         val id = workouts.start("Push", null, listOf(bench to 1), now = 1_000)
         workouts.addExercises(id, listOf(squat))

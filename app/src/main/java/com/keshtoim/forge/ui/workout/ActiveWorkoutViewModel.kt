@@ -106,7 +106,11 @@ class ActiveWorkoutViewModel(
 
     fun skipRest() = restTimer.stop()
 
+    private var closing = false
+
     fun finish(onDone: () -> Unit) {
+        if (closing) return
+        closing = true
         viewModelScope.launch {
             restTimer.stop()
             workoutDao.finish(workoutId, System.currentTimeMillis())
@@ -115,6 +119,8 @@ class ActiveWorkoutViewModel(
     }
 
     fun discard(onDone: () -> Unit) {
+        if (closing) return
+        closing = true
         viewModelScope.launch {
             restTimer.stop()
             workoutDao.deleteWorkout(workoutId)

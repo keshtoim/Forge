@@ -40,10 +40,14 @@ class WorkoutHomeViewModel(
     fun startTemplate(summary: TemplateSummary, onStarted: (Long) -> Unit) =
         start(summary.template.name, summary.template.id, summary.items.map { it.exerciseId to it.targetSets }, onStarted)
 
+    private var starting = false
+
     private fun start(name: String, templateId: Long?, items: List<Pair<Long, Int>>, onStarted: (Long) -> Unit) {
+        if (starting) return
+        starting = true
         viewModelScope.launch {
-            // Only one workout may be in progress; resume it instead of starting another.
-            val id = workoutDao.getActive()?.id ?: workoutDao.start(name, templateId, items, System.currentTimeMillis())
+            val id = workoutDao.startOrResume(name, templateId, items, System.currentTimeMillis())
+            starting = false
             onStarted(id)
         }
     }

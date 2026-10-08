@@ -66,7 +66,12 @@ class TemplateEditorViewModel(
         items.removeAt(index)
     }
 
+    // The screen stays clickable while the write runs; a second tap would insert a duplicate template.
+    private var busy = false
+
     fun save(onDone: () -> Unit) {
+        if (busy) return
+        busy = true
         viewModelScope.launch {
             templateDao.save(Template(id = templateId, name = name.trim()), items.toList())
             onDone()
@@ -74,6 +79,8 @@ class TemplateEditorViewModel(
     }
 
     fun delete(onDone: () -> Unit) {
+        if (busy) return
+        busy = true
         viewModelScope.launch {
             templateDao.delete(Template(id = templateId, name = name))
             onDone()

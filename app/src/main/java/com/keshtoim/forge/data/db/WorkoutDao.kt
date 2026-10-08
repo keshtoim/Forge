@@ -137,6 +137,11 @@ interface WorkoutDao {
         return workoutId
     }
 
+    // Only one workout may be in progress; checking and inserting in one transaction prevents two from racing in.
+    @Transaction
+    suspend fun startOrResume(name: String, templateId: Long?, items: List<Pair<Long, Int>>, now: Long): Long =
+        getActive()?.id ?: start(name, templateId, items, now)
+
     @Transaction
     suspend fun addExercises(workoutId: Long, exerciseIds: List<Long>) {
         var position = nextExercisePosition(workoutId)
