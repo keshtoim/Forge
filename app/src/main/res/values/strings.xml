@@ -22,6 +22,23 @@
     <string name="add_exercises">Add exercises</string>
     <string name="add_count">Add (%d)</string>
 
+    <string name="workout_default_name">Workout</string>
+    <string name="workout_start_empty">Start empty workout</string>
+    <string name="workout_start">Start</string>
+    <string name="workout_resume">Resume</string>
+    <string name="workout_finish">Finish</string>
+    <string name="workout_discard">Discard workout</string>
+    <string name="workout_discard_message">The workout and all its sets will be deleted.</string>
+    <string name="exercise_remove">Remove exercise</string>
+    <string name="set_add">Add set</string>
+    <string name="set_done">Set done</string>
+
+    <string name="unit_kg">kg</string>
+    <string name="unit_reps">reps</string>
+    <string name="unit_min">min</string>
+    <string name="unit_sec">sec</string>
+    <string name="unit_km">km</string>
+
     <string name="exercises_search">Search exercises</string>
     <string name="filter_all">All</string>
     <string name="exercise_new">New exercise</string>

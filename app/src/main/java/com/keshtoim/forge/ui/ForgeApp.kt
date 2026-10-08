@@ -2,6 +2,9 @@ package com.keshtoim.forge.ui
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,6 +27,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -31,11 +39,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.keshtoim.forge.R
+import com.keshtoim.forge.data.db.Workout
 import com.keshtoim.forge.ui.exercises.ExercisePickerScreen
 import com.keshtoim.forge.ui.exercises.ExercisesScreen
 import com.keshtoim.forge.ui.exercises.PICKED_EXERCISES
 import com.keshtoim.forge.ui.templates.TemplateEditorScreen
+import com.keshtoim.forge.ui.workout.ActiveWorkoutScreen
 import com.keshtoim.forge.ui.workout.WorkoutHomeScreen
+import com.keshtoim.forge.ui.workout.rememberElapsed
 import kotlinx.serialization.Serializable
 
 @Serializable object WorkoutRoute
@@ -44,6 +55,7 @@ import kotlinx.serialization.Serializable
 @Serializable object ProgressRoute
 @Serializable data class TemplateEditorRoute(val id: Long)
 @Serializable object ExercisePickerRoute
+@Serializable data class ActiveWorkoutRoute(val id: Long)
 
 private enum class Tab(val route: Any, @StringRes val label: Int, val icon: ImageVector) {
     Workout(WorkoutRoute, R.string.tab_workout, Icons.Filled.FitnessCenter),
@@ -53,29 +65,35 @@ private enum class Tab(val route: Any, @StringRes val label: Int, val icon: Imag
 }
 
 @Composable
-fun ForgeApp() {
+fun ForgeApp(viewModel: ForgeViewModel = viewModel(factory = ForgeViewModel.Factory)) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val destination = backStackEntry?.destination
     val currentTab = Tab.entries.firstOrNull { tab -> destination?.hierarchy?.any { it.hasRoute(tab.route::class) } == true }
+    val activeWorkout by viewModel.activeWorkout.collectAsStateWithLifecycle()
 
     Scaffold(
         bottomBar = {
             if (currentTab != null) {
-                NavigationBar {
-                    Tab.entries.forEach { tab ->
-                        NavigationBarItem(
-                            selected = tab == currentTab,
-                            onClick = {
-                                navController.navigate(tab.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = { Icon(tab.icon, contentDescription = null) },
-                            label = { Text(stringResource(tab.label)) },
-                        )
+                Column {
+                    activeWorkout?.let { workout ->
+                        ActiveWorkoutBar(workout) { navController.navigate(ActiveWorkoutRoute(workout.id)) }
+                    }
+                    NavigationBar {
+                        Tab.entries.forEach { tab ->
+                            NavigationBarItem(
+                                selected = tab == currentTab,
+                                onClick = {
+                                    navController.navigate(tab.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                                icon = { Icon(tab.icon, contentDescription = null) },
+                                label = { Text(stringResource(tab.label)) },
+                            )
+                        }
                     }
                 }
             }
@@ -89,7 +107,10 @@ fun ForgeApp() {
             modifier = Modifier.padding(bottom).consumeWindowInsets(bottom),
         ) {
             composable<WorkoutRoute> {
-                WorkoutHomeScreen(onOpenTemplate = { navController.navigate(TemplateEditorRoute(it)) })
+                WorkoutHomeScreen(
+                    onOpenTemplate = { navController.navigate(TemplateEditorRoute(it)) },
+                    onOpenWorkout = { navController.navigate(ActiveWorkoutRoute(it)) },
+                )
             }
             composable<HistoryRoute> { TabTitle(R.string.tab_history) }
             composable<ExercisesRoute> { ExercisesScreen() }
@@ -97,6 +118,12 @@ fun ForgeApp() {
             composable<TemplateEditorRoute> {
                 TemplateEditorScreen(
                     onBack = { navController.popBackStack() },
+                    onAddExercises = { navController.navigate(ExercisePickerRoute) },
+                )
+            }
+            composable<ActiveWorkoutRoute> {
+                ActiveWorkoutScreen(
+                    onClose = { navController.popBackStack() },
                     onAddExercises = { navController.navigate(ExercisePickerRoute) },
                 )
             }
@@ -109,6 +136,23 @@ fun ForgeApp() {
                     },
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun ActiveWorkoutBar(workout: Workout, onClick: () -> Unit) {
+    Surface(onClick = onClick, color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.FitnessCenter, contentDescription = null)
+            Text(
+                workout.name,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
+            )
+            Text(rememberElapsed(workout.startedAt), style = MaterialTheme.typography.titleSmall)
         }
     }
 }

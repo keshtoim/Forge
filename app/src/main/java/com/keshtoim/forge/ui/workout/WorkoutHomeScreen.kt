@@ -6,13 +6,17 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -36,10 +40,13 @@ import com.keshtoim.forge.ui.displayName
 @Composable
 fun WorkoutHomeScreen(
     onOpenTemplate: (Long) -> Unit,
+    onOpenWorkout: (Long) -> Unit,
     viewModel: WorkoutHomeViewModel = viewModel(factory = WorkoutHomeViewModel.Factory),
 ) {
     val templates by viewModel.templates.collectAsStateWithLifecycle()
+    val active by viewModel.activeWorkout.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val defaultName = stringResource(R.string.workout_default_name)
 
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_workout)) }) }) { padding ->
         LazyColumn(
@@ -48,7 +55,30 @@ fun WorkoutHomeScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                val workout = active
+                if (workout != null) {
+                    Card(
+                        onClick = { onOpenWorkout(workout.id) },
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(workout.name, style = MaterialTheme.typography.titleMedium)
+                                Text(rememberElapsed(workout.startedAt), style = MaterialTheme.typography.bodyMedium)
+                            }
+                            Button(onClick = { onOpenWorkout(workout.id) }) { Text(stringResource(R.string.workout_resume)) }
+                        }
+                    }
+                } else {
+                    Button(
+                        onClick = { viewModel.startEmpty(defaultName, onOpenWorkout) },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                    ) { Text(stringResource(R.string.workout_start_empty)) }
+                }
+            }
+            item {
+                Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.templates), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                     TextButton(onClick = { onOpenTemplate(0) }) {
                         Icon(Icons.Filled.Add, contentDescription = null)
@@ -67,15 +97,23 @@ fun WorkoutHomeScreen(
             }
             items(templates, key = { it.template.id }) { summary ->
                 Card(onClick = { onOpenTemplate(summary.template.id) }, modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text(summary.template.name, style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            summary.exercises.joinToString { it.displayName(context) },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(summary.template.name, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                summary.exercises.joinToString { it.displayName(context) },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        if (active == null) {
+                            FilledTonalButton(
+                                onClick = { viewModel.startTemplate(summary, onOpenWorkout) },
+                                modifier = Modifier.padding(start = 8.dp),
+                            ) { Text(stringResource(R.string.workout_start)) }
+                        }
                     }
                 }
             }

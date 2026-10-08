@@ -21,6 +21,23 @@
     <string name="add_exercises">Добавить упражнения</string>
     <string name="add_count">Добавить (%d)</string>
 
+    <string name="workout_default_name">Тренировка</string>
+    <string name="workout_start_empty">Начать пустую тренировку</string>
+    <string name="workout_start">Начать</string>
+    <string name="workout_resume">Продолжить</string>
+    <string name="workout_finish">Завершить</string>
+    <string name="workout_discard">Отменить тренировку</string>
+    <string name="workout_discard_message">Тренировка и все её подходы будут удалены.</string>
+    <string name="exercise_remove">Убрать упражнение</string>
+    <string name="set_add">Добавить подход</string>
+    <string name="set_done">Подход выполнен</string>
+
+    <string name="unit_kg">кг</string>
+    <string name="unit_reps">повт</string>
+    <string name="unit_min">мин</string>
+    <string name="unit_sec">сек</string>
+    <string name="unit_km">км</string>
+
     <string name="exercises_search">Поиск упражнений</string>
     <string name="filter_all">Все</string>
     <string name="exercise_new">Новое упражнение</string>
