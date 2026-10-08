@@ -11,4 +11,10 @@
         <item quantity="many">%d подходов</item>
         <item quantity="other">%d подхода</item>
     </plurals>
+    <plurals name="plural_workouts">
+        <item quantity="one">%d тренировка</item>
+        <item quantity="few">%d тренировки</item>
+        <item quantity="many">%d тренировок</item>
+        <item quantity="other">%d тренировки</item>
+    </plurals>
 </resources>

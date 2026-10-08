@@ -45,6 +45,17 @@
     <string name="channel_rest_timer">Rest timer</string>
     <string name="channel_rest_done">End of rest</string>
 
+    <string name="progress_empty">Finish a workout to see your progress.</string>
+    <string name="progress_delta">%s since first workout</string>
+    <string name="records">Personal records</string>
+    <string name="metric_e1rm">e1RM</string>
+    <string name="metric_max_weight">Max weight</string>
+    <string name="metric_volume">Volume</string>
+    <string name="metric_max_reps">Max reps</string>
+    <string name="metric_total_reps">Total reps</string>
+    <string name="metric_max_duration">Longest</string>
+    <string name="metric_max_distance">Longest distance</string>
+
     <string name="unit_kg">kg</string>
     <string name="unit_reps">reps</string>
     <string name="unit_min">min</string>

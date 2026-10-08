@@ -22,8 +22,41 @@ data class WorkoutDetail(
     val exercises: List<WorkoutExerciseWithSets>,
 )
 
+data class ExerciseHistory(val exerciseId: Long, val lastAt: Long, val sessions: Int)
+
+data class SetPoint(
+    val workoutId: Long,
+    val startedAt: Long,
+    val weightKg: Double?,
+    val reps: Int?,
+    val durationSec: Int?,
+    val distanceM: Double?,
+)
+
 @Dao
 interface WorkoutDao {
+    @Query(
+        """
+        SELECT we.exerciseId AS exerciseId, MAX(w.startedAt) AS lastAt, COUNT(DISTINCT w.id) AS sessions
+        FROM workout_exercises we JOIN workouts w ON w.id = we.workoutId
+        WHERE w.finishedAt IS NOT NULL
+        GROUP BY we.exerciseId ORDER BY lastAt DESC
+        """
+    )
+    fun observeExerciseHistory(): Flow<List<ExerciseHistory>>
+
+    @Query(
+        """
+        SELECT w.id AS workoutId, w.startedAt, s.weightKg, s.reps, s.durationSec, s.distanceM
+        FROM workout_sets s
+        JOIN workout_exercises we ON we.id = s.workoutExerciseId
+        JOIN workouts w ON w.id = we.workoutId
+        WHERE we.exerciseId = :exerciseId AND s.completed = 1 AND w.finishedAt IS NOT NULL
+        ORDER BY w.startedAt
+        """
+    )
+    fun observeSetPoints(exerciseId: Long): Flow<List<SetPoint>>
+
     @Query("SELECT * FROM workouts WHERE finishedAt IS NULL LIMIT 1")
     fun observeActive(): Flow<Workout?>
 

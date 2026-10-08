@@ -1,13 +1,11 @@
 package com.keshtoim.forge.ui
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
@@ -47,6 +45,8 @@ import com.keshtoim.forge.ui.exercises.ExercisesScreen
 import com.keshtoim.forge.ui.exercises.PICKED_EXERCISES
 import com.keshtoim.forge.ui.history.HistoryScreen
 import com.keshtoim.forge.ui.history.WorkoutDetailScreen
+import com.keshtoim.forge.ui.progress.ExerciseProgressScreen
+import com.keshtoim.forge.ui.progress.ProgressScreen
 import com.keshtoim.forge.ui.templates.TemplateEditorScreen
 import com.keshtoim.forge.ui.workout.ActiveWorkoutScreen
 import com.keshtoim.forge.ui.workout.WorkoutHomeScreen
@@ -62,6 +62,7 @@ import kotlinx.serialization.Serializable
 @Serializable object ExercisePickerRoute
 @Serializable data class ActiveWorkoutRoute(val id: Long)
 @Serializable data class WorkoutDetailRoute(val id: Long)
+@Serializable data class ExerciseProgressRoute(val exerciseId: Long)
 
 private enum class Tab(val route: Any, @StringRes val label: Int, val icon: ImageVector) {
     Workout(WorkoutRoute, R.string.tab_workout, Icons.Filled.FitnessCenter),
@@ -126,7 +127,12 @@ fun ForgeApp(viewModel: ForgeViewModel = viewModel(factory = ForgeViewModel.Fact
                 WorkoutDetailScreen(onBack = { navController.popBackStack() })
             }
             composable<ExercisesRoute> { ExercisesScreen() }
-            composable<ProgressRoute> { TabTitle(R.string.tab_progress) }
+            composable<ProgressRoute> {
+                ProgressScreen(onOpen = { navController.navigate(ExerciseProgressRoute(it)) })
+            }
+            composable<ExerciseProgressRoute> {
+                ExerciseProgressScreen(onBack = { navController.popBackStack() })
+            }
             composable<TemplateEditorRoute> {
                 TemplateEditorScreen(
                     onBack = { navController.popBackStack() },
@@ -175,12 +181,5 @@ private fun ActiveWorkoutBar(workout: Workout, rest: Rest?, onClick: () -> Unit)
                 style = MaterialTheme.typography.titleSmall,
             )
         }
-    }
-}
-
-@Composable
-private fun TabTitle(@StringRes title: Int) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(stringResource(title), style = MaterialTheme.typography.headlineMedium)
     }
 }

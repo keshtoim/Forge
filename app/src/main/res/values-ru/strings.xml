@@ -44,6 +44,17 @@
     <string name="channel_rest_timer">Таймер отдыха</string>
     <string name="channel_rest_done">Конец отдыха</string>
 
+    <string name="progress_empty">Заверши тренировку, чтобы увидеть прогресс.</string>
+    <string name="progress_delta">%s с первой тренировки</string>
+    <string name="records">Личные рекорды</string>
+    <string name="metric_e1rm">e1RM</string>
+    <string name="metric_max_weight">Макс. вес</string>
+    <string name="metric_volume">Объём</string>
+    <string name="metric_max_reps">Макс. повторы</string>
+    <string name="metric_total_reps">Всего повторов</string>
+    <string name="metric_max_duration">Макс. время</string>
+    <string name="metric_max_distance">Макс. дистанция</string>
+
     <string name="unit_kg">кг</string>
     <string name="unit_reps">повт</string>
     <string name="unit_min">мин</string>

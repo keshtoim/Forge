@@ -11,6 +11,10 @@ import com.keshtoim.forge.data.db.WorkoutDetail
 import com.keshtoim.forge.data.db.WorkoutSet
 import com.keshtoim.forge.ui.workout.formatDuration
 import com.keshtoim.forge.ui.workout.formatNumber
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 fun Exercise.displayName(context: Context): String =
     builtInKey?.let { context.getString(BuiltInExercise.valueOf(it).nameRes) } ?: name.orEmpty()
@@ -55,3 +59,10 @@ val ExerciseType.labelRes: Int
         ExerciseType.DURATION -> R.string.type_duration
         ExerciseType.DISTANCE -> R.string.type_distance
     }
+
+fun formatDate(millis: Long, style: FormatStyle = FormatStyle.MEDIUM): String =
+    Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDate(style))
+
+fun formatDateTime(millis: Long): String =
+    Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault())
+        .format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT))

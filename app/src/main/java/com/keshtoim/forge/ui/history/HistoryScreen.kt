@@ -40,19 +40,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
 import com.keshtoim.forge.data.db.WorkoutDetail
 import com.keshtoim.forge.ui.displayName
+import com.keshtoim.forge.ui.formatDateTime
 import com.keshtoim.forge.ui.summary
 import com.keshtoim.forge.ui.volumeKg
 import com.keshtoim.forge.ui.workout.formatDuration
 import com.keshtoim.forge.ui.workout.formatNumber
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
-
-private val dateFormat = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
-
-private fun formatDate(millis: Long): String =
-    Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).format(dateFormat)
 
 @Composable
 private fun WorkoutStats(detail: WorkoutDetail) {
@@ -87,7 +79,7 @@ fun HistoryScreen(onOpen: (Long) -> Unit, viewModel: HistoryViewModel = viewMode
             items(workouts, key = { it.workout.id }) { detail ->
                 Card(onClick = { onOpen(detail.workout.id) }, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp)) {
-                        Text(formatDate(detail.workout.startedAt), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                        Text(formatDateTime(detail.workout.startedAt), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                         Text(detail.workout.name, style = MaterialTheme.typography.titleMedium)
                         WorkoutStats(detail)
                     }
@@ -129,7 +121,7 @@ fun WorkoutDetailScreen(onBack: () -> Unit, viewModel: WorkoutDetailViewModel = 
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
-                Text(formatDate(workout.workout.startedAt), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Text(formatDateTime(workout.workout.startedAt), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 WorkoutStats(workout)
             }
             items(workout.exercises.sortedBy { it.workoutExercise.position }, key = { it.workoutExercise.id }) { item ->
