@@ -30,6 +30,32 @@ class SetFieldTest {
     }
 
     @Test
+    fun `non-finite input is rejected`() {
+        assertNull(SetField.WEIGHT.write(empty, "Infinity").weightKg)
+        assertNull(SetField.DISTANCE.write(empty, "1e999").distanceM)
+        assertNull(SetField.WEIGHT.write(empty, "NaN").weightKg)
+    }
+
+    @Test
+    fun `huge input is clamped and does not overflow duration`() {
+        assertEquals(1_000.0, SetField.WEIGHT.write(empty, "99999999").weightKg!!, 0.0)
+        assertEquals(999 * 60, SetField.MINUTES.write(empty, "99999999999").durationSec)
+    }
+
+    @Test
+    fun `seconds are clamped instead of rolling into minutes while typing`() {
+        val set = SetField.SECONDS.write(empty.copy(durationSec = 60), "75")
+        assertEquals(60 + 59, set.durationSec)
+        // Re-typing after a clamp must not accumulate into minutes.
+        assertEquals(60 + 6, SetField.SECONDS.write(set, "6").durationSec)
+    }
+
+    @Test
+    fun `step stays within bounds`() {
+        assertEquals(59, SetField.SECONDS.step(empty.copy(durationSec = 57), null, 1).durationSec)
+    }
+
+    @Test
     fun `reps are truncated to whole numbers`() {
         assertEquals(8, SetField.REPS.write(empty, "8.7").reps)
     }
