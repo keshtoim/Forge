@@ -32,6 +32,16 @@
     <string name="set_add">Добавить подход</string>
     <string name="set_done">Подход выполнен</string>
 
+    <string name="rest_title">Отдых</string>
+    <string name="rest_remaining">Отдых %s</string>
+    <string name="rest_add">+15 с</string>
+    <string name="rest_sub">−15 с</string>
+    <string name="rest_skip">Пропустить</string>
+    <string name="rest_done">Отдых окончен</string>
+    <string name="rest_done_text">Время следующего подхода</string>
+    <string name="channel_rest_timer">Таймер отдыха</string>
+    <string name="channel_rest_done">Конец отдыха</string>
+
     <string name="unit_kg">кг</string>
     <string name="unit_reps">повт</string>
     <string name="unit_min">мин</string>

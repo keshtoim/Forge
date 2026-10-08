@@ -40,6 +40,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.keshtoim.forge.R
 import com.keshtoim.forge.data.db.Workout
+import com.keshtoim.forge.rest.Rest
 import com.keshtoim.forge.ui.exercises.ExercisePickerScreen
 import com.keshtoim.forge.ui.exercises.ExercisesScreen
 import com.keshtoim.forge.ui.exercises.PICKED_EXERCISES
@@ -47,6 +48,7 @@ import com.keshtoim.forge.ui.templates.TemplateEditorScreen
 import com.keshtoim.forge.ui.workout.ActiveWorkoutScreen
 import com.keshtoim.forge.ui.workout.WorkoutHomeScreen
 import com.keshtoim.forge.ui.workout.rememberElapsed
+import com.keshtoim.forge.ui.workout.rememberRemaining
 import kotlinx.serialization.Serializable
 
 @Serializable object WorkoutRoute
@@ -71,13 +73,14 @@ fun ForgeApp(viewModel: ForgeViewModel = viewModel(factory = ForgeViewModel.Fact
     val destination = backStackEntry?.destination
     val currentTab = Tab.entries.firstOrNull { tab -> destination?.hierarchy?.any { it.hasRoute(tab.route::class) } == true }
     val activeWorkout by viewModel.activeWorkout.collectAsStateWithLifecycle()
+    val rest by viewModel.rest.collectAsStateWithLifecycle()
 
     Scaffold(
         bottomBar = {
             if (currentTab != null) {
                 Column {
                     activeWorkout?.let { workout ->
-                        ActiveWorkoutBar(workout) { navController.navigate(ActiveWorkoutRoute(workout.id)) }
+                        ActiveWorkoutBar(workout, rest) { navController.navigate(ActiveWorkoutRoute(workout.id)) }
                     }
                     NavigationBar {
                         Tab.entries.forEach { tab ->
@@ -141,7 +144,7 @@ fun ForgeApp(viewModel: ForgeViewModel = viewModel(factory = ForgeViewModel.Fact
 }
 
 @Composable
-private fun ActiveWorkoutBar(workout: Workout, onClick: () -> Unit) {
+private fun ActiveWorkoutBar(workout: Workout, rest: Rest?, onClick: () -> Unit) {
     Surface(onClick = onClick, color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Filled.FitnessCenter, contentDescription = null)
@@ -152,7 +155,10 @@ private fun ActiveWorkoutBar(workout: Workout, onClick: () -> Unit) {
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
             )
-            Text(rememberElapsed(workout.startedAt), style = MaterialTheme.typography.titleSmall)
+            Text(
+                if (rest != null) stringResource(R.string.rest_remaining, rememberRemaining(rest.endsAt)) else rememberElapsed(workout.startedAt),
+                style = MaterialTheme.typography.titleSmall,
+            )
         }
     }
 }

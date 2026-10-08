@@ -14,6 +14,7 @@ import com.keshtoim.forge.data.db.ExerciseDao
 import com.keshtoim.forge.data.db.WorkoutDao
 import com.keshtoim.forge.data.db.WorkoutExerciseWithSets
 import com.keshtoim.forge.data.db.WorkoutSet
+import com.keshtoim.forge.rest.RestTimer
 import com.keshtoim.forge.ui.ActiveWorkoutRoute
 import com.keshtoim.forge.ui.exercises.PICKED_EXERCISES
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,6 +27,7 @@ class ActiveWorkoutViewModel(
     private val savedStateHandle: SavedStateHandle,
     private val workoutDao: WorkoutDao,
     exerciseDao: ExerciseDao,
+    private val restTimer: RestTimer,
 ) : ViewModel() {
     private val workoutId = savedStateHandle.toRoute<ActiveWorkoutRoute>().id
 
@@ -35,6 +37,8 @@ class ActiveWorkoutViewModel(
     val exercises = exerciseDao.observeAll()
         .map { list -> list.associateBy { it.id } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+
+    val rest = restTimer.state
 
     // Sets of the last finished workout per exerciseId, shown as placeholders.
     val previous = mutableStateMapOf<Long, List<WorkoutSet>>()
@@ -70,6 +74,7 @@ class ActiveWorkoutViewModel(
                 distanceM = set.distanceM ?: ghost?.distanceM,
             )
             if (filled.reps == null && filled.durationSec == null && filled.distanceM == null) return
+            restTimer.start()
             filled.copy(completed = true)
         }
         updateSet(updated)
@@ -89,8 +94,13 @@ class ActiveWorkoutViewModel(
         viewModelScope.launch { workoutDao.delete(exercise.workoutExercise) }
     }
 
+    fun adjustRest(deltaSec: Int) = restTimer.adjust(deltaSec)
+
+    fun skipRest() = restTimer.stop()
+
     fun finish(onDone: () -> Unit) {
         viewModelScope.launch {
+            restTimer.stop()
             workoutDao.finish(workoutId, System.currentTimeMillis())
             onDone()
         }
@@ -98,6 +108,7 @@ class ActiveWorkoutViewModel(
 
     fun discard(onDone: () -> Unit) {
         viewModelScope.launch {
+            restTimer.stop()
             workoutDao.deleteWorkout(workoutId)
             onDone()
         }
@@ -106,8 +117,9 @@ class ActiveWorkoutViewModel(
     companion object {
         val Factory = viewModelFactory {
             initializer {
-                val db = (this[APPLICATION_KEY] as ForgeApplication).database
-                ActiveWorkoutViewModel(createSavedStateHandle(), db.workoutDao(), db.exerciseDao())
+                val app = this[APPLICATION_KEY] as ForgeApplication
+                val db = app.database
+                ActiveWorkoutViewModel(createSavedStateHandle(), db.workoutDao(), db.exerciseDao(), app.restTimer)
             }
         }
     }

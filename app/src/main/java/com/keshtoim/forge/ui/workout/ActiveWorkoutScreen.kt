@@ -1,5 +1,10 @@
 package com.keshtoim.forge.ui.workout
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -59,6 +64,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
@@ -81,10 +87,21 @@ fun ActiveWorkoutScreen(
     var menuOpen by remember { mutableStateOf(false) }
     var confirmDiscard by remember { mutableStateOf(false) }
 
+    val rest by viewModel.rest.collectAsStateWithLifecycle()
+
     val view = LocalView.current
     DisposableEffect(view) {
         view.keepScreenOn = true
         onDispose { view.keepScreenOn = false }
+    }
+
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
 
     val workout = detail ?: return
@@ -122,6 +139,9 @@ fun ActiveWorkoutScreen(
                     }
                 },
             )
+        },
+        bottomBar = {
+            rest?.let { RestBar(it, onAdjust = viewModel::adjustRest, onSkip = viewModel::skipRest) }
         },
     ) { padding ->
         LazyColumn(

@@ -9,16 +9,22 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 
 @Composable
-fun rememberElapsed(startedAt: Long): String {
+fun rememberNow(): Long {
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(startedAt) {
+    LaunchedEffect(Unit) {
         while (true) {
             now = System.currentTimeMillis()
-            delay(1_000)
+            delay(250)
         }
     }
-    return formatDuration(((now - startedAt) / 1000).coerceAtLeast(0))
+    return now
 }
+
+@Composable
+fun rememberElapsed(startedAt: Long): String = formatDuration(((rememberNow() - startedAt) / 1000).coerceAtLeast(0))
+
+@Composable
+fun rememberRemaining(endsAt: Long): String = formatDuration(((endsAt - rememberNow() + 999) / 1000).coerceAtLeast(0))
 
 fun formatDuration(totalSeconds: Long): String {
     val h = totalSeconds / 3600
