@@ -1,0 +1,90 @@
+package com.keshtoim.forge.ui
+
+import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ShowChart
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.keshtoim.forge.R
+import kotlinx.serialization.Serializable
+
+@Serializable object WorkoutRoute
+@Serializable object HistoryRoute
+@Serializable object ExercisesRoute
+@Serializable object ProgressRoute
+
+private enum class Tab(val route: Any, @StringRes val label: Int, val icon: ImageVector) {
+    Workout(WorkoutRoute, R.string.tab_workout, Icons.Filled.FitnessCenter),
+    History(HistoryRoute, R.string.tab_history, Icons.Filled.History),
+    Exercises(ExercisesRoute, R.string.tab_exercises, Icons.AutoMirrored.Filled.FormatListBulleted),
+    Progress(ProgressRoute, R.string.tab_progress, Icons.AutoMirrored.Filled.ShowChart),
+}
+
+@Composable
+fun ForgeApp() {
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val destination = backStackEntry?.destination
+
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                Tab.entries.forEach { tab ->
+                    NavigationBarItem(
+                        selected = destination?.hierarchy?.any { it.hasRoute(tab.route::class) } == true,
+                        onClick = {
+                            navController.navigate(tab.route) {
+                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        icon = { Icon(tab.icon, contentDescription = null) },
+                        label = { Text(stringResource(tab.label)) },
+                    )
+                }
+            }
+        },
+    ) { padding ->
+        NavHost(
+            navController = navController,
+            startDestination = WorkoutRoute,
+            modifier = Modifier.padding(padding),
+        ) {
+            composable<WorkoutRoute> { TabTitle(R.string.tab_workout) }
+            composable<HistoryRoute> { TabTitle(R.string.tab_history) }
+            composable<ExercisesRoute> { TabTitle(R.string.tab_exercises) }
+            composable<ProgressRoute> { TabTitle(R.string.tab_progress) }
+        }
+    }
+}
+
+@Composable
+private fun TabTitle(@StringRes title: Int) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(stringResource(title), style = MaterialTheme.typography.headlineMedium)
+    }
+}
