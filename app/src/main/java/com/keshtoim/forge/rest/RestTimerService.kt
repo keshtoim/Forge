@@ -45,17 +45,22 @@ class RestTimerService : Service() {
             ACTION_SKIP -> timer.stop()
         }
         val rest = timer.state.value
+        // startForegroundService() requires startForeground() on every start, even if the rest was
+        // skipped before the service got here; otherwise the system crashes the app.
+        ServiceCompat.startForeground(
+            this,
+            NOTIFICATION_ONGOING,
+            rest?.let(::ongoingNotification) ?: NotificationCompat.Builder(this, CHANNEL_ONGOING)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(getString(R.string.rest_title))
+                .setSilent(true)
+                .build(),
+            if (Build.VERSION.SDK_INT >= 34) ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE else 0,
+        )
         if (rest == null) {
             stopSelf()
             return START_NOT_STICKY
         }
-        // startForegroundService() requires startForeground() on every start, even if already running.
-        ServiceCompat.startForeground(
-            this,
-            NOTIFICATION_ONGOING,
-            ongoingNotification(rest),
-            if (Build.VERSION.SDK_INT >= 34) ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE else 0,
-        )
         if (job == null) job = scope.launch { run() }
         return START_NOT_STICKY
     }
