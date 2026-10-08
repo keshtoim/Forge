@@ -29,6 +29,8 @@
     <string name="workout_finish">Finish</string>
     <string name="workout_discard">Discard workout</string>
     <string name="workout_discard_message">The workout and all its sets will be deleted.</string>
+    <string name="workout_delete">Delete workout</string>
+    <string name="history_empty">Finished workouts will appear here.</string>
     <string name="exercise_remove">Remove exercise</string>
     <string name="set_add">Add set</string>
     <string name="set_done">Set done</string>

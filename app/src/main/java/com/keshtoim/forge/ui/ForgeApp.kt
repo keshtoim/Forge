@@ -38,12 +38,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.keshtoim.forge.R
 import com.keshtoim.forge.data.db.Workout
 import com.keshtoim.forge.rest.Rest
 import com.keshtoim.forge.ui.exercises.ExercisePickerScreen
 import com.keshtoim.forge.ui.exercises.ExercisesScreen
 import com.keshtoim.forge.ui.exercises.PICKED_EXERCISES
+import com.keshtoim.forge.ui.history.HistoryScreen
+import com.keshtoim.forge.ui.history.WorkoutDetailScreen
 import com.keshtoim.forge.ui.templates.TemplateEditorScreen
 import com.keshtoim.forge.ui.workout.ActiveWorkoutScreen
 import com.keshtoim.forge.ui.workout.WorkoutHomeScreen
@@ -58,6 +61,7 @@ import kotlinx.serialization.Serializable
 @Serializable data class TemplateEditorRoute(val id: Long)
 @Serializable object ExercisePickerRoute
 @Serializable data class ActiveWorkoutRoute(val id: Long)
+@Serializable data class WorkoutDetailRoute(val id: Long)
 
 private enum class Tab(val route: Any, @StringRes val label: Int, val icon: ImageVector) {
     Workout(WorkoutRoute, R.string.tab_workout, Icons.Filled.FitnessCenter),
@@ -115,7 +119,12 @@ fun ForgeApp(viewModel: ForgeViewModel = viewModel(factory = ForgeViewModel.Fact
                     onOpenWorkout = { navController.navigate(ActiveWorkoutRoute(it)) },
                 )
             }
-            composable<HistoryRoute> { TabTitle(R.string.tab_history) }
+            composable<HistoryRoute> {
+                HistoryScreen(onOpen = { navController.navigate(WorkoutDetailRoute(it)) })
+            }
+            composable<WorkoutDetailRoute> {
+                WorkoutDetailScreen(onBack = { navController.popBackStack() })
+            }
             composable<ExercisesRoute> { ExercisesScreen() }
             composable<ProgressRoute> { TabTitle(R.string.tab_progress) }
             composable<TemplateEditorRoute> {
@@ -124,9 +133,15 @@ fun ForgeApp(viewModel: ForgeViewModel = viewModel(factory = ForgeViewModel.Fact
                     onAddExercises = { navController.navigate(ExercisePickerRoute) },
                 )
             }
-            composable<ActiveWorkoutRoute> {
+            composable<ActiveWorkoutRoute> { entry ->
+                val workoutId = entry.toRoute<ActiveWorkoutRoute>().id
                 ActiveWorkoutScreen(
                     onClose = { navController.popBackStack() },
+                    onFinished = {
+                        navController.navigate(WorkoutDetailRoute(workoutId)) {
+                            popUpTo<ActiveWorkoutRoute> { inclusive = true }
+                        }
+                    },
                     onAddExercises = { navController.navigate(ExercisePickerRoute) },
                 )
             }

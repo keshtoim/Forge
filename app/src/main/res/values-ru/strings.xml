@@ -28,6 +28,8 @@
     <string name="workout_finish">Завершить</string>
     <string name="workout_discard">Отменить тренировку</string>
     <string name="workout_discard_message">Тренировка и все её подходы будут удалены.</string>
+    <string name="workout_delete">Удалить тренировку</string>
+    <string name="history_empty">Здесь появятся завершённые тренировки.</string>
     <string name="exercise_remove">Убрать упражнение</string>
     <string name="set_add">Добавить подход</string>
     <string name="set_done">Подход выполнен</string>

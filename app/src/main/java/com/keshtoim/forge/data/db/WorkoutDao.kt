@@ -34,6 +34,10 @@ interface WorkoutDao {
     @Query("SELECT * FROM workouts WHERE id = :id")
     fun observeDetail(id: Long): Flow<WorkoutDetail?>
 
+    @Transaction
+    @Query("SELECT * FROM workouts WHERE finishedAt IS NOT NULL ORDER BY startedAt DESC")
+    fun observeFinished(): Flow<List<WorkoutDetail>>
+
     @Query(
         """
         SELECT * FROM workout_sets WHERE workoutExerciseId = (

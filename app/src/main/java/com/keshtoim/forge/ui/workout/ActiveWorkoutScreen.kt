@@ -77,6 +77,7 @@ import com.keshtoim.forge.ui.displayName
 @Composable
 fun ActiveWorkoutScreen(
     onClose: () -> Unit,
+    onFinished: () -> Unit,
     onAddExercises: () -> Unit,
     viewModel: ActiveWorkoutViewModel = viewModel(factory = ActiveWorkoutViewModel.Factory),
 ) {
@@ -126,7 +127,7 @@ fun ActiveWorkoutScreen(
                 },
                 actions = {
                     TextButton(onClick = {
-                        if (workout.exercises.any { e -> e.sets.any { it.completed } }) viewModel.finish(onClose) else confirmDiscard = true
+                        if (workout.exercises.any { e -> e.sets.any { it.completed } }) viewModel.finish(onFinished) else confirmDiscard = true
                     }) { Text(stringResource(R.string.workout_finish)) }
                     Box {
                         IconButton(onClick = { menuOpen = true }) { Icon(Icons.Filled.MoreVert, contentDescription = null) }
