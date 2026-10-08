@@ -82,6 +82,12 @@ interface WorkoutDao {
     )
     suspend fun previousSets(exerciseId: Long): List<WorkoutSet>
 
+    @Query("SELECT * FROM workout_sets WHERE id = :id")
+    suspend fun getSet(id: Long): WorkoutSet?
+
+    @Query("SELECT * FROM workout_sets WHERE workoutExerciseId = :workoutExerciseId ORDER BY position DESC LIMIT 1")
+    suspend fun lastSet(workoutExerciseId: Long): WorkoutSet?
+
     @Insert
     suspend fun insert(workout: Workout): Long
 

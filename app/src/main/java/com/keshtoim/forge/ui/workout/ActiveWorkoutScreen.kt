@@ -159,10 +159,10 @@ fun ActiveWorkoutScreen(
                     previous = viewModel.previous[exercise.id].orEmpty(),
                     selectedSetId = selectedSetId,
                     onSelect = { selectedSetId = it },
-                    onChange = viewModel::updateSet,
+                    onEdit = viewModel::editSet,
                     onToggle = viewModel::toggleCompleted,
                     onDelete = viewModel::deleteSet,
-                    onAddSet = { viewModel.addSet(item) },
+                    onAddSet = { viewModel.addSet(item.workoutExercise.id) },
                     onRemove = { viewModel.removeExercise(item) },
                 )
             }
@@ -199,8 +199,8 @@ private fun ExerciseCard(
     previous: List<WorkoutSet>,
     selectedSetId: Long?,
     onSelect: (Long) -> Unit,
-    onChange: (WorkoutSet) -> Unit,
-    onToggle: (WorkoutSet, WorkoutSet?) -> Unit,
+    onEdit: (Long, (WorkoutSet) -> WorkoutSet?) -> Unit,
+    onToggle: (Long, WorkoutSet?) -> Unit,
     onDelete: (WorkoutSet) -> Unit,
     onAddSet: () -> Unit,
     onRemove: () -> Unit,
@@ -230,12 +230,12 @@ private fun ExerciseCard(
                     ghost = ghost,
                     fields = fields,
                     onFocus = { onSelect(set.id) },
-                    onChange = onChange,
-                    onToggle = { onToggle(set, ghost) },
+                    onEdit = { transform -> onEdit(set.id, transform) },
+                    onToggle = { onToggle(set.id, ghost) },
                     onDelete = { onDelete(set) },
                 )
                 if (selectedSetId == set.id && !set.completed) {
-                    StepperBar(set, ghost, fields, onChange)
+                    StepperBar(ghost, fields) { transform -> onEdit(set.id, transform) }
                 }
             }
         }
@@ -255,7 +255,7 @@ private fun SetRow(
     ghost: WorkoutSet?,
     fields: List<SetField>,
     onFocus: () -> Unit,
-    onChange: (WorkoutSet) -> Unit,
+    onEdit: ((WorkoutSet) -> WorkoutSet) -> Unit,
     onToggle: () -> Unit,
     onDelete: () -> Unit,
 ) {
@@ -283,7 +283,7 @@ private fun SetRow(
         ) {
             Text("$number", style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center, modifier = Modifier.width(24.dp))
             fields.forEach { field ->
-                SetFieldInput(field, set, ghost, onChange, onFocus, Modifier.weight(1f))
+                SetFieldInput(field, set, ghost, onEdit, onFocus, Modifier.weight(1f))
             }
             FilledTonalIconToggleButton(checked = set.completed, onCheckedChange = { onToggle() }) {
                 Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.set_done))
@@ -297,7 +297,7 @@ private fun SetFieldInput(
     field: SetField,
     set: WorkoutSet,
     ghost: WorkoutSet?,
-    onChange: (WorkoutSet) -> Unit,
+    onEdit: ((WorkoutSet) -> WorkoutSet) -> Unit,
     onFocus: () -> Unit,
     modifier: Modifier,
 ) {
@@ -309,9 +309,9 @@ private fun SetFieldInput(
 
     OutlinedTextField(
         value = text,
-        onValueChange = {
-            text = it
-            onChange(field.write(set, it))
+        onValueChange = { input ->
+            text = input
+            onEdit { field.write(it, input) }
         },
         modifier = modifier.onFocusChanged {
             focused = it.isFocused
@@ -327,7 +327,7 @@ private fun SetFieldInput(
 }
 
 @Composable
-private fun StepperBar(set: WorkoutSet, ghost: WorkoutSet?, fields: List<SetField>, onChange: (WorkoutSet) -> Unit) {
+private fun StepperBar(ghost: WorkoutSet?, fields: List<SetField>, onEdit: ((WorkoutSet) -> WorkoutSet) -> Unit) {
     val focusManager = LocalFocusManager.current
     Row(
         Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
@@ -336,7 +336,7 @@ private fun StepperBar(set: WorkoutSet, ghost: WorkoutSet?, fields: List<SetFiel
     ) {
         fields.forEach { field ->
             Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedIconButton(onClick = { focusManager.clearFocus(); onChange(field.step(set, ghost, -1)) }) {
+                OutlinedIconButton(onClick = { focusManager.clearFocus(); onEdit { field.step(it, ghost, -1) } }) {
                     Icon(Icons.Filled.Remove, contentDescription = null)
                 }
                 Text(
@@ -344,7 +344,7 @@ private fun StepperBar(set: WorkoutSet, ghost: WorkoutSet?, fields: List<SetFiel
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(horizontal = 8.dp),
                 )
-                OutlinedIconButton(onClick = { focusManager.clearFocus(); onChange(field.step(set, ghost, 1)) }) {
+                OutlinedIconButton(onClick = { focusManager.clearFocus(); onEdit { field.step(it, ghost, 1) } }) {
                     Icon(Icons.Filled.Add, contentDescription = null)
                 }
             }

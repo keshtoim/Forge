@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class ActiveWorkoutViewModel(
     savedStateHandle: SavedStateHandle,
@@ -42,6 +44,8 @@ class ActiveWorkoutViewModel(
     // Sets of the last finished workout per exerciseId, shown as placeholders.
     val previous = mutableStateMapOf<Long, List<WorkoutSet>>()
 
+    private val setWrites = Mutex()
+
     init {
         viewModelScope.launch {
             detail.filterNotNull().collect { d ->
@@ -56,31 +60,38 @@ class ActiveWorkoutViewModel(
         viewModelScope.launch { workoutDao.addExercises(workoutId, ids.toList()) }
     }
 
-    fun updateSet(set: WorkoutSet) {
-        viewModelScope.launch { workoutDao.update(set) }
-    }
-
-    fun toggleCompleted(set: WorkoutSet, ghost: WorkoutSet?) {
-        val updated = if (set.completed) {
-            set.copy(completed = false)
-        } else {
-            val filled = set.copy(
-                weightKg = set.weightKg ?: ghost?.weightKg,
-                reps = set.reps ?: ghost?.reps,
-                durationSec = set.durationSec ?: ghost?.durationSec,
-                distanceM = set.distanceM ?: ghost?.distanceM,
-            )
-            if (filled.reps == null && filled.durationSec == null && filled.distanceM == null) return
-            restTimer.start()
-            filled.copy(completed = true)
+    // The UI's copy of a set lags behind pending writes, so every edit re-reads the row under one lock;
+    // otherwise quick successive edits (type, then tap ✓) would overwrite each other with stale values.
+    fun editSet(id: Long, transform: (WorkoutSet) -> WorkoutSet?) {
+        viewModelScope.launch {
+            setWrites.withLock {
+                val current = workoutDao.getSet(id) ?: return@withLock
+                transform(current)?.let { workoutDao.update(it) }
+            }
         }
-        updateSet(updated)
     }
 
-    fun addSet(exercise: WorkoutExerciseWithSets) {
-        val last = exercise.sets.maxByOrNull { it.position }
-        val base = last?.copy(id = 0, completed = false) ?: WorkoutSet(workoutExerciseId = exercise.workoutExercise.id, position = 0)
-        viewModelScope.launch { workoutDao.insert(base.copy(position = (last?.position ?: -1) + 1)) }
+    fun toggleCompleted(id: Long, ghost: WorkoutSet?) = editSet(id) { set ->
+        if (set.completed) return@editSet set.copy(completed = false)
+        val filled = set.copy(
+            weightKg = set.weightKg ?: ghost?.weightKg,
+            reps = set.reps ?: ghost?.reps,
+            durationSec = set.durationSec ?: ghost?.durationSec,
+            distanceM = set.distanceM ?: ghost?.distanceM,
+        )
+        if (filled.reps == null && filled.durationSec == null && filled.distanceM == null) return@editSet null
+        restTimer.start()
+        filled.copy(completed = true)
+    }
+
+    fun addSet(workoutExerciseId: Long) {
+        viewModelScope.launch {
+            setWrites.withLock {
+                val last = workoutDao.lastSet(workoutExerciseId)
+                val base = last?.copy(id = 0, completed = false) ?: WorkoutSet(workoutExerciseId = workoutExerciseId, position = 0)
+                workoutDao.insert(base.copy(position = (last?.position ?: -1) + 1))
+            }
+        }
     }
 
     fun deleteSet(set: WorkoutSet) {
