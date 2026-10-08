@@ -80,6 +80,7 @@
     <string name="exercise_name">Name</string>
     <string name="muscle_group">Muscle group</string>
     <string name="exercise_type">Tracking</string>
+    <string name="exercise_type_locked">Cannot be changed: the exercise already has logged sets</string>
 
     <string name="muscle_chest">Chest</string>
     <string name="muscle_back">Back</string>

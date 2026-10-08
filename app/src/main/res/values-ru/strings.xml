@@ -79,6 +79,7 @@
     <string name="exercise_name">Название</string>
     <string name="muscle_group">Группа мышц</string>
     <string name="exercise_type">Что записываем</string>
+    <string name="exercise_type_locked">Нельзя изменить: по упражнению уже есть записи</string>
 
     <string name="muscle_chest">Грудь</string>
     <string name="muscle_back">Спина</string>

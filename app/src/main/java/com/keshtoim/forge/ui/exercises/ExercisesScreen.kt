@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,10 +62,13 @@ fun ExercisesScreen(viewModel: ExercisesViewModel = viewModel(factory = Exercise
         )
     }
 
-
     editing?.let { exercise ->
+        // Changing the type would make already logged sets unreadable (e.g. weight×reps shown as time).
+        var typeLocked by remember(exercise.id) { mutableStateOf(false) }
+        LaunchedEffect(exercise.id) { typeLocked = exercise.id != 0L && viewModel.hasHistory(exercise.id) }
         ExerciseDialog(
             initial = exercise,
+            typeLocked = typeLocked,
             onDismiss = { editing = null },
             onSave = { viewModel.save(it); editing = null },
             onDelete = { viewModel.archive(exercise); editing = null },
@@ -75,6 +79,7 @@ fun ExercisesScreen(viewModel: ExercisesViewModel = viewModel(factory = Exercise
 @Composable
 private fun ExerciseDialog(
     initial: Exercise,
+    typeLocked: Boolean,
     onDismiss: () -> Unit,
     onSave: (Exercise) -> Unit,
     onDelete: () -> Unit,
@@ -97,7 +102,11 @@ private fun ExerciseDialog(
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 )
                 Dropdown(stringResource(R.string.muscle_group), muscle, MuscleGroup.entries, { it.labelRes }) { muscle = it }
-                Dropdown(stringResource(R.string.exercise_type), type, ExerciseType.entries, { it.labelRes }) { type = it }
+                Dropdown(
+                    stringResource(R.string.exercise_type), type, ExerciseType.entries, { it.labelRes },
+                    enabled = !typeLocked,
+                    hint = if (typeLocked) stringResource(R.string.exercise_type_locked) else null,
+                ) { type = it }
                 if (!isNew) {
                     TextButton(onClick = onDelete) {
                         Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
@@ -117,14 +126,24 @@ private fun ExerciseDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun <T> Dropdown(label: String, selected: T, options: List<T>, labelRes: (T) -> Int, onSelect: (T) -> Unit) {
+private fun <T> Dropdown(
+    label: String,
+    selected: T,
+    options: List<T>,
+    labelRes: (T) -> Int,
+    enabled: Boolean = true,
+    hint: String? = null,
+    onSelect: (T) -> Unit,
+) {
     var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = enabled && it }) {
         OutlinedTextField(
             value = stringResource(labelRes(selected)),
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
+            enabled = enabled,
+            supportingText = hint?.let { { Text(it) } },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
         )

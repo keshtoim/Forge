@@ -185,6 +185,14 @@ class DaoTest {
     }
 
     @Test
+    fun `exercise counts as used once it is in any workout`() = runTest {
+        workouts.start("Push", null, listOf(bench to 1), now = 1_000)
+
+        assertTrue(db.exerciseDao().isUsedInWorkouts(bench))
+        assertFalse(db.exerciseDao().isUsedInWorkouts(squat))
+    }
+
+    @Test
     fun `import replaces existing data`() = runTest {
         val backup = db.backupDao().export()
         workouts.start("Will be gone", null, listOf(bench to 1), now = 1_000)

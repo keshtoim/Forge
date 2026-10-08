@@ -22,6 +22,8 @@ class ExercisesViewModel(private val dao: ExerciseDao) : ViewModel() {
         }
     }
 
+    suspend fun hasHistory(exerciseId: Long) = dao.isUsedInWorkouts(exerciseId)
+
     fun archive(exercise: Exercise) {
         viewModelScope.launch { dao.update(exercise.copy(archived = true)) }
     }

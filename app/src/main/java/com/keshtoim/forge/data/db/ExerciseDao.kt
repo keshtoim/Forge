@@ -23,6 +23,9 @@ interface ExerciseDao {
     // Idempotent: the unique builtInKey makes this add only exercises missing from the table.
     suspend fun seedBuiltIns() = insertIgnore(BuiltInExercise.entries.map { it.toEntity() })
 
+    @Query("SELECT EXISTS(SELECT 1 FROM workout_exercises WHERE exerciseId = :exerciseId)")
+    suspend fun isUsedInWorkouts(exerciseId: Long): Boolean
+
     @Insert
     suspend fun insert(exercise: Exercise): Long
 
