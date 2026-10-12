@@ -43,7 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
+import com.keshtoim.forge.data.secondary
 import com.keshtoim.forge.ui.displayName
+import com.keshtoim.forge.ui.exercises.ExerciseMuscles
 import com.keshtoim.forge.ui.formatDate
 import com.keshtoim.forge.ui.workout.formatNumber
 import java.time.format.FormatStyle
@@ -162,6 +164,9 @@ fun ExerciseProgressScreen(onBack: () -> Unit, viewModel: ExerciseProgressViewMo
                     },
                 )
             }
+
+            Text(stringResource(R.string.muscles), style = MaterialTheme.typography.titleMedium)
+            ExerciseMuscles(current.muscleGroup, current.secondary, Modifier.fillMaxWidth())
         }
     }
 }

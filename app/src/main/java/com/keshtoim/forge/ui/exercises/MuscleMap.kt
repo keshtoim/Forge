@@ -1,9 +1,14 @@
 package com.keshtoim.forge.ui.exercises
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -14,6 +19,11 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.keshtoim.forge.R
 import com.keshtoim.forge.data.db.MuscleGroup
 import com.keshtoim.forge.data.db.MuscleGroup.ABS
 import com.keshtoim.forge.data.db.MuscleGroup.BACK
@@ -26,6 +36,7 @@ import com.keshtoim.forge.data.db.MuscleGroup.HAMSTRINGS
 import com.keshtoim.forge.data.db.MuscleGroup.QUADS
 import com.keshtoim.forge.data.db.MuscleGroup.SHOULDERS
 import com.keshtoim.forge.data.db.MuscleGroup.TRICEPS
+import com.keshtoim.forge.ui.labelRes
 
 // Each view is drawn in a 100×220 box as its left half (x ≤ 50) and mirrored around x = 50.
 private const val VIEW_WIDTH = 100f
@@ -74,6 +85,22 @@ private val BACK_VIEW = listOf(
     Region(HAMSTRINGS, "M32 136 C31 146 33 154 35 160 L44.5 160 C46 152 46 142 45.5 134 C41 135 37 135 32 136 Z"),
     Region(CALVES, "M33 166 C30 174 32 186 37 192 C40 194 44 193 45 190 C45.5 182 45.5 174 44.5 166 C41 163 36 163 33 166 Z"),
 )
+
+@Composable
+fun ExerciseMuscles(primary: MuscleGroup, secondary: List<MuscleGroup>, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        MuscleMap(primary, secondary, Modifier.fillMaxWidth(0.7f))
+        Text(stringResource(R.string.muscles_primary, stringResource(primary.labelRes)), style = MaterialTheme.typography.bodyMedium)
+        if (secondary.isNotEmpty()) {
+            Text(
+                stringResource(R.string.muscles_secondary, secondary.joinToString { context.getString(it.labelRes) }),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
 
 // Front and back body views; [primary] is highlighted fully and [secondary] muscles faintly.
 // Groups without a body region (CARDIO, OTHER) are simply not shown.

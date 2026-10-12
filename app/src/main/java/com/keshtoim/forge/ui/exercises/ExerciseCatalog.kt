@@ -44,7 +44,6 @@ fun ExerciseCatalog(
     exercises: List<Exercise>,
     onClick: (Exercise) -> Unit,
     modifier: Modifier = Modifier,
-    isClickable: (Exercise) -> Boolean = { true },
     selected: Set<Long>? = null,
 ) {
     val context = LocalContext.current
@@ -106,7 +105,7 @@ fun ExerciseCatalog(
                         headlineContent = { Text(name) },
                         supportingContent = { Text(stringResource(exercise.type.labelRes)) },
                         trailingContent = selected?.let { { Checkbox(checked = exercise.id in it, onCheckedChange = null) } },
-                        modifier = if (isClickable(exercise)) Modifier.clickable { onClick(exercise) } else Modifier,
+                        modifier = Modifier.clickable { onClick(exercise) },
                     )
                 }
             }

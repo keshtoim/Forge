@@ -2,9 +2,13 @@ package com.keshtoim.forge.ui.exercises
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
@@ -12,6 +16,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,50 +33,61 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
+import com.keshtoim.forge.data.secondary
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.MuscleGroup
+import com.keshtoim.forge.ui.displayName
 import com.keshtoim.forge.ui.labelRes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExercisesScreen(viewModel: ExercisesViewModel = viewModel(factory = ExercisesViewModel.Factory)) {
     val exercises by viewModel.exercises.collectAsStateWithLifecycle()
-    var editing by remember { mutableStateOf<Exercise?>(null) }
+    var opened by remember { mutableStateOf<Exercise?>(null) }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_exercises)) }) },
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                editing = Exercise(name = "", muscleGroup = MuscleGroup.CHEST, type = ExerciseType.WEIGHT_REPS)
+                opened = Exercise(name = "", muscleGroup = MuscleGroup.CHEST, type = ExerciseType.WEIGHT_REPS)
             }) { Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.exercise_new)) }
         },
     ) { padding ->
         ExerciseCatalog(
             exercises = exercises,
-            onClick = { editing = it },
-            isClickable = { it.builtInKey == null },
+            onClick = { opened = it },
             modifier = Modifier.padding(padding).fillMaxSize(),
         )
     }
 
-    editing?.let { exercise ->
+    val exercise = opened ?: return
+    if (exercise.builtInKey != null) {
+        AlertDialog(
+            onDismissRequest = { opened = null },
+            title = { Text(exercise.displayName(LocalContext.current)) },
+            text = { ExerciseMuscles(exercise.muscleGroup, exercise.secondary) },
+            confirmButton = { TextButton(onClick = { opened = null }) { Text(stringResource(R.string.close)) } },
+        )
+    } else {
         // Changing the type would make already logged sets unreadable (e.g. weight×reps shown as time).
         var typeLocked by remember(exercise.id) { mutableStateOf(false) }
         LaunchedEffect(exercise.id) { typeLocked = exercise.id != 0L && viewModel.hasHistory(exercise.id) }
         ExerciseDialog(
             initial = exercise,
             typeLocked = typeLocked,
-            onDismiss = { editing = null },
-            onSave = { viewModel.save(it); editing = null },
-            onDelete = { viewModel.archive(exercise); editing = null },
+            onDismiss = { opened = null },
+            onSave = { viewModel.save(it); opened = null },
+            onDelete = { viewModel.archive(exercise); opened = null },
         )
     }
 }
@@ -87,13 +103,15 @@ private fun ExerciseDialog(
     var name by rememberSaveable { mutableStateOf(initial.name.orEmpty()) }
     var muscle by rememberSaveable { mutableStateOf(initial.muscleGroup) }
     var type by rememberSaveable { mutableStateOf(initial.type) }
+    var secondary by rememberSaveable { mutableStateOf(initial.secondaryMuscles) }
     val isNew = initial.id == 0L
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(if (isNew) R.string.exercise_new else R.string.exercise_edit)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                MuscleMap(muscle, secondary, Modifier.fillMaxWidth(0.6f).align(Alignment.CenterHorizontally))
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -107,6 +125,16 @@ private fun ExerciseDialog(
                     enabled = !typeLocked,
                     hint = if (typeLocked) stringResource(R.string.exercise_type_locked) else null,
                 ) { type = it }
+                Text(stringResource(R.string.muscles_secondary_pick), style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    MuscleGroup.entries.filter { it != muscle && it != MuscleGroup.CARDIO && it != MuscleGroup.OTHER }.forEach { group ->
+                        FilterChip(
+                            selected = group in secondary,
+                            onClick = { secondary = if (group in secondary) secondary - group else secondary + group },
+                            label = { Text(stringResource(group.labelRes)) },
+                        )
+                    }
+                }
                 if (!isNew) {
                     TextButton(onClick = onDelete) {
                         Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
@@ -117,7 +145,7 @@ private fun ExerciseDialog(
         confirmButton = {
             TextButton(
                 enabled = name.isNotBlank(),
-                onClick = { onSave(initial.copy(name = name.trim(), muscleGroup = muscle, type = type)) },
+                onClick = { onSave(initial.copy(name = name.trim(), muscleGroup = muscle, secondaryMuscles = secondary - muscle, type = type)) },
             ) { Text(stringResource(R.string.save)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },

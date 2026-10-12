@@ -78,6 +78,11 @@
     <string name="exercise_edit">Редактирование</string>
     <string name="exercise_name">Название</string>
     <string name="muscle_group">Группа мышц</string>
+    <string name="muscles">Мышцы</string>
+    <string name="muscles_primary">Основная: %1$s</string>
+    <string name="muscles_secondary">Вспомогательные: %1$s</string>
+    <string name="muscles_secondary_pick">Вспомогательные мышцы</string>
+    <string name="close">Закрыть</string>
     <string name="exercise_type">Что записываем</string>
     <string name="exercise_type_locked">Нельзя изменить: по упражнению уже есть записи</string>
 
