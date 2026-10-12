@@ -51,6 +51,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // MigrationTestHelper reads exported schemas from assets; Robolectric only sees the tested variant's assets, not test ones.
+    sourceSets["debug"].assets.srcDir("$projectDir/schemas")
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
@@ -90,6 +92,7 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
+    testImplementation(libs.room.testing)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.junit)

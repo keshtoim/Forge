@@ -1,5 +1,6 @@
 package com.keshtoim.forge.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -17,10 +18,12 @@ enum class ExerciseType { WEIGHT_REPS, REPS, DURATION, DISTANCE }
 @Entity(tableName = "exercises", indices = [Index(value = ["builtInKey"], unique = true)])
 data class Exercise(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    // Built-in exercises are named via string resources (see BuiltInExercise), custom ones via [name].
+    // Built-in exercises take their name and secondary muscles from BuiltInExercise, custom ones from these columns.
     val builtInKey: String? = null,
     val name: String? = null,
     val muscleGroup: MuscleGroup,
+    @ColumnInfo(defaultValue = "")
+    val secondaryMuscles: List<MuscleGroup> = emptyList(),
     val type: ExerciseType,
     val archived: Boolean = false,
 )
