@@ -63,10 +63,22 @@
     <string name="exercise_remove">Remove exercise</string>
     <string name="set_add">Add set</string>
     <string name="set_done">Set done</string>
+    <string name="workout_finish_short">Finish</string>
+    <string name="exercise_position">exercise %1$d of %2$d</string>
+    <string name="set_label">Set %d</string>
+    <string name="set_done_cta">Done</string>
+    <string name="last_time">last time %s</string>
+    <string name="sets_more">%d more</string>
+    <string name="next_exercise">Next: %s</string>
+    <string name="all_sets_done">All sets done</string>
+    <string name="workout_exercises">Workout exercises</string>
+    <string name="set_remove">Remove set</string>
+    <string name="set_add_short">+ Set</string>
+    <string name="set_chip_hint">Set %1$d: %2$s. Tap to edit</string>
+    <string name="sets_progress">%1$d of %2$d</string>
 
     <string name="rest_title">Rest</string>
     <string name="rest_add">+15 s</string>
-    <string name="rest_sub">−15 s</string>
     <string name="rest_skip">Skip</string>
     <string name="rest_done">Rest is over</string>
     <string name="rest_done_text">Time for the next set</string>

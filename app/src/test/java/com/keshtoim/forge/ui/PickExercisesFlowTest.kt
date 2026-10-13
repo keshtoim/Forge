@@ -8,6 +8,7 @@ import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
@@ -33,6 +34,11 @@ class PickExercisesFlowTest {
         rule.waitUntilAtLeastOneExists(hasText("HI!"), timeoutMillis = 5_000)
     }
 
+    // Button labels live in the unmerged semantics tree.
+    private fun waitForButton(label: String) = rule.waitUntil(5_000) {
+        rule.onAllNodesWithText(label, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+    }
+
     // Built-in exercises are seeded asynchronously on first launch.
     private fun pickBenchPress() {
         rule.waitUntilAtLeastOneExists(hasText("Bench Press"), timeoutMillis = 10_000)
@@ -51,18 +57,19 @@ class PickExercisesFlowTest {
         rule.waitUntilAtLeastOneExists(hasText("Bench Press"), timeoutMillis = 5_000)
         rule.onNodeWithText("Save").performClick()
 
-        rule.waitUntilAtLeastOneExists(hasText("Push"), timeoutMillis = 5_000)
-        rule.onNodeWithText("Bench Press").assertIsDisplayed()
+        // The only template becomes the next one in rotation, shown in the hero card with its exercise count.
+        rule.waitUntilAtLeastOneExists(hasText("PUSH"), timeoutMillis = 5_000)
+        rule.waitUntilAtLeastOneExists(hasText("1 exercise", substring = true), timeoutMillis = 5_000)
     }
 
     @Test
     fun pickedExerciseIsAddedToActiveWorkout() {
         rule.onNodeWithText("LET'S GO", useUnmergedTree = true).performClick()
-        rule.waitUntilAtLeastOneExists(hasText("Add exercises"), timeoutMillis = 5_000)
-        rule.onNodeWithText("Add exercises").performClick()
+        waitForButton("ADD EXERCISES")
+        rule.onNodeWithText("ADD EXERCISES", useUnmergedTree = true).performClick()
         pickBenchPress()
 
-        rule.waitUntilAtLeastOneExists(hasText("Bench Press"), timeoutMillis = 5_000)
-        rule.waitUntilAtLeastOneExists(hasText("Add set"), timeoutMillis = 5_000)
+        rule.waitUntilAtLeastOneExists(hasText("BENCH PRESS"), timeoutMillis = 5_000)
+        waitForButton("DONE")
     }
 }

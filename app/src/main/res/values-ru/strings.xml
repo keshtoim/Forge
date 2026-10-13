@@ -70,10 +70,22 @@
     <string name="exercise_remove">Убрать упражнение</string>
     <string name="set_add">Добавить подход</string>
     <string name="set_done">Подход выполнен</string>
+    <string name="workout_finish_short">Финиш</string>
+    <string name="exercise_position">упражнение %1$d из %2$d</string>
+    <string name="set_label">Подход %d</string>
+    <string name="set_done_cta">Сделано</string>
+    <string name="last_time">в прошлый раз %s</string>
+    <string name="sets_more">ещё %d</string>
+    <string name="next_exercise">Дальше: %s</string>
+    <string name="all_sets_done">Все подходы сделаны</string>
+    <string name="workout_exercises">Упражнения тренировки</string>
+    <string name="set_remove">Убрать подход</string>
+    <string name="set_add_short">+ Подход</string>
+    <string name="set_chip_hint">Подход %1$d: %2$s. Нажми, чтобы изменить</string>
+    <string name="sets_progress">%1$d из %2$d</string>
 
     <string name="rest_title">Отдых</string>
     <string name="rest_add">+15 с</string>
-    <string name="rest_sub">−15 с</string>
     <string name="rest_skip">Пропустить</string>
     <string name="rest_done">Отдых окончен</string>
     <string name="rest_done_text">Время следующего подхода</string>
