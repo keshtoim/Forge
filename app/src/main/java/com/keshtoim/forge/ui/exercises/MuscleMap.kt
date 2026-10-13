@@ -225,7 +225,7 @@ private class Palette(val body: Color, val hair: Color)
 fun MuscleMap(primary: MuscleGroup, secondary: List<MuscleGroup>, modifier: Modifier = Modifier) {
     val figure = FIGURES.getValue(LocalBodyType.current)
     val body = MaterialTheme.colorScheme.surfaceVariant
-    val idle = lerp(body, MaterialTheme.colorScheme.onSurfaceVariant, 0.3f)
+    val idle = lerp(body, MaterialTheme.colorScheme.onSurfaceVariant, 0.15f)
     val strong = MaterialTheme.colorScheme.primary
     val weak = lerp(idle, strong, 0.5f)
     val palette = Palette(body, hair = lerp(body, Color.Black, 0.35f))
