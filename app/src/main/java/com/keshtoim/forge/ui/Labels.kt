@@ -19,6 +19,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.temporal.ChronoUnit
+import kotlin.math.roundToLong
 
 fun Exercise.displayName(context: Context): String =
     BuiltInExercise.entries.firstOrNull { it.name == builtInKey }?.let { context.getString(it.nameRes) }
@@ -91,3 +92,8 @@ fun relativeDay(context: Context, epochMillis: Long?, today: LocalDate = LocalDa
 fun formatMinutes(context: Context, minutes: Long): String =
     if (minutes < 60) context.getString(R.string.duration_m, minutes.toInt())
     else context.getString(R.string.duration_hm, (minutes / 60).toInt(), (minutes % 60).toInt())
+
+// Volumes of thousands of kilograms read better in tonnes.
+fun formatWeight(context: Context, kg: Double): String =
+    if (kg >= 1000) "${formatNumber((kg / 100).roundToLong() / 10.0)} ${context.getString(R.string.unit_t)}"
+    else "${formatNumber((kg * 10).roundToLong() / 10.0)} ${context.getString(R.string.unit_kg)}"

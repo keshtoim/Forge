@@ -94,6 +94,10 @@
     <string name="backup_failed">Не получилось. Возможно, файл повреждён.</string>
 
     <string name="unit_kg">кг</string>
+    <string name="unit_t">т</string>
+    <string name="stat_time">ч:мин</string>
+    <string name="stat_sets">подходов</string>
+    <string name="stat_volume">объём, %s</string>
     <string name="unit_reps">повт</string>
     <string name="unit_min">мин</string>
     <string name="unit_sec">сек</string>

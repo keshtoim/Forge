@@ -95,6 +95,10 @@
     <string name="backup_failed">Something went wrong. The file may be damaged.</string>
 
     <string name="unit_kg">kg</string>
+    <string name="unit_t">t</string>
+    <string name="stat_time">h:min</string>
+    <string name="stat_sets">sets</string>
+    <string name="stat_volume">volume, %s</string>
     <string name="unit_reps">reps</string>
     <string name="unit_min">min</string>
     <string name="unit_sec">sec</string>
