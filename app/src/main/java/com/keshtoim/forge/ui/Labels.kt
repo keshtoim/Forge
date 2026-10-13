@@ -3,6 +3,7 @@ package com.keshtoim.forge.ui
 import android.content.Context
 import androidx.annotation.StringRes
 import com.keshtoim.forge.R
+import com.keshtoim.forge.data.BodyType
 import com.keshtoim.forge.data.BuiltInExercise
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
@@ -67,3 +68,10 @@ fun formatDate(millis: Long, style: FormatStyle = FormatStyle.MEDIUM): String =
 fun formatDateTime(millis: Long): String =
     Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault())
         .format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT))
+
+@get:StringRes
+val BodyType.labelRes: Int
+    get() = when (this) {
+        BodyType.MALE -> R.string.body_type_male
+        BodyType.FEMALE -> R.string.body_type_female
+    }

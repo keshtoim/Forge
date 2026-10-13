@@ -5,9 +5,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.AlertDialog
@@ -17,6 +19,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -31,8 +36,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
+import com.keshtoim.forge.data.BodyType
+import com.keshtoim.forge.ui.labelRes
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -43,6 +52,7 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = viewModel(
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var confirmImport by remember { mutableStateOf(false) }
+    val bodyType by viewModel.bodyType.collectAsStateWithLifecycle()
 
     fun report(ok: Boolean, @StringRes success: Int) {
         scope.launch { snackbar.showSnackbar(context.getString(if (ok) success else R.string.backup_failed)) }
@@ -80,6 +90,21 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = viewModel(
                 supportingContent = { Text(stringResource(R.string.backup_import_hint)) },
                 leadingContent = { Icon(Icons.Filled.Download, contentDescription = null) },
                 modifier = Modifier.clickable { confirmImport = true },
+            )
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_body_type)) },
+                leadingContent = { Icon(Icons.Filled.Accessibility, contentDescription = null) },
+                supportingContent = {
+                    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                        BodyType.entries.forEachIndexed { index, type ->
+                            SegmentedButton(
+                                selected = type == bodyType,
+                                onClick = { viewModel.setBodyType(type) },
+                                shape = SegmentedButtonDefaults.itemShape(index, BodyType.entries.size),
+                            ) { Text(stringResource(type.labelRes)) }
+                        }
+                    }
+                },
             )
         }
     }

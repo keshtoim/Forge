@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.keshtoim.forge.ForgeApplication
+import com.keshtoim.forge.data.BodyType
+import com.keshtoim.forge.data.UserPreferences
 import com.keshtoim.forge.data.db.Backup
 import com.keshtoim.forge.data.db.BackupDao
 import com.keshtoim.forge.data.db.ExerciseDao
@@ -22,7 +24,12 @@ class SettingsViewModel(
     private val exerciseDao: ExerciseDao,
     private val contentResolver: ContentResolver,
     private val restTimer: RestTimer,
+    private val preferences: UserPreferences,
 ) : ViewModel() {
+    val bodyType = preferences.bodyType
+
+    fun setBodyType(type: BodyType) = preferences.setBodyType(type)
+
     private val json = Json { ignoreUnknownKeys = true }
 
     fun export(uri: Uri, onResult: (Boolean) -> Unit) {
@@ -57,7 +64,7 @@ class SettingsViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as ForgeApplication
-                SettingsViewModel(app.database.backupDao(), app.database.exerciseDao(), app.contentResolver, app.restTimer)
+                SettingsViewModel(app.database.backupDao(), app.database.exerciseDao(), app.contentResolver, app.restTimer, app.preferences)
             }
         }
     }

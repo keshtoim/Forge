@@ -12,6 +12,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.keshtoim.forge.MainActivity
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -21,6 +22,12 @@ import org.junit.runner.RunWith
 class PickExercisesFlowTest {
     @get:Rule
     val rule = createAndroidComposeRule<MainActivity>()
+
+    @Before
+    fun chooseBodyType() {
+        // First launch asks which figure the muscle map should show.
+        rule.onNodeWithText("Male").performClick()
+    }
 
     // Built-in exercises are seeded asynchronously on first launch.
     private fun pickBenchPress() {

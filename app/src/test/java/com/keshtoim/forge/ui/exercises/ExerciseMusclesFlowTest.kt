@@ -21,6 +21,7 @@ import com.keshtoim.forge.data.db.MuscleGroup
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,6 +31,12 @@ import org.junit.runner.RunWith
 class ExerciseMusclesFlowTest {
     @get:Rule
     val rule = createAndroidComposeRule<MainActivity>()
+
+    @Before
+    fun chooseBodyType() {
+        // First launch asks which figure the muscle map should show.
+        rule.onNodeWithText("Male").performClick()
+    }
 
     private fun openExercisesTab() = rule.onNodeWithText("Exercises").performClick()
 

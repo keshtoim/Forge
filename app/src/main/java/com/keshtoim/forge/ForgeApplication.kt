@@ -1,6 +1,7 @@
 package com.keshtoim.forge
 
 import android.app.Application
+import com.keshtoim.forge.data.UserPreferences
 import com.keshtoim.forge.data.db.ForgeDatabase
 import com.keshtoim.forge.rest.RestTimer
 import com.keshtoim.forge.rest.RestTimerService
@@ -13,6 +14,7 @@ class ForgeApplication : Application() {
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     val database by lazy { ForgeDatabase.build(this) }
     val restTimer by lazy { RestTimer(this) }
+    val preferences by lazy { UserPreferences(this) }
 
     override fun onCreate() {
         super.onCreate()

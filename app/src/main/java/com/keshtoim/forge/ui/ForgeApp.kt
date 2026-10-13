@@ -20,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,10 +46,12 @@ import com.keshtoim.forge.R
 import com.keshtoim.forge.data.db.Workout
 import com.keshtoim.forge.rest.Rest
 import com.keshtoim.forge.ui.exercises.ExercisePickerScreen
+import com.keshtoim.forge.ui.exercises.LocalBodyType
 import com.keshtoim.forge.ui.exercises.ExercisesScreen
 import com.keshtoim.forge.ui.exercises.PICKED_EXERCISES
 import com.keshtoim.forge.ui.history.HistoryScreen
 import com.keshtoim.forge.ui.history.WorkoutDetailScreen
+import com.keshtoim.forge.ui.onboarding.BodyTypeScreen
 import com.keshtoim.forge.ui.progress.ExerciseProgressScreen
 import com.keshtoim.forge.ui.progress.ProgressScreen
 import com.keshtoim.forge.ui.settings.SettingsScreen
@@ -81,6 +84,17 @@ private enum class Tab(val route: Any, @StringRes val label: Int, val icon: Imag
 
 @Composable
 fun ForgeApp(viewModel: ForgeViewModel = viewModel(factory = ForgeViewModel.Factory)) {
+    val bodyType by viewModel.bodyType.collectAsStateWithLifecycle()
+    val chosen = bodyType
+    if (chosen == null) {
+        BodyTypeScreen(onPick = viewModel::setBodyType)
+        return
+    }
+    CompositionLocalProvider(LocalBodyType provides chosen) { MainScreen(viewModel) }
+}
+
+@Composable
+private fun MainScreen(viewModel: ForgeViewModel) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val destination = backStackEntry?.destination
