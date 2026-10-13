@@ -1,31 +1,43 @@
 package com.keshtoim.forge.ui.progress
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -36,18 +48,34 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
+import com.keshtoim.forge.data.db.Exercise
+import com.keshtoim.forge.data.db.SetPoint
 import com.keshtoim.forge.data.secondary
 import com.keshtoim.forge.ui.displayName
-import com.keshtoim.forge.ui.exercises.ExerciseMuscles
+import com.keshtoim.forge.ui.exercises.MuscleMap
 import com.keshtoim.forge.ui.formatDate
 import com.keshtoim.forge.ui.workout.formatNumber
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlin.math.roundToLong
 import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,93 +108,187 @@ fun ProgressScreen(onOpen: (Long) -> Unit, viewModel: ProgressViewModel = viewMo
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun ExerciseProgressScreen(onBack: () -> Unit, viewModel: ExerciseProgressViewModel = viewModel(factory = ExerciseProgressViewModel.Factory)) {
     val exercise by viewModel.exercise.collectAsStateWithLifecycle()
     val sets by viewModel.sets.collectAsStateWithLifecycle()
-    val context = LocalContext.current
     val current = exercise ?: return
     val metrics = Metric.forType(current.type)
     var selected by rememberSaveable { mutableIntStateOf(0) }
     val metric = metrics[selected.coerceIn(metrics.indices)]
     val series = remember(sets, metric) { metric.series(sets) }
-    val unit = stringResource(metric.unitRes)
+    val workouts = remember(sets) { sets.map { it.workoutId }.distinct().size }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(current.displayName(context)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        Column(
-            Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            if (metrics.size > 1) {
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                    metrics.forEachIndexed { index, m ->
-                        SegmentedButton(
-                            selected = index == selected,
-                            onClick = { selected = index },
-                            shape = SegmentedButtonDefaults.itemShape(index, metrics.size),
-                        ) { Text(stringResource(m.labelRes), maxLines = 1) }
-                    }
-                }
-            }
-
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp)) {
-                    val last = series.lastOrNull()
-                    Text(stringResource(metric.labelRes), style = MaterialTheme.typography.labelLarge)
-                    Text(
-                        last?.let { "${formatNumber(it.value)} $unit" } ?: "—",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    if (series.size > 1) {
-                        val delta = series.last().value - series.first().value
-                        Text(
-                            stringResource(R.string.progress_delta, (if (delta >= 0) "+" else "") + formatNumber(delta) + " " + unit),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Spacer(Modifier.height(16.dp))
-                    if (series.isNotEmpty()) {
-                        Text(formatNumber(series.maxOf { it.value }), style = MaterialTheme.typography.labelSmall)
-                    }
-                    LineChart(series, Modifier.fillMaxWidth().height(180.dp))
-                    if (series.isNotEmpty()) {
-                        Text(formatNumber(series.minOf { it.value }), style = MaterialTheme.typography.labelSmall)
-                        Row(Modifier.fillMaxWidth()) {
-                            Text(formatDate(series.first().time, FormatStyle.SHORT), style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f))
-                            Text(formatDate(series.last().time, FormatStyle.SHORT), style = MaterialTheme.typography.labelSmall)
-                        }
-                    }
-                }
-            }
-
-            Text(stringResource(R.string.records), style = MaterialTheme.typography.titleMedium)
-            metrics.forEach { m ->
-                val best = m.series(sets).maxByOrNull { it.value } ?: return@forEach
-                ListItem(
-                    headlineContent = { Text(stringResource(m.labelRes)) },
-                    supportingContent = { Text(formatDate(best.time)) },
-                    trailingContent = {
-                        Text("${formatNumber(best.value)} ${stringResource(m.unitRes)}", style = MaterialTheme.typography.titleMedium)
-                    },
-                )
-            }
-
-            Text(stringResource(R.string.muscles), style = MaterialTheme.typography.titleMedium)
-            ExerciseMuscles(current.muscleGroup, current.secondary, Modifier.fillMaxWidth())
+    Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBars).verticalScroll(rememberScrollState())) {
+        IconButton(onClick = onBack, modifier = Modifier.padding(start = 6.dp, top = 6.dp).size(48.dp)) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+        }
+        Column(Modifier.padding(start = 18.dp, end = 18.dp, bottom = 18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            ProgressHeader(current, series, metric, workouts)
+            ChartPanel(metric, series)
+            if (metrics.size > 1) MetricTabs(metrics, selected) { selected = it }
+            Records(metrics, sets, workouts)
         }
     }
+}
+
+private fun formatValue(value: Double) = formatNumber((value * 10).roundToLong() / 10.0)
+
+@Composable
+private fun ProgressHeader(exercise: Exercise, series: List<Point>, metric: Metric, workouts: Int) {
+    val context = LocalContext.current
+    val colors = MaterialTheme.colorScheme
+    val summary = if (series.isEmpty()) {
+        stringResource(R.string.progress_empty)
+    } else {
+        val since = Instant.ofEpochMilli(series.first().time).atZone(ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("MMMM", Locale.getDefault()))
+        val delta = series.last().value - series.first().value
+        if (series.size > 1 && delta > 0) {
+            stringResource(R.string.progress_growth, since, formatValue(delta) + " " + stringResource(metric.unitRes))
+        } else {
+            stringResource(R.string.progress_since, since, pluralStringResource(R.plurals.plural_workouts, workouts, workouts))
+        }
+    }
+    Surface(shape = MaterialTheme.shapes.large, color = colors.primaryContainer) {
+        Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f).padding(end = 10.dp)) {
+                BasicText(
+                    exercise.displayName(context).uppercase(),
+                    style = MaterialTheme.typography.headlineLarge.copy(color = colors.onSurface),
+                    maxLines = 3,
+                    autoSize = TextAutoSize.StepBased(minFontSize = 20.sp, maxFontSize = 32.sp),
+                )
+                Text(
+                    summary,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp),
+                    color = colors.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 10.dp),
+                )
+            }
+            MuscleMap(exercise.muscleGroup, exercise.secondary, Modifier.width(104.dp))
+        }
+    }
+}
+
+@Composable
+private fun ChartPanel(metric: Metric, series: List<Point>) {
+    val colors = MaterialTheme.colorScheme
+    val muted = colors.inverseOnSurface.copy(alpha = 0.65f)
+    val recent = series.takeLast(8)
+    Surface(shape = MaterialTheme.shapes.large, color = colors.inverseSurface, contentColor = colors.inverseOnSurface, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(20.dp)) {
+            Text(stringResource(metric.labelRes).uppercase(), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black), color = muted)
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    series.lastOrNull()?.let { formatValue(it.value) } ?: "—",
+                    style = MaterialTheme.typography.displayLarge.copy(fontSize = 76.sp, lineHeight = 0.95.em),
+                )
+                Text(
+                    stringResource(metric.unitRes),
+                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+                    color = muted,
+                    modifier = Modifier.padding(start = 8.dp, bottom = 12.dp),
+                )
+                Spacer(Modifier.weight(1f))
+                if (series.size > 1) {
+                    val delta = series.last().value - series.first().value
+                    Text(
+                        (if (delta >= 0) "+" else "") + formatValue(delta),
+                        style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),
+                        color = colors.onSecondary,
+                        modifier = Modifier.padding(bottom = 12.dp).clip(CircleShape).background(colors.secondary).padding(horizontal = 12.dp, vertical = 4.dp),
+                    )
+                }
+            }
+            if (recent.isNotEmpty()) {
+                Bars(recent, Modifier.padding(top = 14.dp).fillMaxWidth().height(104.dp))
+                val format = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
+                val zone = ZoneId.systemDefault()
+                val range = listOf(recent.first(), recent.last()).distinct().joinToString(" — ") { Instant.ofEpochMilli(it.time).atZone(zone).format(format) }
+                Text(range, style = MaterialTheme.typography.labelSmall, color = muted, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth().padding(top = 6.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun Bars(points: List<Point>, modifier: Modifier) {
+    val colors = MaterialTheme.colorScheme
+    val min = points.minOf { it.value }
+    val max = points.maxOf { it.value }
+    val idle = lerp(colors.inverseSurface, colors.inverseOnSurface, 0.12f)
+    // Fixed-width bars aligned to the end keep the latest workout on the right however few there are.
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End), verticalAlignment = Alignment.Bottom) {
+        points.forEachIndexed { i, p ->
+            // Bars start at 30% so the smallest value is still visible.
+            val fraction = if (max == min) 1f else 0.3f + 0.7f * ((p.value - min) / (max - min)).toFloat()
+            Box(
+                Modifier
+                    .width(30.dp)
+                    .fillMaxHeight(fraction)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (i == points.lastIndex) colors.inversePrimary else idle),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MetricTabs(metrics: List<Metric>, selected: Int, onSelect: (Int) -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Row(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        metrics.forEachIndexed { index, m ->
+            val isSelected = index == selected
+            Box(
+                Modifier
+                    .weight(1f)
+                    .height(44.dp)
+                    .clip(CircleShape)
+                    .background(if (isSelected) colors.primary else colors.surfaceContainer)
+                    .selectable(selected = isSelected, role = Role.Tab, onClick = { onSelect(index) })
+                    .padding(horizontal = 8.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    stringResource(m.labelRes).uppercase(),
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 14.sp),
+                    color = if (isSelected) colors.onPrimary else colors.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun Records(metrics: List<Metric>, sets: List<SetPoint>, workouts: Int) {
+    val colors = MaterialTheme.colorScheme
+    val palette = listOf(
+        colors.secondaryContainer to colors.onSecondaryContainer,
+        colors.tertiaryContainer to colors.onTertiaryContainer,
+        colors.surfaceContainer to colors.onSurfaceVariant,
+    )
+    val records = metrics.mapNotNull { m -> m.series(sets).maxByOrNull { it.value }?.let { m to it.value } }
+    if (records.isEmpty()) return
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        records.forEachIndexed { i, (m, value) ->
+            val (bg, fg) = palette[i % palette.size]
+            RecordChip(stringResource(m.labelRes) + " · " + formatValue(value) + " " + stringResource(m.unitRes), bg, fg)
+        }
+        RecordChip(pluralStringResource(R.plurals.plural_workouts, workouts, workouts), colors.surfaceContainer, colors.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun RecordChip(text: String, background: Color, content: Color) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelLarge,
+        color = content,
+        modifier = Modifier.clip(CircleShape).background(background).padding(horizontal = 14.dp, vertical = 11.dp),
+    )
 }

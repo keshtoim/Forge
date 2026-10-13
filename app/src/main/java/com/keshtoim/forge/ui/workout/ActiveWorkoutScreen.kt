@@ -68,6 +68,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -343,7 +344,7 @@ private fun SetChips(sets: List<WorkoutSet>, current: WorkoutSet?, exercise: Exe
         if (later > 0) {
             Surface(shape = CircleShape, color = colors.background, border = BorderStroke(2.dp, colors.surfaceVariant), modifier = Modifier.height(36.dp)) {
                 Box(Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.sets_more, later), style = MaterialTheme.typography.labelLarge, color = colors.outline)
+                    Text(pluralStringResource(R.plurals.sets_left, later, later), style = MaterialTheme.typography.labelLarge, color = colors.outline)
                 }
             }
         }

@@ -38,20 +38,17 @@
     <string name="never_done">Ещё не было</string>
     <string name="duration_hm">%1$d ч %2$02d мин</string>
     <string name="duration_m">%d мин</string>
-    <string name="workout_finish">Завершить</string>
     <string name="workout_discard">Отменить тренировку</string>
     <string name="workout_discard_message">Тренировка и все её подходы будут удалены.</string>
     <string name="workout_delete">Удалить тренировку</string>
     <string name="history_empty">Здесь появятся завершённые тренировки.</string>
     <string name="exercise_remove">Убрать упражнение</string>
     <string name="set_add">Добавить подход</string>
-    <string name="set_done">Подход выполнен</string>
     <string name="workout_finish_short">Финиш</string>
     <string name="exercise_position">упражнение %1$d из %2$d</string>
     <string name="set_label">Подход %d</string>
     <string name="set_done_cta">Сделано</string>
     <string name="last_time">в прошлый раз %s</string>
-    <string name="sets_more">ещё %d</string>
     <string name="next_exercise">Дальше: %s</string>
     <string name="all_sets_done">Все подходы сделаны</string>
     <string name="workout_exercises">Упражнения тренировки</string>
@@ -69,8 +66,8 @@
     <string name="channel_rest_done">Конец отдыха</string>
 
     <string name="progress_empty">Заверши тренировку, чтобы увидеть прогресс.</string>
-    <string name="progress_delta">%s с первой тренировки</string>
-    <string name="records">Личные рекорды</string>
+    <string name="progress_growth">С %1$s результат вырос на %2$s. Так держать!</string>
+    <string name="progress_since">С %1$s: %2$s</string>
     <string name="metric_e1rm">e1RM</string>
     <string name="metric_max_weight">Макс. вес</string>
     <string name="metric_volume">Объём</string>
@@ -107,7 +104,6 @@
     <string name="exercise_edit">Редактирование</string>
     <string name="exercise_name">Название</string>
     <string name="muscle_group">Группа мышц</string>
-    <string name="muscles">Мышцы</string>
     <string name="muscles_primary">Основная: %1$s</string>
     <string name="muscles_secondary">Вспомогательные: %1$s</string>
     <string name="muscles_secondary_pick">Вспомогательные мышцы</string>

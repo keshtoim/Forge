@@ -39,20 +39,17 @@
     <string name="never_done">Not done yet</string>
     <string name="duration_hm">%1$d h %2$02d min</string>
     <string name="duration_m">%d min</string>
-    <string name="workout_finish">Finish</string>
     <string name="workout_discard">Discard workout</string>
     <string name="workout_discard_message">The workout and all its sets will be deleted.</string>
     <string name="workout_delete">Delete workout</string>
     <string name="history_empty">Finished workouts will appear here.</string>
     <string name="exercise_remove">Remove exercise</string>
     <string name="set_add">Add set</string>
-    <string name="set_done">Set done</string>
     <string name="workout_finish_short">Finish</string>
     <string name="exercise_position">exercise %1$d of %2$d</string>
     <string name="set_label">Set %d</string>
     <string name="set_done_cta">Done</string>
     <string name="last_time">last time %s</string>
-    <string name="sets_more">%d more</string>
     <string name="next_exercise">Next: %s</string>
     <string name="all_sets_done">All sets done</string>
     <string name="workout_exercises">Workout exercises</string>
@@ -70,8 +67,8 @@
     <string name="channel_rest_done">End of rest</string>
 
     <string name="progress_empty">Finish a workout to see your progress.</string>
-    <string name="progress_delta">%s since first workout</string>
-    <string name="records">Personal records</string>
+    <string name="progress_growth">Up %2$s since %1$s. Keep it up!</string>
+    <string name="progress_since">Since %1$s: %2$s</string>
     <string name="metric_e1rm">e1RM</string>
     <string name="metric_max_weight">Max weight</string>
     <string name="metric_volume">Volume</string>
@@ -108,7 +105,6 @@
     <string name="exercise_edit">Edit exercise</string>
     <string name="exercise_name">Name</string>
     <string name="muscle_group">Muscle group</string>
-    <string name="muscles">Muscles</string>
     <string name="muscles_primary">Primary: %1$s</string>
     <string name="muscles_secondary">Secondary: %1$s</string>
     <string name="muscles_secondary_pick">Secondary muscles</string>
