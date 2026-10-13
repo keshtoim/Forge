@@ -39,22 +39,6 @@
     <string name="never_done">Not done yet</string>
     <string name="duration_hm">%1$d h %2$02d min</string>
     <string name="duration_m">%d min</string>
-    <plurals name="days_ago">
-        <item quantity="one">%d day ago</item>
-        <item quantity="other">%d days ago</item>
-    </plurals>
-    <plurals name="workouts_this_week">
-        <item quantity="one">%d workout this week</item>
-        <item quantity="other">%d workouts this week</item>
-    </plurals>
-    <plurals name="exercises_count">
-        <item quantity="one">%d exercise</item>
-        <item quantity="other">%d exercises</item>
-    </plurals>
-    <plurals name="sets_total">
-        <item quantity="one">%d set</item>
-        <item quantity="other">%d sets</item>
-    </plurals>
     <string name="workout_finish">Finish</string>
     <string name="workout_discard">Discard workout</string>
     <string name="workout_discard_message">The workout and all its sets will be deleted.</string>
