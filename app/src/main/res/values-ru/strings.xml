@@ -36,7 +36,6 @@
     <string name="set_done">Подход выполнен</string>
 
     <string name="rest_title">Отдых</string>
-    <string name="rest_remaining">Отдых %s</string>
     <string name="rest_add">+15 с</string>
     <string name="rest_sub">−15 с</string>
     <string name="rest_skip">Пропустить</string>

@@ -37,7 +37,6 @@
     <string name="set_done">Set done</string>
 
     <string name="rest_title">Rest</string>
-    <string name="rest_remaining">Rest %s</string>
     <string name="rest_add">+15 s</string>
     <string name="rest_sub">−15 s</string>
     <string name="rest_skip">Skip</string>
