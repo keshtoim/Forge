@@ -29,9 +29,13 @@ class BodyTypeFlowTest {
     @Test
     fun firstLaunchAsksForFigureAndRemembersIt() {
         assertNull(preferences.bodyType.value)
-        rule.onNodeWithText("Which figure should the muscle map show?").assertIsDisplayed()
+        rule.onNodeWithText("WHICH FIGURE TO SHOW?").assertIsDisplayed()
+        // Nothing is chosen until the user picks a card.
+        rule.onNodeWithText("LET'S GO", useUnmergedTree = true).performClick()
+        assertNull(preferences.bodyType.value)
 
-        rule.onNodeWithText("Female").performClick()
+        rule.onNodeWithText("FEMALE", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("LET'S GO", useUnmergedTree = true).performClick()
 
         rule.waitUntilAtLeastOneExists(hasText("HI!"), timeoutMillis = 5_000)
         assertEquals(BodyType.FEMALE, preferences.bodyType.value)
@@ -41,7 +45,8 @@ class BodyTypeFlowTest {
 
     @Test
     fun figureCanBeChangedInSettings() {
-        rule.onNodeWithText("Male").performClick()
+        rule.onNodeWithText("MALE", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("LET'S GO", useUnmergedTree = true).performClick()
         rule.waitUntilAtLeastOneExists(hasText("HI!"), timeoutMillis = 5_000)
         rule.onNodeWithContentDescription("Settings", useUnmergedTree = true).performClick()
 

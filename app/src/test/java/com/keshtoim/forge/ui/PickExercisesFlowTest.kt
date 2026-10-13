@@ -29,7 +29,8 @@ class PickExercisesFlowTest {
     @Before
     fun chooseBodyType() {
         // First launch asks which figure the muscle map should show.
-        rule.onNodeWithText("Male").performClick()
+        rule.onNodeWithText("MALE", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("LET'S GO", useUnmergedTree = true).performClick()
         // Home renders once its data has loaded from Room.
         rule.waitUntilAtLeastOneExists(hasText("HI!"), timeoutMillis = 5_000)
     }

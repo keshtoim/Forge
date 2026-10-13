@@ -78,8 +78,9 @@
     <string name="metric_max_distance">Longest distance</string>
 
     <string name="settings">Settings</string>
-    <string name="body_type_title">Which figure should the muscle map show?</string>
-    <string name="body_type_hint">You can change this later in Settings.</string>
+    <string name="body_type_title">Which figure to show?</string>
+    <string name="body_type_hint">The muscle map will match its proportions. You can change this in Settings.</string>
+    <string name="body_type_step">Setup</string>
     <string name="body_type_male">Male</string>
     <string name="body_type_female">Female</string>
     <string name="settings_body_type">Muscle map figure</string>
