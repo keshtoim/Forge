@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
@@ -24,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.keshtoim.forge.R
+import com.keshtoim.forge.data.BodyType
 import com.keshtoim.forge.data.db.MuscleGroup
 import com.keshtoim.forge.data.db.MuscleGroup.ABS
 import com.keshtoim.forge.data.db.MuscleGroup.BACK
@@ -44,19 +48,23 @@ private const val VIEW_HEIGHT = 220f
 private const val VIEW_GAP = 15f
 private const val MAP_WIDTH = 2 * VIEW_WIDTH + VIEW_GAP
 
+val LocalBodyType = staticCompositionLocalOf { BodyType.MALE }
+
 private fun path(data: String) = PathParser().parsePathString(data).toPath()
 
-private class Region(val muscle: MuscleGroup, data: String) {
-    val path = path(data)
-}
+private class Region(val muscle: MuscleGroup, val data: String)
 
-private val BODY = path(
+// Body and muscle outlines below share one reference figure; warp() fits it to each body type's proportions.
+private const val BODY =
     "M50 27 C47 27 45 28 45 31 C45 34 43 35 39 36 C30 37 22 38 19 46 C17 52 17 60 17 68 C16 76 15 82 14 86 " +
         "C12 96 10 106 10 116 C9 120 8 126 10 131 C12 133 15 132 16 128 C16 124 16 120 17 117 C19 106 22 96 24 86 " +
         "C25 80 26 74 27 66 L28 60 C29 72 31 86 32 98 C31 106 30 112 30 120 C29 134 30 148 32 160 " +
         "C31 172 31 186 34 200 L33 210 C33 213 36 214 40 214 L45 214 C46 210 45 206 44 202 C46 190 47 176 45 164 " +
-        "C45 152 46 138 47 128 L50 123 Z",
-)
+        "C45 152 46 138 47 128 L50 123 Z"
+
+private const val LOWER_CHEST = "M49 49 L49 61 C44 64 37 63 32 59 C29.5 56 29.5 52 30.4 50 C36 48.5 43 48.5 49 49 Z"
+private const val LOWER_CHEST_FEMALE =
+    "M48.4 49.5 C48.6 55 48.4 60 46.5 63.5 C44 67.5 37.5 68 34 65 C30.5 62 29.6 56.5 30.4 50 C36 48.8 43 48.8 48.4 49.5 Z"
 
 // Each group is split into its visible heads/parts; all parts of a group light up together.
 private const val LATERAL_DELT = "M27 38 C22 39 19 43 18.5 49 C18 54 18.5 58 19 61 C20.5 56 22 52 25 48 C25.5 44 26 41 27 38 Z"
@@ -68,7 +76,7 @@ private val FRONT = listOf(
     Region(SHOULDERS, LATERAL_DELT),
     Region(SHOULDERS, "M38 37 C34 37 30 37.4 27.8 38 C26.8 41 26.2 44 25.8 48 C28 46 30 45 32 44 C35 42 37 40 38 37 Z"),
     Region(CHEST, "M49 40 L49 48 C43 47.5 36 47.5 30.5 49 C30 47 30.2 46 31 45 C35 41 42 39 49 40 Z"),
-    Region(CHEST, "M49 49 L49 61 C44 64 37 63 32 59 C29.5 56 29.5 52 30.4 50 C36 48.5 43 48.5 49 49 Z"),
+    Region(CHEST, LOWER_CHEST),
     Region(BICEPS, "M20 62 C18 68 18 76 19 82 C20 83 21.5 83 22.3 82 C22 75 22 68 22.3 61 C21.5 60.7 20.6 61.2 20 62 Z"),
     Region(BICEPS, "M23.1 60.5 C22.9 68 22.9 75 23.2 81.8 C24.2 81 24.8 79.5 25 78 C26 72 26 66 25 60 C24.4 59.8 23.7 60 23.1 60.5 Z"),
     Region(FOREARMS, FOREARM_OUTER),
@@ -107,6 +115,98 @@ private val BACK_VIEW = listOf(
     Region(CALVES, "M35.5 191 C36 194 37 197 38 199 L41 199 C41.5 197 42 194 42.2 192 C40 192.5 37.5 192.2 35.5 191 Z"),
 )
 
+// Head, ears, hair and face are drawn directly in final coordinates (not warped).
+private const val HEAD =
+    "M50 2 C56.5 2 60 6.5 60 13 C60 16 59.7 18 59.3 19.5 C59 23 57.5 26.5 54.5 28.8 C53 29.8 51.5 30.3 50 30.3 " +
+        "C48.5 30.3 47 29.8 45.5 28.8 C42.5 26.5 41 23 40.7 19.5 C40.3 18 40 16 40 13 C40 6.5 43.5 2 50 2 Z"
+private const val EAR = "M40.4 14.5 C38.6 14 38 15.5 38.3 17.5 C38.6 19.5 39.5 21 40.9 20.6 Z"
+private const val FACE_LINES =
+    "M43.8 13.4 C45.3 12.5 46.9 12.5 48 13.1 M56.2 13.4 C54.7 12.5 53.1 12.5 52 13.1 " +
+        "M50 15.8 L49.1 21 C49.6 21.7 50.5 21.7 51.1 21.2 M47.3 24.7 C48.8 25.4 51.2 25.4 52.7 24.7"
+
+private class Hair(front: String, back: String, behind: String? = null) {
+    val front = path(front)
+    val back = path(back)
+    val behind = behind?.let(::path)
+}
+
+private val SHORT_HAIR = Hair(
+    front = "M40.2 13 C39.8 5.5 44 1.4 50 1.4 C56 1.4 60.2 5.5 59.8 13 C58.6 9 55.2 7 50 7.2 C44.8 7 41.4 9 40.2 13 Z",
+    back = "M40 14 C39.6 5.5 44 1.4 50 1.4 C56 1.4 60.4 5.5 60 14 C59.8 18 59.3 21 58.3 23.5 C55.5 24.6 52.8 25 50 25 " +
+        "C47.2 25 44.5 24.6 41.7 23.5 C40.7 21 40.2 18 40 14 Z",
+)
+
+private val LONG_HAIR = Hair(
+    front = "M40.3 13 C40.5 5.5 44.5 1.6 50 1.6 C55.5 1.6 59.5 5.5 59.7 13 C57.5 9.5 54 8 50.5 8.8 C47 7.8 42.8 9 40.3 13 Z",
+    back = "M50 1 C57.5 1 61.6 6 61.4 14 C61.3 22 62 30 63 37 C59 38.5 41 38.5 37 37 C38 30 38.7 22 38.6 14 C38.4 6 42.5 1 50 1 Z",
+    behind = "M50 1 C57.5 1 61.6 6 61.4 14 C61.3 22 62 30 63 37 C60 38.4 57.5 38 55.6 36.6 L54.6 29 L45.4 29 L44.4 36.6 " +
+        "C42.5 38 40 38.4 37 37 C38 30 38.7 22 38.6 14 C38.4 6 42.5 1 50 1 Z",
+)
+
+private fun interpolate(table: List<Pair<Float, Float>>, v: Float): Float {
+    if (v <= table.first().first) return table.first().second
+    val i = table.indexOfFirst { v <= it.first }
+    if (i < 0) return table.last().second
+    val (a, b) = table[i - 1]
+    val (c, d) = table[i]
+    return b + (d - b) * (v - a) / (c - a)
+}
+
+// Real proportions: about 7.5 heads tall, legs half the height. Arms move rigidly with the shoulders.
+private val TORSO_Y = listOf(27f to 31f, 37f to 40f, 60f to 60f, 98f to 88f, 123f to 110f, 160f to 158f, 202f to 204f, 214f to 214f)
+private val ARM_Y = listOf(37f to 40f, 60f to 60f, 214f to 214f)
+
+private class Proportions(val widthByY: List<Pair<Float, Float>>, val armShift: Float, val hair: Hair)
+
+private val PROPORTIONS = mapOf(
+    // Broad shoulders and a narrow waist.
+    BodyType.MALE to Proportions(
+        listOf(27f to 1.18f, 31f to 1.12f, 37f to 0.95f, 45f to 0.9f, 60f to 0.95f, 98f to 0.8f, 112f to 0.83f, 130f to 0.85f, 160f to 0.8f, 214f to 0.8f),
+        armShift = 3.2f,
+        hair = SHORT_HAIR,
+    ),
+    // Narrower shoulders, the narrowest waist and wide hips.
+    BodyType.FEMALE to Proportions(
+        listOf(27f to 1f, 31f to 0.98f, 37f to 0.85f, 45f to 0.8f, 60f to 0.86f, 98f to 0.72f, 112f to 0.95f, 130f to 0.95f, 160f to 0.82f, 214f to 0.8f),
+        armShift = 6.3f,
+        hair = LONG_HAIR,
+    ),
+)
+
+private val COORDINATE = Regex("""(-?[\d.]+) (-?[\d.]+)""")
+
+private fun warp(data: String, p: Proportions): String = COORDINATE.replace(data) { match ->
+    val x = match.groupValues[1].toFloat()
+    val y = match.groupValues[2].toFloat()
+    // In the reference figure everything left of x = 27.5 below the armpit belongs to an arm.
+    if (y > 58 && x < 27.5f) {
+        "${x + p.armShift} ${interpolate(ARM_Y, y)}"
+    } else {
+        "${50 + (x - 50) * interpolate(p.widthByY, y)} ${interpolate(TORSO_Y, y)}"
+    }
+}
+
+private class Figure(type: BodyType) {
+    private val proportions = PROPORTIONS.getValue(type)
+    val hair = proportions.hair
+    val body = path(warp(BODY, proportions))
+    val front = shapes(FRONT, type)
+    val back = shapes(BACK_VIEW, type)
+
+    // Chest goes last so the rounder female chest overlaps the upper abs rather than the other way round.
+    private fun shapes(regions: List<Region>, type: BodyType) = regions
+        .sortedBy { it.muscle == CHEST }
+        .map { region ->
+            val data = if (type == BodyType.FEMALE && region.data == LOWER_CHEST) LOWER_CHEST_FEMALE else region.data
+            region.muscle to path(warp(data, proportions))
+        }
+}
+
+private val FIGURES = BodyType.entries.associateWith(::Figure)
+private val HEAD_PATH = path(HEAD)
+private val EAR_PATH = path(EAR)
+private val FACE_PATH = path(FACE_LINES)
+
 @Composable
 fun ExerciseMuscles(primary: MuscleGroup, secondary: List<MuscleGroup>, modifier: Modifier = Modifier) {
     val context = LocalContext.current
@@ -123,14 +223,18 @@ fun ExerciseMuscles(primary: MuscleGroup, secondary: List<MuscleGroup>, modifier
     }
 }
 
+private class Palette(val body: Color, val hair: Color, val face: Color)
+
 // Front and back body views; [primary] is highlighted fully and [secondary] muscles faintly.
 // Groups without a body region (CARDIO, OTHER) are simply not shown.
 @Composable
 fun MuscleMap(primary: MuscleGroup, secondary: List<MuscleGroup>, modifier: Modifier = Modifier) {
+    val figure = FIGURES.getValue(LocalBodyType.current)
     val body = MaterialTheme.colorScheme.surfaceVariant
     val idle = lerp(body, MaterialTheme.colorScheme.onSurfaceVariant, 0.3f)
     val strong = MaterialTheme.colorScheme.primary
     val weak = lerp(idle, strong, 0.5f)
+    val palette = Palette(body, hair = lerp(body, Color.Black, 0.35f), face = lerp(body, idle, 0.5f))
 
     fun color(muscle: MuscleGroup) = when (muscle) {
         primary -> strong
@@ -140,20 +244,35 @@ fun MuscleMap(primary: MuscleGroup, secondary: List<MuscleGroup>, modifier: Modi
 
     Canvas(modifier.aspectRatio(MAP_WIDTH / VIEW_HEIGHT)) {
         scale(size.width / MAP_WIDTH, pivot = Offset.Zero) {
-            drawView(FRONT, body, ::color)
-            translate(left = VIEW_WIDTH + VIEW_GAP) { drawView(BACK_VIEW, body, ::color) }
+            drawView(figure, figure.front, front = true, palette, ::color)
+            translate(left = VIEW_WIDTH + VIEW_GAP) { drawView(figure, figure.back, front = false, palette, ::color) }
         }
     }
 }
 
-private fun DrawScope.drawView(regions: List<Region>, body: Color, color: (MuscleGroup) -> Color) {
-    drawOval(body, topLeft = Offset(40f, 3f), size = Size(20f, 24f))
-    mirrored { drawPath(BODY, body) }
+private fun DrawScope.drawView(
+    figure: Figure,
+    regions: List<Pair<MuscleGroup, Path>>,
+    front: Boolean,
+    palette: Palette,
+    color: (MuscleGroup) -> Color,
+) {
+    mirrored { drawPath(figure.body, palette.body) }
+    if (front) figure.hair.behind?.let { drawPath(it, palette.hair) }
+    mirrored { drawPath(EAR_PATH, palette.body) }
+    drawPath(HEAD_PATH, palette.body)
+    if (front) {
+        drawPath(FACE_PATH, palette.face, style = Stroke(width = 0.6f, cap = StrokeCap.Round))
+        mirrored { drawOval(palette.face, topLeft = Offset(44.65f, 15.5f), size = Size(2.5f, 1.2f)) }
+        drawPath(figure.hair.front, palette.hair)
+    } else {
+        drawPath(figure.hair.back, palette.hair)
+    }
     mirrored {
-        regions.forEach {
-            drawPath(it.path, color(it.muscle))
+        regions.forEach { (muscle, path) ->
+            drawPath(path, color(muscle))
             // Outlining in the body colour leaves thin seams between adjacent muscles.
-            drawPath(it.path, body, style = Stroke(width = 0.6f))
+            drawPath(path, palette.body, style = Stroke(width = 0.6f))
         }
     }
 }
