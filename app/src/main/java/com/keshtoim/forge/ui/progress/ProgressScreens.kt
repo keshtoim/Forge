@@ -1,10 +1,10 @@
 package com.keshtoim.forge.ui.progress
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.WindowInsets
@@ -31,15 +31,13 @@ import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -67,9 +65,11 @@ import com.keshtoim.forge.R
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.SetPoint
 import com.keshtoim.forge.data.secondary
+import com.keshtoim.forge.ui.ForgeCard
+import com.keshtoim.forge.ui.ScreenHeader
 import com.keshtoim.forge.ui.displayName
+import com.keshtoim.forge.ui.relativeDay
 import com.keshtoim.forge.ui.exercises.MuscleMap
-import com.keshtoim.forge.ui.formatDate
 import com.keshtoim.forge.ui.workout.formatNumber
 import java.time.Instant
 import java.time.ZoneId
@@ -78,31 +78,37 @@ import java.util.Locale
 import kotlin.math.roundToLong
 import java.time.format.FormatStyle
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProgressScreen(onOpen: (Long) -> Unit, viewModel: ProgressViewModel = viewModel(factory = ProgressViewModel.Factory)) {
     val items by viewModel.items.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_progress)) }) }) { padding ->
+    Scaffold(topBar = { ScreenHeader(stringResource(R.string.tab_progress)) }) { padding ->
         if (items.isEmpty()) {
             Box(Modifier.padding(padding).fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
-                Text(stringResource(R.string.progress_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.progress_empty), color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
             }
             return@Scaffold
         }
-        LazyColumn(Modifier.padding(padding).fillMaxSize()) {
+        LazyColumn(
+            Modifier.padding(padding).fillMaxSize(),
+            contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             items(items, key = { it.first.id }) { (exercise, history) ->
-                ListItem(
-                    headlineContent = { Text(exercise.displayName(context)) },
-                    supportingContent = {
-                        Text(
-                            pluralStringResource(R.plurals.plural_workouts, history.sessions, history.sessions) +
-                                " · " + formatDate(history.lastAt)
-                        )
-                    },
-                    modifier = Modifier.clickable { onOpen(exercise.id) },
-                )
+                ForgeCard(Modifier.fillMaxWidth(), onClick = { onOpen(exercise.id) }) {
+                    Row(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(exercise.displayName(context), style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                pluralStringResource(R.plurals.plural_workouts, history.sessions, history.sessions) + " · " + relativeDay(context, history.lastAt),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
+                    }
+                }
             }
         }
     }

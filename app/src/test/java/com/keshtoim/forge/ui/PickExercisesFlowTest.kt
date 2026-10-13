@@ -56,7 +56,7 @@ class PickExercisesFlowTest {
         pickBenchPress()
 
         rule.waitUntilAtLeastOneExists(hasText("Bench Press"), timeoutMillis = 5_000)
-        rule.onNodeWithText("Save").performClick()
+        rule.onNodeWithText("SAVE", useUnmergedTree = true).performClick()
 
         // The only template becomes the next one in rotation, shown in the hero card with its exercise count.
         rule.waitUntilAtLeastOneExists(hasText("PUSH"), timeoutMillis = 5_000)

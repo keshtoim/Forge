@@ -17,7 +17,6 @@
     <string name="template_new">Новый шаблон</string>
     <string name="template_edit">Редактирование шаблона</string>
     <string name="template_name">Название шаблона</string>
-    <string name="sets_count">Подходов</string>
     <string name="add_exercises">Добавить упражнения</string>
     <string name="add_count">Добавить (%d)</string>
 
