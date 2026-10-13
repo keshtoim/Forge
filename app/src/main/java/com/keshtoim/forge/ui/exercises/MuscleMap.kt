@@ -12,10 +12,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
@@ -115,14 +113,11 @@ private val BACK_VIEW = listOf(
     Region(CALVES, "M35.5 191 C36 194 37 197 38 199 L41 199 C41.5 197 42 194 42.2 192 C40 192.5 37.5 192.2 35.5 191 Z"),
 )
 
-// Head, ears, hair and face are drawn directly in final coordinates (not warped).
+// Head, ears and hair are drawn directly in final coordinates (not warped).
 private const val HEAD =
     "M50 2 C56.5 2 60 6.5 60 13 C60 16 59.7 18 59.3 19.5 C59 23 57.5 26.5 54.5 28.8 C53 29.8 51.5 30.3 50 30.3 " +
         "C48.5 30.3 47 29.8 45.5 28.8 C42.5 26.5 41 23 40.7 19.5 C40.3 18 40 16 40 13 C40 6.5 43.5 2 50 2 Z"
 private const val EAR = "M40.4 14.5 C38.6 14 38 15.5 38.3 17.5 C38.6 19.5 39.5 21 40.9 20.6 Z"
-private const val FACE_LINES =
-    "M43.8 13.4 C45.3 12.5 46.9 12.5 48 13.1 M56.2 13.4 C54.7 12.5 53.1 12.5 52 13.1 " +
-        "M50 15.8 L49.1 21 C49.6 21.7 50.5 21.7 51.1 21.2 M47.3 24.7 C48.8 25.4 51.2 25.4 52.7 24.7"
 
 private class Hair(front: String, back: String, behind: String? = null) {
     val front = path(front)
@@ -205,7 +200,6 @@ private class Figure(type: BodyType) {
 private val FIGURES = BodyType.entries.associateWith(::Figure)
 private val HEAD_PATH = path(HEAD)
 private val EAR_PATH = path(EAR)
-private val FACE_PATH = path(FACE_LINES)
 
 @Composable
 fun ExerciseMuscles(primary: MuscleGroup, secondary: List<MuscleGroup>, modifier: Modifier = Modifier) {
@@ -223,7 +217,7 @@ fun ExerciseMuscles(primary: MuscleGroup, secondary: List<MuscleGroup>, modifier
     }
 }
 
-private class Palette(val body: Color, val hair: Color, val face: Color)
+private class Palette(val body: Color, val hair: Color)
 
 // Front and back body views; [primary] is highlighted fully and [secondary] muscles faintly.
 // Groups without a body region (CARDIO, OTHER) are simply not shown.
@@ -234,7 +228,7 @@ fun MuscleMap(primary: MuscleGroup, secondary: List<MuscleGroup>, modifier: Modi
     val idle = lerp(body, MaterialTheme.colorScheme.onSurfaceVariant, 0.3f)
     val strong = MaterialTheme.colorScheme.primary
     val weak = lerp(idle, strong, 0.5f)
-    val palette = Palette(body, hair = lerp(body, Color.Black, 0.35f), face = lerp(body, idle, 0.5f))
+    val palette = Palette(body, hair = lerp(body, Color.Black, 0.35f))
 
     fun color(muscle: MuscleGroup) = when (muscle) {
         primary -> strong
@@ -261,13 +255,7 @@ private fun DrawScope.drawView(
     if (front) figure.hair.behind?.let { drawPath(it, palette.hair) }
     mirrored { drawPath(EAR_PATH, palette.body) }
     drawPath(HEAD_PATH, palette.body)
-    if (front) {
-        drawPath(FACE_PATH, palette.face, style = Stroke(width = 0.6f, cap = StrokeCap.Round))
-        mirrored { drawOval(palette.face, topLeft = Offset(44.65f, 15.5f), size = Size(2.5f, 1.2f)) }
-        drawPath(figure.hair.front, palette.hair)
-    } else {
-        drawPath(figure.hair.back, palette.hair)
-    }
+    drawPath(if (front) figure.hair.front else figure.hair.back, palette.hair)
     mirrored {
         regions.forEach { (muscle, path) ->
             drawPath(path, color(muscle))
