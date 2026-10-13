@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -17,7 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
@@ -25,7 +26,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,6 +46,7 @@ import com.keshtoim.forge.data.secondary
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.MuscleGroup
+import com.keshtoim.forge.ui.ScreenHeader
 import com.keshtoim.forge.ui.displayName
 import com.keshtoim.forge.ui.labelRes
 
@@ -56,11 +57,16 @@ fun ExercisesScreen(viewModel: ExercisesViewModel = viewModel(factory = Exercise
     var opened by remember { mutableStateOf<Exercise?>(null) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_exercises)) }) },
+        topBar = { ScreenHeader(stringResource(R.string.tab_exercises)) },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                opened = Exercise(name = "", muscleGroup = MuscleGroup.CHEST, type = ExerciseType.WEIGHT_REPS)
-            }) { Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.exercise_new)) }
+            ExtendedFloatingActionButton(
+                onClick = { opened = Exercise(name = "", muscleGroup = MuscleGroup.CHEST, type = ExerciseType.WEIGHT_REPS) },
+                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                text = { Text(stringResource(R.string.exercise_new)) },
+                shape = CircleShape,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            )
         },
     ) { padding ->
         ExerciseCatalog(

@@ -56,7 +56,7 @@ class ExerciseMusclesFlowTest {
     @Test
     fun secondaryMusclesOfCustomExerciseAreSaved() {
         openExercisesTab()
-        rule.onNodeWithContentDescription("New exercise").performClick()
+        rule.onNodeWithText("New exercise", useUnmergedTree = true).performClick()
         rule.onNode(hasSetTextAction() and hasText("Name")).performTextInput("Dip")
         // The catalog behind the dialog has a filter chip with the same label.
         rule.onAllNodesWithText("Triceps").filterToOne(hasAnyAncestor(isDialog())).performScrollTo().performClick()

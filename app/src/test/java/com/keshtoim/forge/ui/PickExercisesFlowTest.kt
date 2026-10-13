@@ -44,7 +44,7 @@ class PickExercisesFlowTest {
     private fun pickBenchPress() {
         rule.waitUntilAtLeastOneExists(hasText("Bench Press"), timeoutMillis = 10_000)
         rule.onNodeWithText("Bench Press").performClick()
-        rule.onNode(hasClickAction() and hasAnyDescendant(hasText("Add (1)")), useUnmergedTree = true).performClick()
+        rule.onNode(hasClickAction() and hasAnyDescendant(hasText("ADD (1)")), useUnmergedTree = true).performClick()
     }
 
     @Test
