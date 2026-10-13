@@ -1,7 +1,19 @@
 package com.keshtoim.forge.ui
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -14,8 +26,6 @@ import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -25,6 +35,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -105,24 +120,18 @@ private fun MainScreen(viewModel: ForgeViewModel) {
     Scaffold(
         bottomBar = {
             if (currentTab != null) {
-                Column {
+                Column(
+                    Modifier.windowInsetsPadding(WindowInsets.navigationBars).padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     activeWorkout?.let { workout ->
                         ActiveWorkoutBar(workout, rest) { navController.openWorkout(workout.id) }
                     }
-                    NavigationBar {
-                        Tab.entries.forEach { tab ->
-                            NavigationBarItem(
-                                selected = tab == currentTab,
-                                onClick = {
-                                    navController.navigate(tab.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                },
-                                icon = { Icon(tab.icon, contentDescription = null) },
-                                label = { Text(stringResource(tab.label)) },
-                            )
+                    NavPill(currentTab) { tab ->
+                        navController.navigate(tab.route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
                         }
                     }
                 }
@@ -209,20 +218,64 @@ private inline fun NavBackStackEntry.ifResumed(block: () -> Unit) {
 private fun NavController.openWorkout(id: Long) = navigate(ActiveWorkoutRoute(id)) { launchSingleTop = true }
 
 @Composable
+private fun NavPill(currentTab: Tab, onSelect: (Tab) -> Unit) {
+    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.inverseSurface) {
+        Row(Modifier.height(68.dp).padding(6.dp).selectableGroup()) {
+            Tab.entries.forEach { tab ->
+                val selected = tab == currentTab
+                val label = stringResource(tab.label)
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clip(CircleShape)
+                        .background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent)
+                        .selectable(selected = selected, role = Role.Tab, onClick = { onSelect(tab) })
+                        .semantics { contentDescription = label },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        tab.icon,
+                        contentDescription = null,
+                        tint = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.6f),
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun ActiveWorkoutBar(workout: Workout, rest: Rest?, onClick: () -> Unit) {
-    Surface(onClick = onClick, color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.FitnessCenter, contentDescription = null)
+    val resting = rest != null
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        onClick = onClick,
+        shape = MaterialTheme.shapes.medium,
+        color = if (resting) colors.tertiaryContainer else colors.surfaceContainer,
+        shadowElevation = 2.dp,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(40.dp).clip(CircleShape).background(if (resting) colors.tertiary else colors.primary),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.FitnessCenter, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+            }
+            Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                Text(workout.name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    stringResource(if (resting) R.string.rest_title else R.string.workout_in_progress),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (resting) colors.onTertiaryContainer else colors.onSurfaceVariant,
+                )
+            }
             Text(
-                workout.name,
-                style = MaterialTheme.typography.titleSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
-            )
-            Text(
-                if (rest != null) stringResource(R.string.rest_remaining, rememberRemaining(rest.endsAt)) else rememberElapsed(workout.startedAt),
-                style = MaterialTheme.typography.titleSmall,
+                if (rest != null) rememberRemaining(rest.endsAt) else rememberElapsed(workout.startedAt),
+                style = MaterialTheme.typography.headlineSmall,
+                color = if (resting) colors.onTertiaryContainer else colors.onSurface,
             )
         }
     }

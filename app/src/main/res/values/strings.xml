@@ -26,6 +26,7 @@
     <string name="workout_start_empty">Start empty workout</string>
     <string name="workout_start">Start</string>
     <string name="workout_resume">Resume</string>
+    <string name="workout_in_progress">Workout in progress</string>
     <string name="workout_finish">Finish</string>
     <string name="workout_discard">Discard workout</string>
     <string name="workout_discard_message">The workout and all its sets will be deleted.</string>

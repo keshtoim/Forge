@@ -38,7 +38,7 @@ class ExerciseMusclesFlowTest {
         rule.onNodeWithText("Male").performClick()
     }
 
-    private fun openExercisesTab() = rule.onNodeWithText("Exercises").performClick()
+    private fun openExercisesTab() = rule.onNodeWithContentDescription("Exercises").performClick()
 
     @Test
     fun builtInExerciseShowsItsMuscles() {

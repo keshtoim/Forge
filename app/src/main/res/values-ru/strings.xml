@@ -25,6 +25,7 @@
     <string name="workout_start_empty">Начать пустую тренировку</string>
     <string name="workout_start">Начать</string>
     <string name="workout_resume">Продолжить</string>
+    <string name="workout_in_progress">Тренировка идёт</string>
     <string name="workout_finish">Завершить</string>
     <string name="workout_discard">Отменить тренировку</string>
     <string name="workout_discard_message">Тренировка и все её подходы будут удалены.</string>
