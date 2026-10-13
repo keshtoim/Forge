@@ -11,29 +11,50 @@ import com.keshtoim.forge.data.db.ExerciseDao
 import com.keshtoim.forge.data.db.Template
 import com.keshtoim.forge.data.db.TemplateDao
 import com.keshtoim.forge.data.db.TemplateExercise
+import com.keshtoim.forge.data.db.Workout
 import com.keshtoim.forge.data.db.WorkoutDao
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.WeekFields
+import java.util.Locale
 
-data class TemplateSummary(val template: Template, val items: List<TemplateExercise>, val exercises: List<Exercise>)
+data class TemplateSummary(
+    val template: Template,
+    val items: List<TemplateExercise>,
+    val exercises: List<Exercise>,
+    val lastDoneAt: Long?,
+)
+
+// [next] is the template suggested in rotation; it is null while a workout is in progress.
+data class HomeState(val active: Workout?, val next: TemplateSummary?, val others: List<TemplateSummary>, val week: Week)
 
 class WorkoutHomeViewModel(
     templateDao: TemplateDao,
     exerciseDao: ExerciseDao,
     private val workoutDao: WorkoutDao,
 ) : ViewModel() {
-    val templates = combine(templateDao.observeAll(), exerciseDao.observeAll()) { templates, exercises ->
+    val state = combine(
+        templateDao.observeAll(),
+        exerciseDao.observeAll(),
+        workoutDao.observeFinishedWorkouts(),
+        workoutDao.observeActive(),
+    ) { templates, exercises, finished, active ->
         val byId = exercises.associateBy { it.id }
-        templates.map { t ->
-            val items = t.items.sortedBy { it.position }
-            TemplateSummary(t.template, items, items.mapNotNull { byId[it.exerciseId] })
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    val activeWorkout = workoutDao.observeActive()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+        val lastDone = lastDoneByTemplate(finished)
+        val summaries = templates
+            .map { t ->
+                val items = t.items.sortedBy { it.position }
+                TemplateSummary(t.template, items, items.mapNotNull { byId[it.exerciseId] }, lastDone[t.template.id])
+            }
+            .sortedBy { it.lastDoneAt ?: Long.MIN_VALUE }
+        val next = if (active == null) nextInRotation(summaries) { it.lastDoneAt } else null
+        val firstDay = WeekFields.of(Locale.getDefault()).firstDayOfWeek
+        HomeState(active, next, summaries.filter { it != next }, week(finished, LocalDate.now(), ZoneId.systemDefault(), firstDay))
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun startEmpty(name: String, onStarted: (Long) -> Unit) = start(name, null, emptyList(), onStarted)
 

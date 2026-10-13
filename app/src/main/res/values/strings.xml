@@ -23,10 +23,38 @@
     <string name="add_count">Add (%d)</string>
 
     <string name="workout_default_name">Workout</string>
-    <string name="workout_start_empty">Start empty workout</string>
     <string name="workout_start">Start</string>
     <string name="workout_resume">Resume</string>
     <string name="workout_in_progress">Workout in progress</string>
+    <string name="home_greeting">Hi!</string>
+    <string name="home_next">Next up</string>
+    <string name="home_now">In progress</string>
+    <string name="home_start_now">Start now</string>
+    <string name="home_go">Let\'s go</string>
+    <string name="home_new">New</string>
+    <string name="workout_no_template">No template</string>
+    <string name="edit">Edit</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="never_done">Not done yet</string>
+    <string name="duration_hm">%1$d h %2$02d min</string>
+    <string name="duration_m">%d min</string>
+    <plurals name="days_ago">
+        <item quantity="one">%d day ago</item>
+        <item quantity="other">%d days ago</item>
+    </plurals>
+    <plurals name="workouts_this_week">
+        <item quantity="one">%d workout this week</item>
+        <item quantity="other">%d workouts this week</item>
+    </plurals>
+    <plurals name="exercises_count">
+        <item quantity="one">%d exercise</item>
+        <item quantity="other">%d exercises</item>
+    </plurals>
+    <plurals name="sets_total">
+        <item quantity="one">%d set</item>
+        <item quantity="other">%d sets</item>
+    </plurals>
     <string name="workout_finish">Finish</string>
     <string name="workout_discard">Discard workout</string>
     <string name="workout_discard_message">The workout and all its sets will be deleted.</string>

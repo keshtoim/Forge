@@ -12,10 +12,13 @@ import com.keshtoim.forge.data.db.WorkoutDetail
 import com.keshtoim.forge.data.db.WorkoutSet
 import com.keshtoim.forge.ui.workout.formatDuration
 import com.keshtoim.forge.ui.workout.formatNumber
+import com.keshtoim.forge.ui.workout.toDate
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.time.temporal.ChronoUnit
 
 fun Exercise.displayName(context: Context): String =
     BuiltInExercise.entries.firstOrNull { it.name == builtInKey }?.let { context.getString(it.nameRes) }
@@ -75,3 +78,16 @@ val BodyType.labelRes: Int
         BodyType.MALE -> R.string.body_type_male
         BodyType.FEMALE -> R.string.body_type_female
     }
+
+fun relativeDay(context: Context, epochMillis: Long?, today: LocalDate = LocalDate.now()): String {
+    epochMillis ?: return context.getString(R.string.never_done)
+    return when (val days = ChronoUnit.DAYS.between(epochMillis.toDate(ZoneId.systemDefault()), today).toInt()) {
+        0 -> context.getString(R.string.today)
+        1 -> context.getString(R.string.yesterday)
+        else -> context.resources.getQuantityString(R.plurals.days_ago, days, days)
+    }
+}
+
+fun formatMinutes(context: Context, minutes: Long): String =
+    if (minutes < 60) context.getString(R.string.duration_m, minutes.toInt())
+    else context.getString(R.string.duration_hm, (minutes / 60).toInt(), (minutes % 60).toInt())

@@ -57,6 +57,10 @@ interface WorkoutDao {
     )
     fun observeSetPoints(exerciseId: Long): Flow<List<SetPoint>>
 
+    // Rows without sets: enough for the week strip and template recency on the home screen.
+    @Query("SELECT * FROM workouts WHERE finishedAt IS NOT NULL ORDER BY startedAt DESC")
+    fun observeFinishedWorkouts(): Flow<List<Workout>>
+
     @Query("SELECT * FROM workouts WHERE finishedAt IS NULL LIMIT 1")
     fun observeActive(): Flow<Workout?>
 

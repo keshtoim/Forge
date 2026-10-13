@@ -1,6 +1,8 @@
 package com.keshtoim.forge.ui
 
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -16,6 +18,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+@OptIn(ExperimentalTestApi::class)
 @RunWith(AndroidJUnit4::class)
 class BodyTypeFlowTest {
     @get:Rule
@@ -30,7 +33,7 @@ class BodyTypeFlowTest {
 
         rule.onNodeWithText("Female").performClick()
 
-        rule.onNodeWithText("New template").assertIsDisplayed()
+        rule.waitUntilAtLeastOneExists(hasText("HI!"), timeoutMillis = 5_000)
         assertEquals(BodyType.FEMALE, preferences.bodyType.value)
         // A fresh instance reads the stored choice, so the question is not asked again.
         assertEquals(BodyType.FEMALE, UserPreferences(rule.activity).bodyType.value)
@@ -39,7 +42,8 @@ class BodyTypeFlowTest {
     @Test
     fun figureCanBeChangedInSettings() {
         rule.onNodeWithText("Male").performClick()
-        rule.onNodeWithContentDescription("Settings").performClick()
+        rule.waitUntilAtLeastOneExists(hasText("HI!"), timeoutMillis = 5_000)
+        rule.onNodeWithContentDescription("Settings", useUnmergedTree = true).performClick()
 
         rule.onNodeWithText("Female").performClick()
 

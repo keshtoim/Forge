@@ -22,10 +22,46 @@
     <string name="add_count">Добавить (%d)</string>
 
     <string name="workout_default_name">Тренировка</string>
-    <string name="workout_start_empty">Начать пустую тренировку</string>
     <string name="workout_start">Начать</string>
     <string name="workout_resume">Продолжить</string>
     <string name="workout_in_progress">Тренировка идёт</string>
+    <string name="home_greeting">Привет!</string>
+    <string name="home_next">Сегодня по кругу</string>
+    <string name="home_now">Идёт сейчас</string>
+    <string name="home_start_now">Начни сейчас</string>
+    <string name="home_go">Погнали</string>
+    <string name="home_new">Новый</string>
+    <string name="workout_no_template">Без шаблона</string>
+    <string name="edit">Изменить</string>
+    <string name="today">Сегодня</string>
+    <string name="yesterday">Вчера</string>
+    <string name="never_done">Ещё не было</string>
+    <string name="duration_hm">%1$d ч %2$02d мин</string>
+    <string name="duration_m">%d мин</string>
+    <plurals name="days_ago">
+        <item quantity="one">%d день назад</item>
+        <item quantity="few">%d дня назад</item>
+        <item quantity="many">%d дней назад</item>
+        <item quantity="other">%d дня назад</item>
+    </plurals>
+    <plurals name="workouts_this_week">
+        <item quantity="one">%d тренировка на этой неделе</item>
+        <item quantity="few">%d тренировки на этой неделе</item>
+        <item quantity="many">%d тренировок на этой неделе</item>
+        <item quantity="other">%d тренировки на этой неделе</item>
+    </plurals>
+    <plurals name="exercises_count">
+        <item quantity="one">%d упражнение</item>
+        <item quantity="few">%d упражнения</item>
+        <item quantity="many">%d упражнений</item>
+        <item quantity="other">%d упражнения</item>
+    </plurals>
+    <plurals name="sets_total">
+        <item quantity="one">%d подход</item>
+        <item quantity="few">%d подхода</item>
+        <item quantity="many">%d подходов</item>
+        <item quantity="other">%d подхода</item>
+    </plurals>
     <string name="workout_finish">Завершить</string>
     <string name="workout_discard">Отменить тренировку</string>
     <string name="workout_discard_message">Тренировка и все её подходы будут удалены.</string>

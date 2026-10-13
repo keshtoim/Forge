@@ -4,11 +4,13 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.keshtoim.forge.MainActivity
@@ -27,6 +29,8 @@ class PickExercisesFlowTest {
     fun chooseBodyType() {
         // First launch asks which figure the muscle map should show.
         rule.onNodeWithText("Male").performClick()
+        // Home renders once its data has loaded from Room.
+        rule.waitUntilAtLeastOneExists(hasText("HI!"), timeoutMillis = 5_000)
     }
 
     // Built-in exercises are seeded asynchronously on first launch.
@@ -38,7 +42,8 @@ class PickExercisesFlowTest {
 
     @Test
     fun pickedExerciseIsAddedToTemplate() {
-        rule.onNodeWithText("New template").performClick()
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText("+ New"))
+        rule.onNodeWithText("+ New", useUnmergedTree = true).performClick()
         rule.onNode(hasSetTextAction() and hasText("Template name")).performTextInput("Push")
         rule.onNodeWithText("Add exercises").performClick()
         pickBenchPress()
@@ -52,7 +57,7 @@ class PickExercisesFlowTest {
 
     @Test
     fun pickedExerciseIsAddedToActiveWorkout() {
-        rule.onNodeWithText("Start empty workout").performClick()
+        rule.onNodeWithText("LET'S GO", useUnmergedTree = true).performClick()
         rule.waitUntilAtLeastOneExists(hasText("Add exercises"), timeoutMillis = 5_000)
         rule.onNodeWithText("Add exercises").performClick()
         pickBenchPress()

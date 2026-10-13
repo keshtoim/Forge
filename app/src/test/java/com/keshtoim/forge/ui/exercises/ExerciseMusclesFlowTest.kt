@@ -36,6 +36,8 @@ class ExerciseMusclesFlowTest {
     fun chooseBodyType() {
         // First launch asks which figure the muscle map should show.
         rule.onNodeWithText("Male").performClick()
+        // Home renders once its data has loaded from Room.
+        rule.waitUntilAtLeastOneExists(hasText("HI!"), timeoutMillis = 5_000)
     }
 
     private fun openExercisesTab() = rule.onNodeWithContentDescription("Exercises").performClick()

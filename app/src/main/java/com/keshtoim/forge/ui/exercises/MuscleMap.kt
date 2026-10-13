@@ -217,29 +217,46 @@ fun ExerciseMuscles(primary: MuscleGroup, secondary: List<MuscleGroup>, modifier
     }
 }
 
-private class Palette(val body: Color, val hair: Color)
+// [levels] colour load levels 1..3; anything else is drawn idle.
+class MuscleMapColors(val body: Color, val idle: Color, val levels: List<Color>, val hair: Color)
+
+object MuscleMapDefaults {
+    @Composable
+    fun colors(): MuscleMapColors {
+        val scheme = MaterialTheme.colorScheme
+        val body = scheme.surfaceVariant
+        val idle = lerp(body, scheme.onSurfaceVariant, 0.15f)
+        return MuscleMapColors(body, idle, levels(idle, scheme.primary), hair = lerp(body, Color.Black, 0.35f))
+    }
+
+    // For maps placed on the dark inverseSurface panels.
+    @Composable
+    fun onDark(): MuscleMapColors {
+        val scheme = MaterialTheme.colorScheme
+        val body = lerp(scheme.inverseSurface, scheme.inverseOnSurface, 0.1f)
+        val idle = lerp(scheme.inverseSurface, scheme.inverseOnSurface, 0.18f)
+        return MuscleMapColors(body, idle, levels(idle, scheme.inversePrimary), hair = lerp(scheme.inverseSurface, Color.Black, 0.4f))
+    }
+
+    private fun levels(idle: Color, strong: Color) = listOf(lerp(idle, strong, 0.3f), lerp(idle, strong, 0.6f), strong)
+}
 
 // Front and back body views; [primary] is highlighted fully and [secondary] muscles faintly.
+@Composable
+fun MuscleMap(primary: MuscleGroup, secondary: List<MuscleGroup>, modifier: Modifier = Modifier) =
+    MuscleMap(secondary.associateWith { 2 } + (primary to 3), modifier)
+
 // Groups without a body region (CARDIO, OTHER) are simply not shown.
 @Composable
-fun MuscleMap(primary: MuscleGroup, secondary: List<MuscleGroup>, modifier: Modifier = Modifier) {
+fun MuscleMap(heat: Map<MuscleGroup, Int>, modifier: Modifier = Modifier, colors: MuscleMapColors = MuscleMapDefaults.colors()) {
     val figure = FIGURES.getValue(LocalBodyType.current)
-    val body = MaterialTheme.colorScheme.surfaceVariant
-    val idle = lerp(body, MaterialTheme.colorScheme.onSurfaceVariant, 0.15f)
-    val strong = MaterialTheme.colorScheme.primary
-    val weak = lerp(idle, strong, 0.5f)
-    val palette = Palette(body, hair = lerp(body, Color.Black, 0.35f))
 
-    fun color(muscle: MuscleGroup) = when (muscle) {
-        primary -> strong
-        in secondary -> weak
-        else -> idle
-    }
+    fun color(muscle: MuscleGroup) = heat[muscle]?.let { colors.levels.getOrNull(it - 1) } ?: colors.idle
 
     Canvas(modifier.aspectRatio(MAP_WIDTH / VIEW_HEIGHT)) {
         scale(size.width / MAP_WIDTH, pivot = Offset.Zero) {
-            drawView(figure, figure.front, front = true, palette, ::color)
-            translate(left = VIEW_WIDTH + VIEW_GAP) { drawView(figure, figure.back, front = false, palette, ::color) }
+            drawView(figure, figure.front, front = true, colors, ::color)
+            translate(left = VIEW_WIDTH + VIEW_GAP) { drawView(figure, figure.back, front = false, colors, ::color) }
         }
     }
 }
@@ -248,19 +265,19 @@ private fun DrawScope.drawView(
     figure: Figure,
     regions: List<Pair<MuscleGroup, Path>>,
     front: Boolean,
-    palette: Palette,
+    colors: MuscleMapColors,
     color: (MuscleGroup) -> Color,
 ) {
-    mirrored { drawPath(figure.body, palette.body) }
-    if (front) figure.hair.behind?.let { drawPath(it, palette.hair) }
-    mirrored { drawPath(EAR_PATH, palette.body) }
-    drawPath(HEAD_PATH, palette.body)
-    drawPath(if (front) figure.hair.front else figure.hair.back, palette.hair)
+    mirrored { drawPath(figure.body, colors.body) }
+    if (front) figure.hair.behind?.let { drawPath(it, colors.hair) }
+    mirrored { drawPath(EAR_PATH, colors.body) }
+    drawPath(HEAD_PATH, colors.body)
+    drawPath(if (front) figure.hair.front else figure.hair.back, colors.hair)
     mirrored {
         regions.forEach { (muscle, path) ->
             drawPath(path, color(muscle))
             // Outlining in the body colour leaves thin seams between adjacent muscles.
-            drawPath(path, palette.body, style = Stroke(width = 0.6f))
+            drawPath(path, colors.body, style = Stroke(width = 0.6f))
         }
     }
 }

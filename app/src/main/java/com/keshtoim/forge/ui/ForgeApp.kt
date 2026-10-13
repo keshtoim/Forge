@@ -124,7 +124,8 @@ private fun MainScreen(viewModel: ForgeViewModel) {
                     Modifier.windowInsetsPadding(WindowInsets.navigationBars).padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    activeWorkout?.let { workout ->
+                    // Home shows the running workout in its own hero card.
+                    activeWorkout?.takeIf { currentTab != Tab.Workout }?.let { workout ->
                         ActiveWorkoutBar(workout, rest) { navController.openWorkout(workout.id) }
                     }
                     NavPill(currentTab) { tab ->
