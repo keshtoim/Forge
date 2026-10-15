@@ -155,6 +155,16 @@ class DaoTest {
     }
 
     @Test
+    fun `a second weigh-in the same day replaces the first`() = runTest {
+        val weights = db.bodyWeightDao()
+        weights.record(epochDay = 100, weightKg = 64.0)
+        weights.record(epochDay = 101, weightKg = 63.5)
+        weights.record(epochDay = 100, weightKg = 63.8)
+
+        assertEquals(listOf(100L to 63.8, 101L to 63.5), weights.observeAll().first().map { it.epochDay to it.weightKg })
+    }
+
+    @Test
     fun `exercise is added to the active workout or starts a new one`() = runTest {
         val started = workouts.addToActiveOrStart("Workout", bench, now = 1_000)
         assertEquals(1, detail(started).exercises.single().sets.size)
@@ -179,6 +189,7 @@ class DaoTest {
     fun `backup survives json round trip into an empty database`() = runTest {
         val templateId = templates.save(Template(name = "Push"), listOf(item(bench, 3)))
         db.planDao().save(PlannedWorkout(templateId = templateId, epochDay = 20_000, minuteOfDay = 18 * 60 + 30, repeatDays = 0b100000, remindBefore = 30))
+        db.bodyWeightDao().record(epochDay = 20_000, weightKg = 80.5)
         val id = workouts.start("Push", null, listOf(bench to 2), now = 1_000)
         completeAll(id, weight = 100.0, reps = 5)
         workouts.finish(id, now = 2_000)
@@ -192,6 +203,7 @@ class DaoTest {
         assertNotNull(restored)
         assertEquals(2, restored!!.exercises.single().sets.count { it.completed })
         assertEquals(1, target.backupDao().plannedWorkouts().size)
+        assertEquals(1, target.backupDao().bodyWeights().size)
         target.close()
     }
 

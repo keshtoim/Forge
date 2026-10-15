@@ -118,3 +118,12 @@ data class PlannedWorkout(
     val repeatDays: Int = 0,
     val remindBefore: Int? = null,
 )
+
+@Serializable
+@Entity(tableName = "body_weights", indices = [Index(value = ["epochDay"], unique = true)])
+data class BodyWeight(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    // One entry per day: a second weigh-in the same day replaces the first.
+    val epochDay: Long,
+    val weightKg: Double,
+)

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.LocalDate
 
 class UserPreferences(context: Context) {
     private val prefs = context.getSharedPreferences("user", Context.MODE_PRIVATE)
@@ -29,8 +30,28 @@ class UserPreferences(context: Context) {
         _themeMode.value = mode
     }
 
+    private val _heightCm = MutableStateFlow(prefs.getInt(KEY_HEIGHT, 0).takeIf { it > 0 })
+
+    val heightCm: StateFlow<Int?> = _heightCm
+
+    fun setHeightCm(cm: Int) {
+        prefs.edit { putInt(KEY_HEIGHT, cm) }
+        _heightCm.value = cm
+    }
+
+    private val _birthDate = MutableStateFlow(prefs.getLong(KEY_BIRTH, Long.MIN_VALUE).takeIf { it != Long.MIN_VALUE }?.let(LocalDate::ofEpochDay))
+
+    val birthDate: StateFlow<LocalDate?> = _birthDate
+
+    fun setBirthDate(date: LocalDate) {
+        prefs.edit { putLong(KEY_BIRTH, date.toEpochDay()) }
+        _birthDate.value = date
+    }
+
     private companion object {
         const val KEY_BODY_TYPE = "body_type"
         const val KEY_THEME = "theme"
+        const val KEY_HEIGHT = "height_cm"
+        const val KEY_BIRTH = "birth_day"
     }
 }

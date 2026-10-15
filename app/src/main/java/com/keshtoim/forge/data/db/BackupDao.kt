@@ -16,6 +16,7 @@ data class Backup(
     val workoutExercises: List<WorkoutExercise>,
     val workoutSets: List<WorkoutSet>,
     val plannedWorkouts: List<PlannedWorkout> = emptyList(),
+    val bodyWeights: List<BodyWeight> = emptyList(),
 )
 
 @Dao
@@ -27,8 +28,10 @@ interface BackupDao {
     @Query("SELECT * FROM workout_exercises") suspend fun workoutExercises(): List<WorkoutExercise>
     @Query("SELECT * FROM workout_sets") suspend fun workoutSets(): List<WorkoutSet>
     @Query("SELECT * FROM planned_workouts") suspend fun plannedWorkouts(): List<PlannedWorkout>
+    @Query("SELECT * FROM body_weights") suspend fun bodyWeights(): List<BodyWeight>
 
     @Query("DELETE FROM planned_workouts") suspend fun deletePlannedWorkouts()
+    @Query("DELETE FROM body_weights") suspend fun deleteBodyWeights()
     @Query("DELETE FROM workout_sets") suspend fun deleteWorkoutSets()
     @Query("DELETE FROM workout_exercises") suspend fun deleteWorkoutExercises()
     @Query("DELETE FROM workouts") suspend fun deleteWorkouts()
@@ -43,6 +46,7 @@ interface BackupDao {
     @Insert suspend fun insertWorkoutExercises(items: List<WorkoutExercise>)
     @Insert suspend fun insertWorkoutSets(items: List<WorkoutSet>)
     @Insert suspend fun insertPlannedWorkouts(items: List<PlannedWorkout>)
+    @Insert suspend fun insertBodyWeights(items: List<BodyWeight>)
 
     @Transaction
     suspend fun export() = Backup(
@@ -53,12 +57,14 @@ interface BackupDao {
         workoutExercises = workoutExercises(),
         workoutSets = workoutSets(),
         plannedWorkouts = plannedWorkouts(),
+        bodyWeights = bodyWeights(),
     )
 
     // Ids are kept as-is so foreign keys inside the backup stay valid.
     @Transaction
     suspend fun replaceAll(backup: Backup) {
         deletePlannedWorkouts()
+        deleteBodyWeights()
         deleteWorkoutSets()
         deleteWorkoutExercises()
         deleteWorkouts()
@@ -72,5 +78,6 @@ interface BackupDao {
         insertWorkoutExercises(backup.workoutExercises)
         insertWorkoutSets(backup.workoutSets)
         insertPlannedWorkouts(backup.plannedWorkouts)
+        insertBodyWeights(backup.bodyWeights)
     }
 }
