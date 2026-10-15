@@ -19,17 +19,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,41 +75,57 @@ import kotlin.math.roundToLong
 private val WorkoutDetail.minutes get() = ((workout.finishedAt ?: workout.startedAt) - workout.startedAt) / 60_000
 private val WorkoutDetail.doneSets get() = exercises.sumOf { e -> e.sets.count { it.completed } }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
     onOpen: (Long) -> Unit,
     onOpenPlan: (planId: Long, epochDay: Long) -> Unit,
     viewModel: HistoryViewModel = viewModel(factory = HistoryViewModel.Factory),
 ) {
+    var tab by rememberSaveable { mutableIntStateOf(0) }
+    Column {
+        ScreenHeader(stringResource(R.string.tab_diary))
+        PrimaryTabRow(selectedTabIndex = tab, containerColor = MaterialTheme.colorScheme.background) {
+            listOf(R.string.diary_workouts, R.string.diary_body).forEachIndexed { index, label ->
+                Tab(selected = tab == index, onClick = { tab = index }, text = { Text(stringResource(label)) })
+            }
+        }
+        when (tab) {
+            0 -> WorkoutsTab(onOpen, onOpenPlan, viewModel)
+            else -> BodyLogTab()
+        }
+    }
+}
+
+@Composable
+private fun WorkoutsTab(onOpen: (Long) -> Unit, onOpenPlan: (planId: Long, epochDay: Long) -> Unit, viewModel: HistoryViewModel) {
     val workouts by viewModel.workouts.collectAsStateWithLifecycle()
     val upcoming by viewModel.upcoming.collectAsStateWithLifecycle()
     val zone = ZoneId.systemDefault()
     val months = remember(workouts) { workouts.groupBy { YearMonth.from(Instant.ofEpochMilli(it.workout.startedAt).atZone(zone)) } }
 
-    Scaffold(topBar = { ScreenHeader(stringResource(R.string.tab_diary)) }) { padding ->
-        if (workouts.isEmpty() && upcoming.isEmpty()) {
-            Box(Modifier.padding(padding).fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
-                Text(stringResource(R.string.history_empty), color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-            }
-            return@Scaffold
+    if (workouts.isEmpty() && upcoming.isEmpty()) {
+        Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+            Text(stringResource(R.string.history_empty), color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         }
-        LazyColumn(
-            modifier = Modifier.padding(padding).fillMaxSize(),
-            contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            if (upcoming.isNotEmpty()) {
-                item(key = "upcoming") {
-                    Text(stringResource(R.string.diary_upcoming), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp, bottom = 2.dp))
-                }
-                items(upcoming, key = { "plan-${it.upcoming.plan.id}" }) { item ->
-                    UpcomingRow(item) { onOpenPlan(item.upcoming.plan.id, item.upcoming.plan.epochDay) }
-                }
+        return
+    }
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        if (upcoming.isNotEmpty()) {
+            item(key = "upcoming") {
+                Text(stringResource(R.string.diary_upcoming), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp, bottom = 2.dp))
             }
-            months.forEach { (month, list) ->
-                item(key = month.toString()) { MonthHeader(month, list.size) }
-                items(list, key = { it.workout.id }) { detail -> WorkoutRow(detail) { onOpen(detail.workout.id) } }
+            items(upcoming, key = { "plan-${it.upcoming.plan.id}" }) { item ->
+                UpcomingRow(item) { onOpenPlan(item.upcoming.plan.id, item.upcoming.plan.epochDay) }
             }
+        }
+        months.forEach { (month, list) ->
+            item(key = month.toString()) { MonthHeader(month, list.size) }
+            items(list, key = { it.workout.id }) { detail -> WorkoutRow(detail) { onOpen(detail.workout.id) } }
         }
     }
 }

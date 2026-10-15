@@ -89,6 +89,9 @@
     <string name="workout_delete">Удалить тренировку</string>
     <string name="history_empty">Здесь появятся завершённые тренировки.</string>
     <string name="diary_upcoming">Предстоящие</string>
+    <string name="diary_workouts">Тренировки</string>
+    <string name="diary_body">Замеры тела</string>
+    <string name="body_log_empty">Здесь появятся замеры веса.</string>
     <string name="exercise_remove">Убрать упражнение</string>
     <string name="set_add">Добавить подход</string>
     <string name="workout_finish_short">Финиш</string>

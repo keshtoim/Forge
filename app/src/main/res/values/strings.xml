@@ -90,6 +90,9 @@
     <string name="workout_delete">Delete workout</string>
     <string name="history_empty">Finished workouts will appear here.</string>
     <string name="diary_upcoming">Upcoming</string>
+    <string name="diary_workouts">Workouts</string>
+    <string name="diary_body">Body</string>
+    <string name="body_log_empty">Your weigh-ins will show up here.</string>
     <string name="exercise_remove">Remove exercise</string>
     <string name="set_add">Add set</string>
     <string name="workout_finish_short">Finish</string>

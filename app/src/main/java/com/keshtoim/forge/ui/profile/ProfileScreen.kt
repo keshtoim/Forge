@@ -88,7 +88,7 @@ import kotlin.math.roundToLong
 
 private enum class Editing { HEIGHT, WEIGHT, BIRTH }
 
-private fun one(value: Double) = formatNumber((value * 10).roundToLong() / 10.0)
+internal fun one(value: Double) = formatNumber((value * 10).roundToLong() / 10.0)
 
 @Composable
 fun ProfileScreen(onBack: () -> Unit, viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory)) {
@@ -429,7 +429,7 @@ private fun WeightChart(points: List<BodyWeight>, modifier: Modifier) {
 }
 
 @Composable
-private fun NumberDialog(
+internal fun NumberDialog(
     title: String,
     unit: String,
     initial: String,
