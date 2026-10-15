@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import com.keshtoim.forge.R
 import com.keshtoim.forge.data.BodyType
 import com.keshtoim.forge.data.BuiltInExercise
+import com.keshtoim.forge.data.ThemeMode
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.MuscleGroup
@@ -97,3 +98,11 @@ fun formatMinutes(context: Context, minutes: Long): String =
 fun formatWeight(context: Context, kg: Double): String =
     if (kg >= 1000) "${formatNumber((kg / 100).roundToLong() / 10.0)} ${context.getString(R.string.unit_t)}"
     else "${formatNumber((kg * 10).roundToLong() / 10.0)} ${context.getString(R.string.unit_kg)}"
+
+@get:StringRes
+val ThemeMode.labelRes: Int
+    get() = when (this) {
+        ThemeMode.SYSTEM -> R.string.theme_system
+        ThemeMode.LIGHT -> R.string.theme_light
+        ThemeMode.DARK -> R.string.theme_dark
+    }

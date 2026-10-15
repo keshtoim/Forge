@@ -5,11 +5,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Accessibility
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.AlertDialog
@@ -41,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
 import com.keshtoim.forge.data.BodyType
+import com.keshtoim.forge.data.ThemeMode
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
 import com.keshtoim.forge.ui.labelRes
@@ -55,6 +59,7 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = viewModel(
     val scope = rememberCoroutineScope()
     var confirmImport by remember { mutableStateOf(false) }
     val bodyType by viewModel.bodyType.collectAsStateWithLifecycle()
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
 
     fun report(ok: Boolean, @StringRes success: Int) {
         scope.launch { snackbar.showSnackbar(context.getString(if (ok) success else R.string.backup_failed)) }
@@ -71,8 +76,16 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = viewModel(
         topBar = { ScreenHeader(stringResource(R.string.settings), onBack = onBack) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
-        Column(Modifier.padding(padding).padding(horizontal = 18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(start = 18.dp, end = 18.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             val itemColors = ListItemDefaults.colors(containerColor = Color.Transparent)
+            val segmentColors = SegmentedButtonDefaults.colors(
+                activeContainerColor = MaterialTheme.colorScheme.primary,
+                activeContentColor = MaterialTheme.colorScheme.onPrimary,
+                activeBorderColor = MaterialTheme.colorScheme.primary,
+            )
             ForgeCard(Modifier.fillMaxWidth()) {
                 Column {
                     ListItem(
@@ -94,6 +107,25 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = viewModel(
             ForgeCard(Modifier.fillMaxWidth()) {
                 ListItem(
                     colors = itemColors,
+                    headlineContent = { Text(stringResource(R.string.settings_theme)) },
+                    leadingContent = { Icon(Icons.Filled.DarkMode, contentDescription = null) },
+                    supportingContent = {
+                        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                            ThemeMode.entries.forEachIndexed { index, mode ->
+                                SegmentedButton(
+                                    selected = mode == themeMode,
+                                    onClick = { viewModel.setThemeMode(mode) },
+                                    shape = SegmentedButtonDefaults.itemShape(index, ThemeMode.entries.size),
+                                    colors = segmentColors,
+                                ) { Text(stringResource(mode.labelRes), maxLines = 1) }
+                            }
+                        }
+                    },
+                )
+            }
+            ForgeCard(Modifier.fillMaxWidth()) {
+                ListItem(
+                    colors = itemColors,
                     headlineContent = { Text(stringResource(R.string.settings_body_type)) },
                     leadingContent = { Icon(Icons.Filled.Accessibility, contentDescription = null) },
                     supportingContent = {
@@ -103,11 +135,7 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = viewModel(
                                     selected = type == bodyType,
                                     onClick = { viewModel.setBodyType(type) },
                                     shape = SegmentedButtonDefaults.itemShape(index, BodyType.entries.size),
-                                    colors = SegmentedButtonDefaults.colors(
-                                        activeContainerColor = MaterialTheme.colorScheme.primary,
-                                        activeContentColor = MaterialTheme.colorScheme.onPrimary,
-                                        activeBorderColor = MaterialTheme.colorScheme.primary,
-                                    ),
+                                    colors = segmentColors,
                                 ) { Text(stringResource(type.labelRes)) }
                             }
                         }

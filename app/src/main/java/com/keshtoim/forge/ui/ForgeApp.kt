@@ -58,6 +58,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.keshtoim.forge.R
+import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.data.db.Workout
 import com.keshtoim.forge.rest.Rest
 import com.keshtoim.forge.ui.exercises.ExercisePickerScreen
@@ -220,7 +221,7 @@ private fun NavController.openWorkout(id: Long) = navigate(ActiveWorkoutRoute(id
 
 @Composable
 private fun NavPill(currentTab: Tab, onSelect: (Tab) -> Unit) {
-    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.inverseSurface) {
+    Surface(shape = CircleShape, color = ForgeTheme.panel.panel) {
         Row(Modifier.height(68.dp).padding(6.dp).selectableGroup()) {
             Tab.entries.forEach { tab ->
                 val selected = tab == currentTab
@@ -238,7 +239,7 @@ private fun NavPill(currentTab: Tab, onSelect: (Tab) -> Unit) {
                     Icon(
                         tab.icon,
                         contentDescription = null,
-                        tint = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.6f),
+                        tint = if (selected) MaterialTheme.colorScheme.onPrimary else ForgeTheme.panel.onPanel.copy(alpha = 0.6f),
                         modifier = Modifier.size(22.dp),
                     )
                 }

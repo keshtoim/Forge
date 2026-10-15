@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.keshtoim.forge.R
+import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.data.BodyType
 import com.keshtoim.forge.data.db.MuscleGroup
 import com.keshtoim.forge.data.db.MuscleGroup.ABS
@@ -229,13 +230,13 @@ object MuscleMapDefaults {
         return MuscleMapColors(body, idle, levels(idle, scheme.primary), hair = lerp(body, Color.Black, 0.35f))
     }
 
-    // For maps placed on the dark inverseSurface panels.
+    // For maps placed on the dark athletic panels.
     @Composable
     fun onDark(): MuscleMapColors {
         val scheme = MaterialTheme.colorScheme
-        val body = lerp(scheme.inverseSurface, scheme.inverseOnSurface, 0.1f)
-        val idle = lerp(scheme.inverseSurface, scheme.inverseOnSurface, 0.18f)
-        return MuscleMapColors(body, idle, levels(idle, scheme.inversePrimary), hair = lerp(scheme.inverseSurface, Color.Black, 0.4f))
+        val body = lerp(ForgeTheme.panel.panel, ForgeTheme.panel.onPanel, 0.1f)
+        val idle = lerp(ForgeTheme.panel.panel, ForgeTheme.panel.onPanel, 0.18f)
+        return MuscleMapColors(body, idle, levels(idle, ForgeTheme.panel.accent), hair = lerp(ForgeTheme.panel.panel, Color.Black, 0.4f))
     }
 
     private fun levels(idle: Color, strong: Color) = listOf(lerp(idle, strong, 0.3f), lerp(idle, strong, 0.6f), strong)

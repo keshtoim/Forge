@@ -1,31 +1,31 @@
 package com.keshtoim.forge.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import com.keshtoim.forge.R
+import com.keshtoim.forge.data.ThemeMode
 
 private val Ink = Color(0xFF16121F)
-private val Violet = Color(0xFF6C4CF5)
 
-// Light lilac shell with an athletic core: dark ink panels (inverseSurface), violet for actions,
-// coral (secondary) for energy and records, mint (tertiary) for rest.
-private val ForgeColors = lightColorScheme(
-    primary = Violet,
+// Lilac shell with an athletic core: violet for actions, coral (secondary) for energy and records,
+// mint (tertiary) for rest.
+private val LightColors = lightColorScheme(
+    primary = Color(0xFF6C4CF5),
     onPrimary = Color.White,
     primaryContainer = Color(0xFFECE6FF),
     onPrimaryContainer = Color(0xFF5235D6),
@@ -57,60 +57,92 @@ private val ForgeColors = lightColorScheme(
     errorContainer = Color(0xFFFFDAD6),
 )
 
-// Variable fonts: one file per family, weights picked through the wght axis.
-@OptIn(ExperimentalTextApi::class)
-private fun exo2(weight: Int) = Font(
-    R.font.exo2_italic,
-    FontWeight(weight),
-    FontStyle.Italic,
-    variationSettings = FontVariation.Settings(FontVariation.weight(weight)),
+private val DarkColors = darkColorScheme(
+    primary = Color(0xFFA48FFA),
+    onPrimary = Color(0xFF1E0F5C),
+    primaryContainer = Color(0xFF3B2B8C),
+    onPrimaryContainer = Color(0xFFE4DCFF),
+    inversePrimary = Color(0xFF6C4CF5),
+    secondary = Color(0xFFFF8A7A),
+    onSecondary = Color(0xFF3A0A04),
+    secondaryContainer = Color(0xFF5C2219),
+    onSecondaryContainer = Color(0xFFFFDAD3),
+    tertiary = Color(0xFF5FC4A3),
+    onTertiary = Color(0xFF00382A),
+    tertiaryContainer = Color(0xFF124A3C),
+    onTertiaryContainer = Color(0xFFBFF0DE),
+    background = Color(0xFF121016),
+    onBackground = Color(0xFFECE6F5),
+    surface = Color(0xFF121016),
+    onSurface = Color(0xFFECE6F5),
+    surfaceVariant = Color(0xFF3A3348),
+    onSurfaceVariant = Color(0xFFC6BEDA),
+    surfaceContainerLowest = Color(0xFF0D0B11),
+    surfaceContainerLow = Color(0xFF1A1721),
+    surfaceContainer = Color(0xFF1E1A26),
+    surfaceContainerHigh = Color(0xFF2A2535),
+    surfaceContainerHighest = Color(0xFF332D40),
+    inverseSurface = Color(0xFFECE6F5),
+    inverseOnSurface = Color(0xFF1E1A26),
+    outline = Color(0xFF8E88A6),
+    outlineVariant = Color(0xFF3A3348),
+    error = Color(0xFFFF8A80),
+    errorContainer = Color(0xFF5C1A1A),
 )
 
-@OptIn(ExperimentalTextApi::class)
-private fun nunito(weight: Int) = Font(R.font.nunito, FontWeight(weight), variationSettings = FontVariation.Settings(FontVariation.weight(weight)))
+// Dark "athletic" panels (active workout, records) stay dark in both themes, so they are not inverseSurface.
+@Immutable
+data class PanelColors(val panel: Color, val onPanel: Color, val muted: Color, val accent: Color)
 
-// Display face: always heavy italic. Text using it is upper-cased at the call site.
-val Exo2 = FontFamily(exo2(800), exo2(900))
-private val Nunito = FontFamily(nunito(600), nunito(700), nunito(800), nunito(900))
+private val LightPanel = PanelColors(panel = Ink, onPanel = Color.White, muted = Color(0xFFC9C2DE), accent = Color(0xFFB6A4FF))
+private val DarkPanel = PanelColors(panel = Color(0xFF2A2535), onPanel = Color.White, muted = Color(0xFFC6BEDA), accent = Color(0xFFB6A4FF))
 
-private fun display(size: Int, lineHeight: Float = 1f) = TextStyle(
-    fontFamily = Exo2,
-    fontWeight = FontWeight.Black,
-    fontStyle = FontStyle.Italic,
-    fontSize = size.sp,
-    lineHeight = lineHeight.em,
-)
+private val LocalPanelColors = staticCompositionLocalOf { LightPanel }
 
-private fun body(size: Int, weight: Int, lineHeight: Float = 1.35f) =
-    TextStyle(fontFamily = Nunito, fontWeight = FontWeight(weight), fontSize = size.sp, lineHeight = lineHeight.em)
+object ForgeTheme {
+    val panel: PanelColors
+        @Composable get() = LocalPanelColors.current
+}
+
+private fun style(size: Int, weight: FontWeight, lineHeight: Float = 1.3f) =
+    TextStyle(fontFamily = FontFamily.Default, fontWeight = weight, fontSize = size.sp, lineHeight = lineHeight.em)
 
 private val ForgeTypography = Typography(
-    displayLarge = display(64, 0.92f),
-    displayMedium = display(56, 1f),
-    displaySmall = display(40, 0.95f),
-    headlineLarge = display(32, 0.95f),
-    headlineMedium = display(30),
-    headlineSmall = display(22),
-    titleLarge = display(20),
-    titleMedium = body(16, 800),
-    titleSmall = body(14, 800),
-    bodyLarge = body(16, 700),
-    bodyMedium = body(14, 600),
-    bodySmall = body(13, 600),
-    labelLarge = body(14, 800),
-    labelMedium = body(12, 800, 1.2f).copy(letterSpacing = 0.06.em),
-    labelSmall = body(11, 700, 1.2f),
+    displayLarge = style(56, FontWeight.Bold, 1.05f),
+    displayMedium = style(48, FontWeight.Bold, 1.05f),
+    displaySmall = style(36, FontWeight.Bold, 1.1f),
+    headlineLarge = style(30, FontWeight.Bold, 1.15f),
+    headlineMedium = style(26, FontWeight.Bold, 1.15f),
+    headlineSmall = style(22, FontWeight.Bold, 1.2f),
+    titleLarge = style(20, FontWeight.Bold),
+    titleMedium = style(16, FontWeight.Medium),
+    titleSmall = style(14, FontWeight.Medium),
+    bodyLarge = style(16, FontWeight.Normal, 1.4f),
+    bodyMedium = style(14, FontWeight.Normal, 1.4f),
+    bodySmall = style(13, FontWeight.Normal, 1.35f),
+    labelLarge = style(14, FontWeight.Medium),
+    labelMedium = style(12, FontWeight.Medium),
+    labelSmall = style(11, FontWeight.Medium),
 )
 
 private val ForgeShapes = Shapes(
     extraSmall = RoundedCornerShape(10.dp),
     small = RoundedCornerShape(16.dp),
     medium = RoundedCornerShape(24.dp),
-    large = RoundedCornerShape(32.dp),
-    extraLarge = RoundedCornerShape(32.dp),
+    large = RoundedCornerShape(28.dp),
+    extraLarge = RoundedCornerShape(28.dp),
 )
 
 @Composable
-fun ForgeTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = ForgeColors, typography = ForgeTypography, shapes = ForgeShapes, content = content)
+fun ThemeMode.isDark(): Boolean = when (this) {
+    ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    ThemeMode.LIGHT -> false
+    ThemeMode.DARK -> true
+}
+
+@Composable
+fun ForgeTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+    CompositionLocalProvider(LocalPanelColors provides if (dark) DarkPanel else LightPanel) {
+        MaterialTheme(colorScheme = if (dark) DarkColors else LightColors, typography = ForgeTypography, shapes = ForgeShapes, content = content)
+    }
 }

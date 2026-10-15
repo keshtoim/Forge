@@ -82,6 +82,10 @@
     <string name="body_type_male">Мужская</string>
     <string name="body_type_female">Женская</string>
     <string name="settings_body_type">Фигура на карте мышц</string>
+    <string name="settings_theme">Тема</string>
+    <string name="theme_system">Системная</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
     <string name="backup_export">Экспорт данных</string>
     <string name="backup_export_hint">Сохранить тренировки, шаблоны и упражнения в JSON-файл</string>
     <string name="backup_import">Импорт данных</string>

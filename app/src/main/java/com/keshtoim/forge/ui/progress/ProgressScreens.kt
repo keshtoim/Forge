@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
+import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.SetPoint
 import com.keshtoim.forge.data.secondary
@@ -181,9 +182,9 @@ private fun ProgressHeader(exercise: Exercise, series: List<Point>, metric: Metr
 @Composable
 private fun ChartPanel(metric: Metric, series: List<Point>) {
     val colors = MaterialTheme.colorScheme
-    val muted = colors.inverseOnSurface.copy(alpha = 0.65f)
+    val muted = ForgeTheme.panel.onPanel.copy(alpha = 0.65f)
     val recent = series.takeLast(8)
-    Surface(shape = MaterialTheme.shapes.large, color = colors.inverseSurface, contentColor = colors.inverseOnSurface, modifier = Modifier.fillMaxWidth()) {
+    Surface(shape = MaterialTheme.shapes.large, color = ForgeTheme.panel.panel, contentColor = ForgeTheme.panel.onPanel, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(20.dp)) {
             Text(stringResource(metric.labelRes).uppercase(), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black), color = muted)
             Row(verticalAlignment = Alignment.Bottom) {
@@ -224,7 +225,7 @@ private fun Bars(points: List<Point>, modifier: Modifier) {
     val colors = MaterialTheme.colorScheme
     val min = points.minOf { it.value }
     val max = points.maxOf { it.value }
-    val idle = lerp(colors.inverseSurface, colors.inverseOnSurface, 0.12f)
+    val idle = lerp(ForgeTheme.panel.panel, ForgeTheme.panel.onPanel, 0.12f)
     // Fixed-width bars aligned to the end keep the latest workout on the right however few there are.
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End), verticalAlignment = Alignment.Bottom) {
         points.forEachIndexed { i, p ->
@@ -235,7 +236,7 @@ private fun Bars(points: List<Point>, modifier: Modifier) {
                     .width(30.dp)
                     .fillMaxHeight(fraction)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(if (i == points.lastIndex) colors.inversePrimary else idle),
+                    .background(if (i == points.lastIndex) ForgeTheme.panel.accent else idle),
             )
         }
     }

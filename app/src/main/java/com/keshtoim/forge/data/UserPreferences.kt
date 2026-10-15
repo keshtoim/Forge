@@ -18,7 +18,19 @@ class UserPreferences(context: Context) {
         _bodyType.value = type
     }
 
+    private val _themeMode = MutableStateFlow(
+        prefs.getString(KEY_THEME, null)?.let { name -> ThemeMode.entries.firstOrNull { it.name == name } } ?: ThemeMode.SYSTEM,
+    )
+
+    val themeMode: StateFlow<ThemeMode> = _themeMode
+
+    fun setThemeMode(mode: ThemeMode) {
+        prefs.edit { putString(KEY_THEME, mode.name) }
+        _themeMode.value = mode
+    }
+
     private companion object {
         const val KEY_BODY_TYPE = "body_type"
+        const val KEY_THEME = "theme"
     }
 }

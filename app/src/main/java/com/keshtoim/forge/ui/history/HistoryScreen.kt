@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
+import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.data.db.WorkoutDetail
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
@@ -218,12 +219,12 @@ private fun StatsPanel(detail: WorkoutDetail) {
         formatNumber((if (tonnes) detail.volumeKg / 100 else detail.volumeKg * 10).roundToLong() / 10.0) to
             stringResource(R.string.stat_volume, stringResource(if (tonnes) R.string.unit_t else R.string.unit_kg)),
     )
-    Surface(shape = MaterialTheme.shapes.large, color = colors.inverseSurface, contentColor = colors.inverseOnSurface, modifier = Modifier.fillMaxWidth()) {
+    Surface(shape = MaterialTheme.shapes.large, color = ForgeTheme.panel.panel, contentColor = ForgeTheme.panel.onPanel, modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(horizontal = 12.dp, vertical = 20.dp)) {
             stats.forEach { (value, label) ->
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(value, style = MaterialTheme.typography.headlineSmall, maxLines = 1)
-                    Text(label, style = MaterialTheme.typography.bodySmall, color = colors.inverseOnSurface.copy(alpha = 0.65f))
+                    Text(label, style = MaterialTheme.typography.bodySmall, color = ForgeTheme.panel.onPanel.copy(alpha = 0.65f))
                 }
             }
         }

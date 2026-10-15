@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
+import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.data.db.MuscleGroup
 import com.keshtoim.forge.ui.displayName
 import com.keshtoim.forge.ui.exercises.MuscleMap
@@ -180,7 +181,7 @@ private fun Header(onOpenSettings: () -> Unit) {
 @Composable
 private fun Hero(label: String, title: String, subtitle: String, heat: Map<MuscleGroup, Int>, action: String, onAction: () -> Unit) {
     val colors = MaterialTheme.colorScheme
-    Surface(shape = MaterialTheme.shapes.large, color = colors.inverseSurface, contentColor = colors.inverseOnSurface, modifier = Modifier.fillMaxWidth().height(300.dp)) {
+    Surface(shape = MaterialTheme.shapes.large, color = ForgeTheme.panel.panel, contentColor = ForgeTheme.panel.onPanel, modifier = Modifier.fillMaxWidth().height(300.dp)) {
         Box {
             MuscleMap(heat, Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = 14.dp).width(196.dp), MuscleMapDefaults.onDark())
             Column(Modifier.fillMaxSize().padding(20.dp)) {
@@ -193,7 +194,7 @@ private fun Hero(label: String, title: String, subtitle: String, heat: Map<Muscl
                 // Long template names shrink so they never run into the body map on the right.
                 BasicText(
                     title.uppercase(),
-                    style = MaterialTheme.typography.displayLarge.copy(color = colors.inverseOnSurface),
+                    style = MaterialTheme.typography.displayLarge.copy(color = ForgeTheme.panel.onPanel),
                     maxLines = 2,
                     autoSize = TextAutoSize.StepBased(minFontSize = 26.sp, maxFontSize = 64.sp),
                     modifier = Modifier.fillMaxWidth(0.58f).padding(top = 12.dp),
@@ -201,7 +202,7 @@ private fun Hero(label: String, title: String, subtitle: String, heat: Map<Muscl
                 Text(
                     subtitle,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = colors.inverseOnSurface.copy(alpha = 0.75f),
+                    color = ForgeTheme.panel.onPanel.copy(alpha = 0.75f),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth(0.62f).padding(top = 10.dp),

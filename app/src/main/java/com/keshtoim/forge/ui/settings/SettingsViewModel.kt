@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.keshtoim.forge.ForgeApplication
 import com.keshtoim.forge.data.BodyType
+import com.keshtoim.forge.data.ThemeMode
 import com.keshtoim.forge.data.UserPreferences
 import com.keshtoim.forge.data.db.Backup
 import com.keshtoim.forge.data.db.BackupDao
@@ -29,6 +30,10 @@ class SettingsViewModel(
     val bodyType = preferences.bodyType
 
     fun setBodyType(type: BodyType) = preferences.setBodyType(type)
+
+    val themeMode = preferences.themeMode
+
+    fun setThemeMode(mode: ThemeMode) = preferences.setThemeMode(mode)
 
     private val json = Json { ignoreUnknownKeys = true }
 
