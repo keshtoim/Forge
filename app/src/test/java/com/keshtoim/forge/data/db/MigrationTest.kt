@@ -46,6 +46,25 @@ class MigrationTest {
     }
 
     @Test
+    fun `migration 2 to 3 gives seeded barbell exercises a bar and leaves the rest on total weight`() = runBlocking {
+        helper.createDatabase(2).use {
+            it.execSQL(
+                "INSERT INTO exercises (id, builtInKey, name, muscleGroup, secondaryMuscles, type, archived) VALUES " +
+                    "(1, 'SQUAT', NULL, 'QUADS', '', 'WEIGHT_REPS', 0), " +
+                    "(2, 'SKULL_CRUSHER', NULL, 'TRICEPS', '', 'WEIGHT_REPS', 0), " +
+                    "(3, 'DUMBBELL_CURL', NULL, 'BICEPS', '', 'WEIGHT_REPS', 0), " +
+                    "(4, NULL, 'Landmine', 'SHOULDERS', '', 'WEIGHT_REPS', 0)",
+            )
+        }
+        helper.runMigrationsAndValidate(3).close()
+
+        val db = Room.databaseBuilder(context, ForgeDatabase::class.java, DB).build()
+        val bars = db.exerciseDao().observeAll().first().associate { it.id to it.barKg }
+        assertEquals(mapOf(1L to 20.0, 2L to 10.0, 3L to null, 4L to null), bars)
+        db.close()
+    }
+
+    @Test
     fun `secondary muscles survive a round trip`() = runBlocking {
         val db = Room.inMemoryDatabaseBuilder(context, ForgeDatabase::class.java).build()
         val muscles = listOf(MuscleGroup.TRICEPS, MuscleGroup.SHOULDERS)

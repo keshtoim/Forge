@@ -34,11 +34,15 @@ import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -84,6 +88,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
 import com.keshtoim.forge.data.db.Exercise
+import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.WorkoutExerciseWithSets
 import com.keshtoim.forge.data.db.WorkoutSet
 import com.keshtoim.forge.rest.Rest
@@ -173,6 +178,7 @@ fun ActiveWorkoutScreen(
                     ghost = previous.getOrNull(currentIndex),
                     exercise = exercise,
                     onEdit = { transform -> viewModel.editSet(current.id, transform) },
+                    onBarChange = { viewModel.setBar(exercise, it) },
                 )
             } else {
                 Text(
@@ -352,7 +358,14 @@ private fun SetChips(sets: List<WorkoutSet>, current: WorkoutSet?, exercise: Exe
 }
 
 @Composable
-private fun SetCard(number: Int, set: WorkoutSet, ghost: WorkoutSet?, exercise: Exercise, onEdit: ((WorkoutSet) -> WorkoutSet) -> Unit) {
+private fun SetCard(
+    number: Int,
+    set: WorkoutSet,
+    ghost: WorkoutSet?,
+    exercise: Exercise,
+    onEdit: ((WorkoutSet) -> WorkoutSet) -> Unit,
+    onBarChange: (Double?) -> Unit,
+) {
     val colors = MaterialTheme.colorScheme
     val context = LocalContext.current
     Surface(
@@ -378,36 +391,66 @@ private fun SetCard(number: Int, set: WorkoutSet, ghost: WorkoutSet?, exercise: 
                     )
                 }
             }
+            val plates = exercise.barKg?.let(::PlateLoading)
             SetField.forType(exercise.type).forEach { field ->
-                key(set.id, field) { BigField(field, set, ghost, onEdit) }
+                key(set.id, field) { BigField(field, set, ghost, plates.takeIf { field == SetField.WEIGHT }, onEdit) }
+            }
+            if (exercise.type == ExerciseType.WEIGHT_REPS) BarSelector(exercise.barKg, onBarChange)
+        }
+    }
+}
+
+@Composable
+private fun BarSelector(barKg: Double?, onSelect: (Double?) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        TextButton(onClick = { open = true }) {
+            Text(barLabel(barKg))
+            Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            (listOf(null) + PlateLoading.BAR_WEIGHTS).forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(barLabel(option)) },
+                    onClick = { open = false; onSelect(option) },
+                    trailingIcon = { if (option == barKg) Icon(Icons.Filled.Check, contentDescription = null) },
+                )
             }
         }
     }
 }
 
 @Composable
-private fun BigField(field: SetField, set: WorkoutSet, ghost: WorkoutSet?, onEdit: ((WorkoutSet) -> WorkoutSet) -> Unit) {
+private fun barLabel(barKg: Double?) =
+    if (barKg == null) stringResource(R.string.bar_none) else stringResource(R.string.bar_weight, formatNumber(barKg))
+
+@Composable
+private fun BigField(field: SetField, set: WorkoutSet, ghost: WorkoutSet?, plates: PlateLoading?, onEdit: ((WorkoutSet) -> WorkoutSet) -> Unit) {
     val colors = MaterialTheme.colorScheme
-    val stored = field.read(set)
+    // With plates the field shows one side while the stored set and every edit keep the total.
+    val view = { s: WorkoutSet -> plates?.toSide(s) ?: s }
+    val back = { s: WorkoutSet -> plates?.toTotal(s) ?: s }
+    val shownGhost = ghost?.let(view)
+    val stored = field.read(view(set))
     var text by remember { mutableStateOf(stored) }
     var focused by remember { mutableStateOf(false) }
     // While typing the DB round-trip lags behind the input, so only sync external changes when unfocused.
     LaunchedEffect(stored, focused) { if (!focused) text = stored }
     val focusManager = LocalFocusManager.current
-    val unit = stringResource(field.unitRes)
+    val unit = stringResource(if (plates != null) R.string.unit_kg_per_side else field.unitRes)
     val style = MaterialTheme.typography.displayMedium.copy(textAlign = TextAlign.Center)
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         StepButton(Icons.Filled.Remove, "−${formatNumber(field.step)} $unit") {
             focusManager.clearFocus()
-            onEdit { field.step(it, ghost, -1) }
+            onEdit { back(field.step(view(it), shownGhost, -1)) }
         }
         Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
             BasicTextField(
                 value = text,
                 onValueChange = { input ->
                     text = input
-                    onEdit { field.write(it, input) }
+                    onEdit { back(field.write(view(it), input)) }
                 },
                 textStyle = style.copy(color = colors.onSurface),
                 singleLine = true,
@@ -417,16 +460,25 @@ private fun BigField(field: SetField, set: WorkoutSet, ghost: WorkoutSet?, onEdi
                 modifier = Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused }.semantics { contentDescription = unit },
                 decorationBox = { inner ->
                     Box(contentAlignment = Alignment.Center) {
-                        if (text.isEmpty()) Text(ghost?.let(field::read).orEmpty(), style = style, color = lerp(colors.surfaceVariant, colors.outline, 0.6f))
+                        if (text.isEmpty()) Text(shownGhost?.let(field::read).orEmpty(), style = style, color = lerp(colors.surfaceVariant, colors.outline, 0.6f))
                         inner()
                     }
                 },
             )
             Text(unit, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold), color = colors.onSurfaceVariant)
+            if (plates != null) {
+                (set.weightKg ?: ghost?.weightKg)?.let { total ->
+                    Text(
+                        stringResource(R.string.plates_total, formatNumber(total)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.onSurfaceVariant,
+                    )
+                }
+            }
         }
         StepButton(Icons.Filled.Add, "+${formatNumber(field.step)} $unit") {
             focusManager.clearFocus()
-            onEdit { field.step(it, ghost, 1) }
+            onEdit { back(field.step(view(it), shownGhost, 1)) }
         }
     }
 }

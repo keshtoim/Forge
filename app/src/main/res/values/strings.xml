@@ -122,6 +122,10 @@
 
     <string name="unit_kg">kg</string>
     <string name="unit_t">t</string>
+    <string name="unit_kg_per_side">kg per side</string>
+    <string name="plates_total">%s kg total with the bar</string>
+    <string name="bar_none">Total weight</string>
+    <string name="bar_weight">Bar %s kg + plates</string>
     <string name="stat_time">h:min</string>
     <string name="stat_sets">sets</string>
     <string name="stat_volume">volume, %s</string>

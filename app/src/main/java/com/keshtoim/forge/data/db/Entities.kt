@@ -26,6 +26,8 @@ data class Exercise(
     val secondaryMuscles: List<MuscleGroup> = emptyList(),
     val type: ExerciseType,
     val archived: Boolean = false,
+    // Weight of the bar when sets are entered as plates per side; null means the total weight is entered.
+    val barKg: Double? = null,
 )
 
 @Serializable

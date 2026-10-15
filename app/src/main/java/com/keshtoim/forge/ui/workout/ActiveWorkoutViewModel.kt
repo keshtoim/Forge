@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.toRoute
 import com.keshtoim.forge.ForgeApplication
+import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseDao
 import com.keshtoim.forge.data.db.WorkoutDao
 import com.keshtoim.forge.data.db.WorkoutExerciseWithSets
@@ -27,7 +28,7 @@ import kotlinx.coroutines.sync.withLock
 class ActiveWorkoutViewModel(
     savedStateHandle: SavedStateHandle,
     private val workoutDao: WorkoutDao,
-    exerciseDao: ExerciseDao,
+    private val exerciseDao: ExerciseDao,
     private val restTimer: RestTimer,
 ) : ViewModel() {
     private val workoutId = savedStateHandle.toRoute<ActiveWorkoutRoute>().id
@@ -92,6 +93,10 @@ class ActiveWorkoutViewModel(
                 workoutDao.insert(base.copy(position = (last?.position ?: -1) + 1))
             }
         }
+    }
+
+    fun setBar(exercise: Exercise, barKg: Double?) {
+        viewModelScope.launch { exerciseDao.update(exercise.copy(barKg = barKg)) }
     }
 
     fun deleteSet(set: WorkoutSet) {
