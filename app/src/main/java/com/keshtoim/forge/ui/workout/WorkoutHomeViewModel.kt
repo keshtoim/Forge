@@ -13,14 +13,13 @@ import com.keshtoim.forge.data.db.TemplateDao
 import com.keshtoim.forge.data.db.TemplateExercise
 import com.keshtoim.forge.data.db.Workout
 import com.keshtoim.forge.data.db.WorkoutDao
+import com.keshtoim.forge.rest.RestTimer
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.temporal.WeekFields
-import java.util.Locale
 
 data class TemplateSummary(
     val template: Template,
@@ -30,12 +29,13 @@ data class TemplateSummary(
 )
 
 // [next] is the template suggested in rotation; it is null while a workout is in progress.
-data class HomeState(val active: Workout?, val next: TemplateSummary?, val others: List<TemplateSummary>, val week: Week)
+data class HomeState(val active: Workout?, val next: TemplateSummary?, val others: List<TemplateSummary>, val trainedDays: Set<LocalDate>)
 
 class WorkoutHomeViewModel(
     templateDao: TemplateDao,
     exerciseDao: ExerciseDao,
     private val workoutDao: WorkoutDao,
+    private val restTimer: RestTimer,
 ) : ViewModel() {
     val state = combine(
         templateDao.observeAll(),
@@ -52,8 +52,7 @@ class WorkoutHomeViewModel(
             }
             .sortedBy { it.lastDoneAt ?: Long.MIN_VALUE }
         val next = if (active == null) nextInRotation(summaries) { it.lastDoneAt } else null
-        val firstDay = WeekFields.of(Locale.getDefault()).firstDayOfWeek
-        HomeState(active, next, summaries.filter { it != next }, week(finished, LocalDate.now(), ZoneId.systemDefault(), firstDay))
+        HomeState(active, next, summaries.filter { it != next }, trainedDays(finished, ZoneId.systemDefault()))
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun startEmpty(name: String, onStarted: (Long) -> Unit) = start(name, null, emptyList(), onStarted)
@@ -61,23 +60,36 @@ class WorkoutHomeViewModel(
     fun startTemplate(summary: TemplateSummary, onStarted: (Long) -> Unit) =
         start(summary.template.name, summary.template.id, summary.items.map { it.exerciseId to it.targetSets }, onStarted)
 
-    private var starting = false
+    private var busy = false
 
     private fun start(name: String, templateId: Long?, items: List<Pair<Long, Int>>, onStarted: (Long) -> Unit) {
-        if (starting) return
-        starting = true
+        if (busy) return
+        busy = true
         viewModelScope.launch {
             val id = workoutDao.startOrResume(name, templateId, items, System.currentTimeMillis())
-            starting = false
+            busy = false
             onStarted(id)
+        }
+    }
+
+    // A workout without completed sets is dropped by the DAO, so [onFinished] only fires for kept ones.
+    fun finish(workoutId: Long, onFinished: (Long) -> Unit) {
+        if (busy) return
+        busy = true
+        viewModelScope.launch {
+            restTimer.stop()
+            val kept = workoutDao.finish(workoutId, System.currentTimeMillis())
+            busy = false
+            if (kept) onFinished(workoutId)
         }
     }
 
     companion object {
         val Factory = viewModelFactory {
             initializer {
-                val db = (this[APPLICATION_KEY] as ForgeApplication).database
-                WorkoutHomeViewModel(db.templateDao(), db.exerciseDao(), db.workoutDao())
+                val app = this[APPLICATION_KEY] as ForgeApplication
+                val db = app.database
+                WorkoutHomeViewModel(db.templateDao(), db.exerciseDao(), db.workoutDao(), app.restTimer)
             }
         }
     }

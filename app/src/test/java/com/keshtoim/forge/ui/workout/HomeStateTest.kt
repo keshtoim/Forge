@@ -6,6 +6,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneOffset
 
 class HomeStateTest {
@@ -18,26 +19,27 @@ class HomeStateTest {
         Workout(templateId = templateId, name = "W", startedAt = at(date, 18), finishedAt = at(date, 18) + minutes * 60_000)
 
     @Test
-    fun `week starts on the locale's first day and counts only this week`() {
-        val finished = listOf(
-            workout(friday.minusDays(4), 60), // Monday
-            workout(friday.minusDays(2), 65), // Wednesday
-            workout(friday.minusDays(7), 50), // last week
-        )
+    fun `month grid covers whole weeks from the locale's first day`() {
+        val grid = monthGrid(YearMonth.of(2026, 10), DayOfWeek.MONDAY)
 
-        val week = week(finished, friday, zone, DayOfWeek.MONDAY)
-
-        assertEquals(DayOfWeek.MONDAY, week.days.first().date.dayOfWeek)
-        assertEquals(listOf(true, false, true, false, false, false, false), week.days.map { it.trained })
-        assertEquals(2, week.workouts)
-        assertEquals(125, week.minutes)
+        assertEquals(LocalDate.of(2026, 9, 28), grid.first())
+        assertEquals(LocalDate.of(2026, 11, 1), grid.last())
+        assertEquals(35, grid.size)
     }
 
     @Test
-    fun `sunday-first locales shift the week`() {
-        val week = week(emptyList(), friday, zone, DayOfWeek.SUNDAY)
+    fun `sunday-first locales shift the month grid`() {
+        val grid = monthGrid(YearMonth.of(2026, 10), DayOfWeek.SUNDAY)
 
-        assertEquals(friday.minusDays(5), week.days.first().date)
+        assertEquals(LocalDate.of(2026, 9, 27), grid.first())
+        assertEquals(LocalDate.of(2026, 10, 31), grid.last())
+    }
+
+    @Test
+    fun `trained days are local dates of finished workouts`() {
+        val finished = listOf(workout(friday, 60), workout(friday, 30), workout(friday.minusDays(2), 45))
+
+        assertEquals(setOf(friday, friday.minusDays(2)), trainedDays(finished, zone))
     }
 
     @Test

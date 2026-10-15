@@ -167,9 +167,9 @@ private fun MainScreen(viewModel: ForgeViewModel) {
         ) {
             composable<WorkoutRoute> { entry ->
                 WorkoutHomeScreen(
-                    onOpenTemplate = { id -> entry.ifResumed { navController.navigate(TemplateEditorRoute(id)) } },
                     onOpenWorkout = { id -> entry.ifResumed { navController.openWorkout(id) } },
-                    onOpenSettings = { entry.ifResumed { navController.navigate(SettingsRoute) } },
+                    onOpenProgress = { entry.ifResumed { navController.navigate(ProgressRoute) } },
+                    onWorkoutFinished = { id -> entry.ifResumed { navController.navigate(WorkoutDetailRoute(id)) } },
                 )
             }
             composable<HistoryRoute> { entry ->

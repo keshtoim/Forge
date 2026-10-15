@@ -1,17 +1,15 @@
 package com.keshtoim.forge.ui
 
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasClickAction
-import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.keshtoim.forge.MainActivity
@@ -32,7 +30,7 @@ class PickExercisesFlowTest {
         rule.onNodeWithText("Male", useUnmergedTree = true).performClick()
         rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
         // Home renders once its data has loaded from Room.
-        rule.waitUntilAtLeastOneExists(hasText("Hi!"), timeoutMillis = 5_000)
+        rule.waitUntilAtLeastOneExists(hasContentDescription("New workout"), timeoutMillis = 5_000)
     }
 
     // Button labels live in the unmerged semantics tree.
@@ -49,8 +47,9 @@ class PickExercisesFlowTest {
 
     @Test
     fun pickedExerciseIsAddedToTemplate() {
-        rule.onNode(hasScrollAction()).performScrollToNode(hasText("+ New"))
-        rule.onNodeWithText("+ New", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("Library").performClick()
+        rule.onNodeWithText("Templates").performClick()
+        rule.onNodeWithText("New template", useUnmergedTree = true).performClick()
         rule.onNode(hasSetTextAction() and hasText("Template name")).performTextInput("Push")
         rule.onNodeWithText("Add exercises").performClick()
         pickBenchPress()
@@ -58,14 +57,14 @@ class PickExercisesFlowTest {
         rule.waitUntilAtLeastOneExists(hasText("Bench Press"), timeoutMillis = 5_000)
         rule.onNodeWithText("Save", useUnmergedTree = true).performClick()
 
-        // The only template becomes the next one in rotation, shown in the hero card with its exercise count.
         rule.waitUntilAtLeastOneExists(hasText("Push"), timeoutMillis = 5_000)
         rule.waitUntilAtLeastOneExists(hasText("1 exercise", substring = true), timeoutMillis = 5_000)
     }
 
     @Test
     fun pickedExerciseIsAddedToActiveWorkout() {
-        rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
+        rule.onNode(hasContentDescription("New workout"), useUnmergedTree = true).performClick()
+        rule.onNodeWithText("No template", useUnmergedTree = true).performClick()
         waitForButton("Add exercises")
         rule.onNodeWithText("Add exercises", useUnmergedTree = true).performClick()
         pickBenchPress()

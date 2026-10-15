@@ -4,6 +4,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
@@ -38,7 +39,7 @@ class ExerciseMusclesFlowTest {
         rule.onNodeWithText("Male", useUnmergedTree = true).performClick()
         rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
         // Home renders once its data has loaded from Room.
-        rule.waitUntilAtLeastOneExists(hasText("Hi!"), timeoutMillis = 5_000)
+        rule.waitUntilAtLeastOneExists(hasContentDescription("New workout"), timeoutMillis = 5_000)
     }
 
     private fun openExercisesTab() = rule.onNodeWithText("Library").performClick()

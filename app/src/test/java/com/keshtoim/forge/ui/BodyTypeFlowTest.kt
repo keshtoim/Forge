@@ -2,9 +2,8 @@ package com.keshtoim.forge.ui
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -38,7 +37,7 @@ class BodyTypeFlowTest {
         rule.onNodeWithText("Female", useUnmergedTree = true).performClick()
         rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
 
-        rule.waitUntilAtLeastOneExists(hasText("Hi!"), timeoutMillis = 5_000)
+        rule.waitUntilAtLeastOneExists(hasContentDescription("New workout"), timeoutMillis = 5_000)
         assertEquals(BodyType.FEMALE, preferences.bodyType.value)
         // A fresh instance reads the stored choice, so the question is not asked again.
         assertEquals(BodyType.FEMALE, UserPreferences(rule.activity).bodyType.value)
@@ -48,8 +47,9 @@ class BodyTypeFlowTest {
     fun figureCanBeChangedInSettings() {
         rule.onNodeWithText("Male", useUnmergedTree = true).performClick()
         rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
-        rule.waitUntilAtLeastOneExists(hasText("Hi!"), timeoutMillis = 5_000)
-        rule.onNodeWithContentDescription("Settings", useUnmergedTree = true).performClick()
+        rule.waitUntilAtLeastOneExists(hasContentDescription("New workout"), timeoutMillis = 5_000)
+        rule.onNodeWithText("More").performClick()
+        rule.onNodeWithText("Settings").performClick()
 
         rule.onNodeWithText("Female").performScrollTo().performClick()
 

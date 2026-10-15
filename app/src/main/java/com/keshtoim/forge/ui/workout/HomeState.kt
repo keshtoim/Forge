@@ -4,24 +4,18 @@ import com.keshtoim.forge.data.db.Workout
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 import java.time.temporal.TemporalAdjusters
 
-data class WeekDay(val date: LocalDate, val trained: Boolean)
-
-data class Week(val days: List<WeekDay>, val workouts: Int, val minutes: Long)
-
-fun week(finished: List<Workout>, today: LocalDate, zone: ZoneId, firstDay: DayOfWeek): Week {
-    val start = today.with(TemporalAdjusters.previousOrSame(firstDay))
-    val days = (0L until 7L).map { start.plusDays(it) }
-    val thisWeek = finished.filter { it.startedAt.toDate(zone) in days }
-    val trained = thisWeek.map { it.startedAt.toDate(zone) }.toSet()
-    return Week(
-        days = days.map { WeekDay(it, it in trained) },
-        workouts = thisWeek.size,
-        minutes = thisWeek.sumOf { ((it.finishedAt ?: it.startedAt) - it.startedAt) / 60_000 },
-    )
+// Whole weeks covering the month, starting on the locale's first day, so the grid has no gaps.
+fun monthGrid(month: YearMonth, firstDay: DayOfWeek): List<LocalDate> {
+    val start = month.atDay(1).with(TemporalAdjusters.previousOrSame(firstDay))
+    val end = month.atEndOfMonth().with(TemporalAdjusters.nextOrSame(firstDay.minus(1)))
+    return generateSequence(start) { it.plusDays(1) }.takeWhile { it <= end }.toList()
 }
+
+fun trainedDays(finished: List<Workout>, zone: ZoneId): Set<LocalDate> = finished.mapTo(HashSet()) { it.startedAt.toDate(zone) }
 
 // Templates are done in rotation: the next one is the template done longest ago, never-done ones first.
 fun <T> nextInRotation(templates: List<T>, lastDoneAt: (T) -> Long?): T? =

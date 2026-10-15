@@ -15,10 +15,6 @@
         <item quantity="one">%d day ago</item>
         <item quantity="other">%d days ago</item>
     </plurals>
-    <plurals name="workouts_this_week">
-        <item quantity="one">%d workout this week</item>
-        <item quantity="other">%d workouts this week</item>
-    </plurals>
     <plurals name="exercises_count">
         <item quantity="one">%d exercise</item>
         <item quantity="other">%d exercises</item>
