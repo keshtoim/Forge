@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
@@ -14,6 +15,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.keshtoim.forge.ForgeApplication
@@ -45,13 +47,22 @@ class ExerciseMusclesFlowTest {
     private fun openExercisesTab() = rule.onNodeWithText("Library").performClick()
 
     @Test
-    fun builtInExerciseShowsItsMuscles() {
+    fun builtInExerciseShowsItsMusclesAndCanStartAWorkout() {
         openExercisesTab()
         rule.waitUntilAtLeastOneExists(hasText("Bench Press"), timeoutMillis = 10_000)
         rule.onNodeWithText("Bench Press").performClick()
 
-        rule.onNodeWithText("Primary: Chest").assertIsDisplayed()
-        rule.onNodeWithText("Secondary: Triceps, Shoulders").assertIsDisplayed()
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Add to workout", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText("Pectoralis major"))
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText("Deltoid"))
+        rule.onNodeWithText("Triceps brachii").assertExists()
+        rule.onNodeWithText("Deltoid").assertIsDisplayed()
+
+        rule.onNodeWithText("Add to workout", useUnmergedTree = true).performClick()
+        val workouts = (rule.activity.application as ForgeApplication).database.workoutDao()
+        rule.waitUntil(5_000) { runBlocking { workouts.getActive() } != null }
+        val active = runBlocking { workouts.observeDetail(workouts.getActive()!!.id).first()!! }
+        assertEquals(listOf(1), active.exercises.map { it.sets.size })
     }
 
     @Test

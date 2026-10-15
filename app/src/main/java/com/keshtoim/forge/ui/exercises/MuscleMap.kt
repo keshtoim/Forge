@@ -1,15 +1,10 @@
 package com.keshtoim.forge.ui.exercises
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -20,11 +15,6 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import com.keshtoim.forge.R
 import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.data.BodyType
 import com.keshtoim.forge.data.db.MuscleGroup
@@ -39,7 +29,6 @@ import com.keshtoim.forge.data.db.MuscleGroup.HAMSTRINGS
 import com.keshtoim.forge.data.db.MuscleGroup.QUADS
 import com.keshtoim.forge.data.db.MuscleGroup.SHOULDERS
 import com.keshtoim.forge.data.db.MuscleGroup.TRICEPS
-import com.keshtoim.forge.ui.labelRes
 
 // Each view is drawn in a 100×220 box as its left half (x ≤ 50) and mirrored around x = 50.
 private const val VIEW_WIDTH = 100f
@@ -201,22 +190,6 @@ private class Figure(type: BodyType) {
 private val FIGURES = BodyType.entries.associateWith(::Figure)
 private val HEAD_PATH = path(HEAD)
 private val EAR_PATH = path(EAR)
-
-@Composable
-fun ExerciseMuscles(primary: MuscleGroup, secondary: List<MuscleGroup>, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        MuscleMap(primary, secondary, Modifier.fillMaxWidth(0.7f))
-        Text(stringResource(R.string.muscles_primary, stringResource(primary.labelRes)), style = MaterialTheme.typography.bodyMedium)
-        if (secondary.isNotEmpty()) {
-            Text(
-                stringResource(R.string.muscles_secondary, secondary.joinToString { context.getString(it.labelRes) }),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
-}
 
 // [levels] colour load levels 1..3; anything else is drawn idle.
 class MuscleMapColors(val body: Color, val idle: Color, val levels: List<Color>, val hair: Color)

@@ -155,6 +155,15 @@ class DaoTest {
     }
 
     @Test
+    fun `exercise is added to the active workout or starts a new one`() = runTest {
+        val started = workouts.addToActiveOrStart("Workout", bench, now = 1_000)
+        assertEquals(1, detail(started).exercises.single().sets.size)
+
+        assertEquals(started, workouts.addToActiveOrStart("Ignored", squat, now = 2_000))
+        assertEquals(listOf(bench, squat), detail(started).exercises.sortedBy { it.workoutExercise.position }.map { it.workoutExercise.exerciseId })
+    }
+
+    @Test
     fun `deleting a template drops its plans and editing a plan keeps its id`() = runTest {
         val templateId = templates.save(Template(name = "Push"), listOf(item(bench, 1)))
         val planId = db.planDao().save(PlannedWorkout(templateId = templateId, epochDay = 20_000, minuteOfDay = 600))

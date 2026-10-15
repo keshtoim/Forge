@@ -16,16 +16,10 @@ class ExercisesViewModel(private val dao: ExerciseDao) : ViewModel() {
     val exercises = dao.observeActive()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    fun save(exercise: Exercise) {
+    fun create(exercise: Exercise) {
         viewModelScope.launch {
-            if (exercise.id == 0L) dao.insert(exercise) else dao.update(exercise)
+            dao.insert(exercise)
         }
-    }
-
-    suspend fun hasHistory(exerciseId: Long) = dao.isUsedInWorkouts(exerciseId)
-
-    fun archive(exercise: Exercise) {
-        viewModelScope.launch { dao.update(exercise.copy(archived = true)) }
     }
 
     companion object {

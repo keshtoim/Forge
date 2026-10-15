@@ -61,6 +61,24 @@ val MuscleGroup.labelRes: Int
         MuscleGroup.OTHER -> R.string.muscle_other
     }
 
+// Anatomical name shown under the everyday group label; groups that are not a muscle have none.
+@get:StringRes
+val MuscleGroup.anatomyRes: Int?
+    get() = when (this) {
+        MuscleGroup.CHEST -> R.string.anatomy_chest
+        MuscleGroup.BACK -> R.string.anatomy_back
+        MuscleGroup.SHOULDERS -> R.string.anatomy_shoulders
+        MuscleGroup.BICEPS -> R.string.anatomy_biceps
+        MuscleGroup.TRICEPS -> R.string.anatomy_triceps
+        MuscleGroup.FOREARMS -> R.string.anatomy_forearms
+        MuscleGroup.QUADS -> R.string.anatomy_quads
+        MuscleGroup.HAMSTRINGS -> R.string.anatomy_hamstrings
+        MuscleGroup.GLUTES -> R.string.anatomy_glutes
+        MuscleGroup.CALVES -> R.string.anatomy_calves
+        MuscleGroup.ABS -> R.string.anatomy_abs
+        MuscleGroup.CARDIO, MuscleGroup.OTHER -> null
+    }
+
 @get:StringRes
 val ExerciseType.labelRes: Int
     get() = when (this) {

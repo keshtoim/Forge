@@ -20,7 +20,7 @@ import com.keshtoim.forge.ui.templates.TemplatesTab
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LibraryScreen(onOpenTemplate: (Long) -> Unit, onOpenWorkout: (Long) -> Unit) {
+fun LibraryScreen(onOpenExercise: (Long) -> Unit, onOpenTemplate: (Long) -> Unit, onOpenWorkout: (Long) -> Unit) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     Column {
         ScreenHeader(stringResource(R.string.tab_library))
@@ -30,7 +30,7 @@ fun LibraryScreen(onOpenTemplate: (Long) -> Unit, onOpenWorkout: (Long) -> Unit)
             }
         }
         when (tab) {
-            0 -> ExercisesTab(Modifier)
+            0 -> ExercisesTab(onOpen = onOpenExercise)
             else -> TemplatesTab(onOpenTemplate = onOpenTemplate, onOpenWorkout = onOpenWorkout)
         }
     }

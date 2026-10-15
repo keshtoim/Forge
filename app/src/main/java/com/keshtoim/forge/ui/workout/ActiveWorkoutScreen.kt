@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -101,6 +102,7 @@ fun ActiveWorkoutScreen(
     onClose: () -> Unit,
     onFinished: () -> Unit,
     onAddExercises: () -> Unit,
+    onOpenExercise: (Long) -> Unit,
     viewModel: ActiveWorkoutViewModel = viewModel(factory = ActiveWorkoutViewModel.Factory),
 ) {
     val detail by viewModel.detail.collectAsStateWithLifecycle()
@@ -163,13 +165,18 @@ fun ActiveWorkoutScreen(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = 18.dp, end = 18.dp, top = 16.dp),
         ) {
             ExerciseProgress(ordered, focus.workoutExercise.id) { listOpen = true }
-            BasicText(
-                exercise.displayName(context),
-                style = MaterialTheme.typography.displaySmall.copy(color = MaterialTheme.colorScheme.onSurface),
-                maxLines = 2,
-                autoSize = TextAutoSize.StepBased(minFontSize = 24.sp, maxFontSize = 40.sp),
-                modifier = Modifier.padding(top = 8.dp),
-            )
+            Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                BasicText(
+                    exercise.displayName(context),
+                    style = MaterialTheme.typography.displaySmall.copy(color = MaterialTheme.colorScheme.onSurface),
+                    maxLines = 2,
+                    autoSize = TextAutoSize.StepBased(minFontSize = 24.sp, maxFontSize = 40.sp),
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(onClick = { onOpenExercise(exercise.id) }) {
+                    Icon(Icons.Outlined.Info, contentDescription = stringResource(R.string.exercise_info), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
             SetChips(sets, current, exercise, onEdit = { viewModel.toggleCompleted(it.id, null) })
             if (current != null) {
                 SetCard(

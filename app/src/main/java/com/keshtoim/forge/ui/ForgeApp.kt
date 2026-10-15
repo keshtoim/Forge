@@ -65,6 +65,7 @@ import com.keshtoim.forge.R
 import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.data.db.Workout
 import com.keshtoim.forge.rest.Rest
+import com.keshtoim.forge.ui.exercises.ExerciseDetailScreen
 import com.keshtoim.forge.ui.exercises.ExercisePickerScreen
 import com.keshtoim.forge.ui.exercises.LocalBodyType
 import com.keshtoim.forge.ui.library.LibraryScreen
@@ -98,6 +99,7 @@ import kotlinx.serialization.Serializable
 @Serializable object SettingsRoute
 @Serializable object MoreRoute
 @Serializable data class PlanRoute(val id: Long, val epochDay: Long)
+@Serializable data class ExerciseDetailRoute(val id: Long, val fromWorkout: Boolean = false)
 
 private enum class Tab(val route: Any, @StringRes val label: Int, val icon: ImageVector) {
     Home(WorkoutRoute, R.string.tab_home, Icons.Filled.Home),
@@ -186,6 +188,7 @@ private fun MainScreen(viewModel: ForgeViewModel) {
             }
             composable<ExercisesRoute> { entry ->
                 LibraryScreen(
+                    onOpenExercise = { id -> entry.ifResumed { navController.navigate(ExerciseDetailRoute(id)) } },
                     onOpenTemplate = { id -> entry.ifResumed { navController.navigate(TemplateEditorRoute(id)) } },
                     onOpenWorkout = { id -> entry.ifResumed { navController.openWorkout(id) } },
                 )
@@ -229,6 +232,14 @@ private fun MainScreen(viewModel: ForgeViewModel) {
                         }
                     },
                     onAddExercises = { entry.ifResumed { navController.navigate(ExercisePickerRoute) } },
+                    onOpenExercise = { id -> entry.ifResumed { navController.navigate(ExerciseDetailRoute(id, fromWorkout = true)) } },
+                )
+            }
+            composable<ExerciseDetailRoute> { entry ->
+                ExerciseDetailScreen(
+                    onBack = { entry.ifResumed { navController.popBackStack() } },
+                    onOpenProgress = { id -> entry.ifResumed { navController.navigate(ExerciseProgressRoute(id)) } },
+                    onOpenWorkout = { id -> entry.ifResumed { navController.openWorkout(id) } },
                 )
             }
             composable<PlanRoute> { entry ->

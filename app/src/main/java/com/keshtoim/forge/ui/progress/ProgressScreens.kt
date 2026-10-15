@@ -140,7 +140,7 @@ fun ExerciseProgressScreen(onBack: () -> Unit, viewModel: ExerciseProgressViewMo
     }
 }
 
-private fun formatValue(value: Double) = formatNumber((value * 10).roundToLong() / 10.0)
+internal fun formatValue(value: Double) = formatNumber((value * 10).roundToLong() / 10.0)
 
 @Composable
 private fun ProgressHeader(exercise: Exercise, series: List<Point>, metric: Metric, workouts: Int) {

@@ -155,6 +155,13 @@ interface WorkoutDao {
         }
     }
 
+    @Transaction
+    suspend fun addToActiveOrStart(name: String, exerciseId: Long, now: Long): Long {
+        val active = getActive() ?: return start(name, null, listOf(exerciseId to 1), now)
+        addExercises(active.id, listOf(exerciseId))
+        return active.id
+    }
+
     // Returns false when nothing was completed and the workout was dropped entirely.
     @Transaction
     suspend fun finish(workoutId: Long, now: Long): Boolean {

@@ -27,7 +27,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,30 +34,30 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
-import com.keshtoim.forge.data.secondary
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.MuscleGroup
-import com.keshtoim.forge.ui.displayName
 import com.keshtoim.forge.ui.labelRes
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExercisesTab(modifier: Modifier = Modifier, viewModel: ExercisesViewModel = viewModel(factory = ExercisesViewModel.Factory)) {
+fun ExercisesTab(
+    onOpen: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: ExercisesViewModel = viewModel(factory = ExercisesViewModel.Factory),
+) {
     val exercises by viewModel.exercises.collectAsStateWithLifecycle()
-    var opened by remember { mutableStateOf<Exercise?>(null) }
+    var creating by rememberSaveable { mutableStateOf(false) }
 
     Box(modifier.fillMaxSize()) {
-        ExerciseCatalog(exercises = exercises, onClick = { opened = it }, modifier = Modifier.fillMaxSize().padding(top = 12.dp))
+        ExerciseCatalog(exercises = exercises, onClick = { onOpen(it.id) }, modifier = Modifier.fillMaxSize().padding(top = 12.dp))
         ExtendedFloatingActionButton(
-            onClick = { opened = Exercise(name = "", muscleGroup = MuscleGroup.CHEST, type = ExerciseType.WEIGHT_REPS) },
+            onClick = { creating = true },
             icon = { Icon(Icons.Filled.Add, contentDescription = null) },
             text = { Text(stringResource(R.string.exercise_new)) },
             shape = CircleShape,
@@ -68,30 +67,19 @@ fun ExercisesTab(modifier: Modifier = Modifier, viewModel: ExercisesViewModel = 
         )
     }
 
-    val exercise = opened ?: return
-    if (exercise.builtInKey != null) {
-        AlertDialog(
-            onDismissRequest = { opened = null },
-            title = { Text(exercise.displayName(LocalContext.current)) },
-            text = { ExerciseMuscles(exercise.muscleGroup, exercise.secondary) },
-            confirmButton = { TextButton(onClick = { opened = null }) { Text(stringResource(R.string.close)) } },
-        )
-    } else {
-        // Changing the type would make already logged sets unreadable (e.g. weight×reps shown as time).
-        var typeLocked by remember(exercise.id) { mutableStateOf(false) }
-        LaunchedEffect(exercise.id) { typeLocked = exercise.id != 0L && viewModel.hasHistory(exercise.id) }
+    if (creating) {
         ExerciseDialog(
-            initial = exercise,
-            typeLocked = typeLocked,
-            onDismiss = { opened = null },
-            onSave = { viewModel.save(it); opened = null },
-            onDelete = { viewModel.archive(exercise); opened = null },
+            initial = Exercise(name = "", muscleGroup = MuscleGroup.CHEST, type = ExerciseType.WEIGHT_REPS),
+            typeLocked = false,
+            onDismiss = { creating = false },
+            onSave = { viewModel.create(it); creating = false },
+            onDelete = {},
         )
     }
 }
 
 @Composable
-private fun ExerciseDialog(
+internal fun ExerciseDialog(
     initial: Exercise,
     typeLocked: Boolean,
     onDismiss: () -> Unit,
