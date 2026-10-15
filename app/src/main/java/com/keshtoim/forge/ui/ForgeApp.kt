@@ -71,6 +71,7 @@ import com.keshtoim.forge.ui.exercises.LocalBodyType
 import com.keshtoim.forge.ui.library.LibraryScreen
 import com.keshtoim.forge.ui.more.MoreScreen
 import com.keshtoim.forge.ui.plan.PlanScreen
+import com.keshtoim.forge.ui.profile.ProfileScreen
 import com.keshtoim.forge.ui.exercises.PICKED_EXERCISES
 import com.keshtoim.forge.ui.history.HistoryScreen
 import com.keshtoim.forge.ui.history.WorkoutDetailScreen
@@ -98,6 +99,7 @@ import kotlinx.serialization.Serializable
 @Serializable data class ExerciseProgressRoute(val exerciseId: Long)
 @Serializable object SettingsRoute
 @Serializable object MoreRoute
+@Serializable object ProfileRoute
 @Serializable data class PlanRoute(val id: Long, val epochDay: Long)
 @Serializable data class ExerciseDetailRoute(val id: Long, val fromWorkout: Boolean = false)
 
@@ -173,6 +175,7 @@ private fun MainScreen(viewModel: ForgeViewModel) {
                 WorkoutHomeScreen(
                     onOpenWorkout = { id -> entry.ifResumed { navController.openWorkout(id) } },
                     onOpenProgress = { entry.ifResumed { navController.navigate(ProgressRoute) } },
+                    onOpenProfile = { entry.ifResumed { navController.navigate(ProfileRoute) } },
                     onOpenDetail = { id -> entry.ifResumed { navController.navigate(WorkoutDetailRoute(id)) } },
                     onPlan = { id, epochDay -> entry.ifResumed { navController.navigate(PlanRoute(id, epochDay)) } },
                 )
@@ -195,6 +198,7 @@ private fun MainScreen(viewModel: ForgeViewModel) {
             }
             composable<MoreRoute> { entry ->
                 MoreScreen(
+                    onOpenProfile = { entry.ifResumed { navController.navigate(ProfileRoute) } },
                     onOpenProgress = { entry.ifResumed { navController.navigate(ProgressRoute) } },
                     onOpenSettings = { entry.ifResumed { navController.navigate(SettingsRoute) } },
                 )
@@ -241,6 +245,9 @@ private fun MainScreen(viewModel: ForgeViewModel) {
                     onOpenProgress = { id -> entry.ifResumed { navController.navigate(ExerciseProgressRoute(id)) } },
                     onOpenWorkout = { id -> entry.ifResumed { navController.openWorkout(id) } },
                 )
+            }
+            composable<ProfileRoute> { entry ->
+                ProfileScreen(onBack = { entry.ifResumed { navController.popBackStack() } })
             }
             composable<PlanRoute> { entry ->
                 PlanScreen(onBack = { entry.ifResumed { navController.popBackStack() } })

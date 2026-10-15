@@ -27,4 +27,8 @@
         <item quantity="one">%d more set</item>
         <item quantity="other">%d more sets</item>
     </plurals>
+    <plurals name="age_years">
+        <item quantity="one">%d year</item>
+        <item quantity="other">%d years</item>
+    </plurals>
 </resources>

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.ShowChart
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -24,11 +25,12 @@ import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
 
 @Composable
-fun MoreScreen(onOpenProgress: () -> Unit, onOpenSettings: () -> Unit) {
+fun MoreScreen(onOpenProfile: () -> Unit, onOpenProgress: () -> Unit, onOpenSettings: () -> Unit) {
     Column {
         ScreenHeader(stringResource(R.string.tab_more))
         ForgeCard(Modifier.padding(horizontal = 16.dp).fillMaxWidth()) {
             Column {
+                MenuItem(Icons.Filled.Person, stringResource(R.string.profile_title), onOpenProfile)
                 MenuItem(Icons.AutoMirrored.Filled.ShowChart, stringResource(R.string.more_progress), onOpenProgress)
                 MenuItem(Icons.Filled.Settings, stringResource(R.string.settings), onOpenSettings)
             }

@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Event
@@ -97,6 +98,7 @@ import java.util.Locale
 fun WorkoutHomeScreen(
     onOpenWorkout: (Long) -> Unit,
     onOpenProgress: () -> Unit,
+    onOpenProfile: () -> Unit,
     onOpenDetail: (Long) -> Unit,
     onPlan: (planId: Long, epochDay: Long) -> Unit,
     viewModel: WorkoutHomeViewModel = viewModel(factory = WorkoutHomeViewModel.Factory),
@@ -115,6 +117,9 @@ fun WorkoutHomeScreen(
             ScreenHeader(stringResource(R.string.tab_home)) {
                 IconButton(onClick = onOpenProgress) {
                     Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = stringResource(R.string.more_progress))
+                }
+                IconButton(onClick = onOpenProfile) {
+                    Icon(Icons.Filled.AccountCircle, contentDescription = stringResource(R.string.profile_title))
                 }
             }
             LazyColumn(
