@@ -80,11 +80,11 @@ import kotlin.math.roundToLong
 import java.time.format.FormatStyle
 
 @Composable
-fun ProgressScreen(onOpen: (Long) -> Unit, viewModel: ProgressViewModel = viewModel(factory = ProgressViewModel.Factory)) {
+fun ProgressScreen(onBack: () -> Unit, onOpen: (Long) -> Unit, viewModel: ProgressViewModel = viewModel(factory = ProgressViewModel.Factory)) {
     val items by viewModel.items.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    Scaffold(topBar = { ScreenHeader(stringResource(R.string.tab_progress)) }) { padding ->
+    Scaffold(topBar = { ScreenHeader(stringResource(R.string.more_progress), onBack = onBack) }) { padding ->
         if (items.isEmpty()) {
             Box(Modifier.padding(padding).fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
                 Text(stringResource(R.string.progress_empty), color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
@@ -162,7 +162,7 @@ private fun ProgressHeader(exercise: Exercise, series: List<Point>, metric: Metr
         Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f).padding(end = 10.dp)) {
                 BasicText(
-                    exercise.displayName(context).uppercase(),
+                    exercise.displayName(context),
                     style = MaterialTheme.typography.headlineLarge.copy(color = colors.onSurface),
                     maxLines = 3,
                     autoSize = TextAutoSize.StepBased(minFontSize = 20.sp, maxFontSize = 32.sp),
@@ -186,7 +186,7 @@ private fun ChartPanel(metric: Metric, series: List<Point>) {
     val recent = series.takeLast(8)
     Surface(shape = MaterialTheme.shapes.large, color = ForgeTheme.panel.panel, contentColor = ForgeTheme.panel.onPanel, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(20.dp)) {
-            Text(stringResource(metric.labelRes).uppercase(), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black), color = muted)
+            Text(stringResource(metric.labelRes), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black), color = muted)
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     series.lastOrNull()?.let { formatValue(it.value) } ?: "—",
@@ -259,7 +259,7 @@ private fun MetricTabs(metrics: List<Metric>, selected: Int, onSelect: (Int) -> 
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    stringResource(m.labelRes).uppercase(),
+                    stringResource(m.labelRes),
                     style = MaterialTheme.typography.titleLarge.copy(fontSize = 14.sp),
                     color = if (isSelected) colors.onPrimary else colors.onSurfaceVariant,
                     maxLines = 1,

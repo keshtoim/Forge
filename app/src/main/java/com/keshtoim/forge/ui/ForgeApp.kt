@@ -20,12 +20,16 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
-import androidx.compose.material.icons.automirrored.filled.ShowChart
+import androidx.compose.material.icons.automirrored.filled.EventNote
+import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -63,7 +67,8 @@ import com.keshtoim.forge.data.db.Workout
 import com.keshtoim.forge.rest.Rest
 import com.keshtoim.forge.ui.exercises.ExercisePickerScreen
 import com.keshtoim.forge.ui.exercises.LocalBodyType
-import com.keshtoim.forge.ui.exercises.ExercisesScreen
+import com.keshtoim.forge.ui.library.LibraryScreen
+import com.keshtoim.forge.ui.more.MoreScreen
 import com.keshtoim.forge.ui.exercises.PICKED_EXERCISES
 import com.keshtoim.forge.ui.history.HistoryScreen
 import com.keshtoim.forge.ui.history.WorkoutDetailScreen
@@ -90,12 +95,13 @@ import kotlinx.serialization.Serializable
 @Serializable data class WorkoutDetailRoute(val id: Long)
 @Serializable data class ExerciseProgressRoute(val exerciseId: Long)
 @Serializable object SettingsRoute
+@Serializable object MoreRoute
 
 private enum class Tab(val route: Any, @StringRes val label: Int, val icon: ImageVector) {
-    Workout(WorkoutRoute, R.string.tab_workout, Icons.Filled.FitnessCenter),
-    History(HistoryRoute, R.string.tab_history, Icons.Filled.History),
-    Exercises(ExercisesRoute, R.string.tab_exercises, Icons.AutoMirrored.Filled.FormatListBulleted),
-    Progress(ProgressRoute, R.string.tab_progress, Icons.AutoMirrored.Filled.ShowChart),
+    Home(WorkoutRoute, R.string.tab_home, Icons.Filled.Home),
+    Diary(HistoryRoute, R.string.tab_diary, Icons.AutoMirrored.Filled.EventNote),
+    Library(ExercisesRoute, R.string.tab_library, Icons.AutoMirrored.Filled.LibraryBooks),
+    More(MoreRoute, R.string.tab_more, Icons.Filled.MoreHoriz),
 }
 
 @Composable
@@ -121,19 +127,31 @@ private fun MainScreen(viewModel: ForgeViewModel) {
     Scaffold(
         bottomBar = {
             if (currentTab != null) {
-                Column(
-                    Modifier.windowInsetsPadding(WindowInsets.navigationBars).padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    // Home shows the running workout in its own hero card.
-                    activeWorkout?.takeIf { currentTab != Tab.Workout }?.let { workout ->
-                        ActiveWorkoutBar(workout, rest) { navController.openWorkout(workout.id) }
+                Column {
+                    // Home shows the running workout in its own card.
+                    activeWorkout?.takeIf { currentTab != Tab.Home }?.let { workout ->
+                        Box(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)) {
+                            ActiveWorkoutBar(workout, rest) { navController.openWorkout(workout.id) }
+                        }
                     }
-                    NavPill(currentTab) { tab ->
-                        navController.navigate(tab.route) {
-                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
+                    NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
+                        Tab.entries.forEach { tab ->
+                            NavigationBarItem(
+                                selected = tab == currentTab,
+                                onClick = {
+                                    navController.navigate(tab.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                                icon = { Icon(tab.icon, contentDescription = null) },
+                                label = { Text(stringResource(tab.label)) },
+                                colors = NavigationBarItemDefaults.colors(
+                                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                ),
+                            )
                         }
                     }
                 }
@@ -160,9 +178,23 @@ private fun MainScreen(viewModel: ForgeViewModel) {
             composable<WorkoutDetailRoute> { entry ->
                 WorkoutDetailScreen(onBack = { entry.ifResumed { navController.popBackStack() } })
             }
-            composable<ExercisesRoute> { ExercisesScreen() }
+            composable<ExercisesRoute> { entry ->
+                LibraryScreen(
+                    onOpenTemplate = { id -> entry.ifResumed { navController.navigate(TemplateEditorRoute(id)) } },
+                    onOpenWorkout = { id -> entry.ifResumed { navController.openWorkout(id) } },
+                )
+            }
+            composable<MoreRoute> { entry ->
+                MoreScreen(
+                    onOpenProgress = { entry.ifResumed { navController.navigate(ProgressRoute) } },
+                    onOpenSettings = { entry.ifResumed { navController.navigate(SettingsRoute) } },
+                )
+            }
             composable<ProgressRoute> { entry ->
-                ProgressScreen(onOpen = { id -> entry.ifResumed { navController.navigate(ExerciseProgressRoute(id)) } })
+                ProgressScreen(
+                    onBack = { entry.ifResumed { navController.popBackStack() } },
+                    onOpen = { id -> entry.ifResumed { navController.navigate(ExerciseProgressRoute(id)) } },
+                )
             }
             composable<ExerciseProgressRoute> { entry ->
                 ExerciseProgressScreen(onBack = { entry.ifResumed { navController.popBackStack() } })
@@ -218,35 +250,6 @@ private inline fun NavBackStackEntry.ifResumed(block: () -> Unit) {
 }
 
 private fun NavController.openWorkout(id: Long) = navigate(ActiveWorkoutRoute(id)) { launchSingleTop = true }
-
-@Composable
-private fun NavPill(currentTab: Tab, onSelect: (Tab) -> Unit) {
-    Surface(shape = CircleShape, color = ForgeTheme.panel.panel) {
-        Row(Modifier.height(68.dp).padding(6.dp).selectableGroup()) {
-            Tab.entries.forEach { tab ->
-                val selected = tab == currentTab
-                val label = stringResource(tab.label)
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .clip(CircleShape)
-                        .background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent)
-                        .selectable(selected = selected, role = Role.Tab, onClick = { onSelect(tab) })
-                        .semantics { contentDescription = label },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        tab.icon,
-                        contentDescription = null,
-                        tint = if (selected) MaterialTheme.colorScheme.onPrimary else ForgeTheme.panel.onPanel.copy(alpha = 0.6f),
-                        modifier = Modifier.size(22.dp),
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Composable
 private fun ActiveWorkoutBar(workout: Workout, rest: Rest?, onClick: () -> Unit) {

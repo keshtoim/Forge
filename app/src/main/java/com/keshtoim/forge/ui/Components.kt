@@ -1,19 +1,14 @@
 package com.keshtoim.forge.ui
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -31,12 +26,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.keshtoim.forge.R
 
-// Top of every screen: optional back arrow and actions, then the big italic upper-case title.
+// Top bar of every screen: optional back arrow, the title and trailing actions.
 @Composable
 fun ScreenHeader(
     title: String,
@@ -44,31 +39,27 @@ fun ScreenHeader(
     onBack: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
-    Column(
+    Row(
         modifier
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.statusBars)
-            .padding(start = 18.dp, end = 18.dp, top = if (onBack == null) 20.dp else 6.dp, bottom = 12.dp),
+            .height(64.dp)
+            .padding(start = if (onBack == null) 18.dp else 4.dp, end = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBack, modifier = Modifier.offset(x = (-12).dp)) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                }
-                Spacer(Modifier.weight(1f))
-                actions()
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
             }
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            BasicText(
-                title.uppercase(),
-                style = MaterialTheme.typography.headlineMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-                maxLines = 2,
-                autoSize = TextAutoSize.StepBased(minFontSize = 22.sp, maxFontSize = 30.sp),
-                modifier = Modifier.weight(1f),
-            )
-            if (onBack == null) actions()
-        }
+        Text(
+            title,
+            style = MaterialTheme.typography.headlineSmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f).padding(start = if (onBack == null) 0.dp else 4.dp),
+        )
+        actions()
     }
 }
 

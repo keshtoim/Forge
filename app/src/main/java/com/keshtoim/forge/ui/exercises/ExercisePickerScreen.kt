@@ -46,7 +46,7 @@ fun ExercisePickerScreen(
                     modifier = Modifier.navigationBarsPadding().padding(horizontal = 18.dp, vertical = 12.dp).fillMaxWidth().height(64.dp),
                 ) {
                     Text(
-                        stringResource(R.string.add_count, selected.size).uppercase(),
+                        stringResource(R.string.add_count, selected.size),
                         style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp, letterSpacing = 0.04.em),
                     )
                 }

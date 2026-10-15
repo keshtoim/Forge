@@ -61,13 +61,13 @@ fun BodyTypeScreen(onPick: (BodyType) -> Unit) {
             .padding(start = 20.dp, end = 20.dp, top = 32.dp, bottom = 24.dp),
     ) {
         Text(
-            stringResource(R.string.body_type_step).uppercase(),
+            stringResource(R.string.body_type_step),
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
             color = colors.onSecondaryContainer,
             modifier = Modifier.clip(CircleShape).background(colors.secondaryContainer).padding(horizontal = 12.dp, vertical = 6.dp),
         )
         Text(
-            stringResource(R.string.body_type_title).uppercase(),
+            stringResource(R.string.body_type_title),
             style = MaterialTheme.typography.displaySmall,
             modifier = Modifier.padding(top = 14.dp),
         )
@@ -89,7 +89,7 @@ fun BodyTypeScreen(onPick: (BodyType) -> Unit) {
             shape = CircleShape,
             modifier = Modifier.fillMaxWidth().height(64.dp),
         ) {
-            Text(stringResource(R.string.home_go).uppercase(), style = MaterialTheme.typography.titleLarge.copy(letterSpacing = 0.04.em))
+            Text(stringResource(R.string.home_go), style = MaterialTheme.typography.titleLarge.copy(letterSpacing = 0.04.em))
         }
     }
 }
@@ -115,7 +115,7 @@ private fun FigureCard(type: BodyType, selected: Boolean, modifier: Modifier, on
                     MuscleMap(PREVIEW, Modifier.fillMaxWidth())
                 }
                 Text(
-                    stringResource(type.labelRes).uppercase(),
+                    stringResource(type.labelRes),
                     style = MaterialTheme.typography.titleLarge,
                     color = if (selected) colors.onPrimaryContainer else colors.onSurface,
                 )

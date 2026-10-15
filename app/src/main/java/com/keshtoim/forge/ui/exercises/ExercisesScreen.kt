@@ -1,6 +1,7 @@
 package com.keshtoim.forge.ui.exercises
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,7 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -46,33 +46,25 @@ import com.keshtoim.forge.data.secondary
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.MuscleGroup
-import com.keshtoim.forge.ui.ScreenHeader
 import com.keshtoim.forge.ui.displayName
 import com.keshtoim.forge.ui.labelRes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExercisesScreen(viewModel: ExercisesViewModel = viewModel(factory = ExercisesViewModel.Factory)) {
+fun ExercisesTab(modifier: Modifier = Modifier, viewModel: ExercisesViewModel = viewModel(factory = ExercisesViewModel.Factory)) {
     val exercises by viewModel.exercises.collectAsStateWithLifecycle()
     var opened by remember { mutableStateOf<Exercise?>(null) }
 
-    Scaffold(
-        topBar = { ScreenHeader(stringResource(R.string.tab_exercises)) },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { opened = Exercise(name = "", muscleGroup = MuscleGroup.CHEST, type = ExerciseType.WEIGHT_REPS) },
-                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text(stringResource(R.string.exercise_new)) },
-                shape = CircleShape,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            )
-        },
-    ) { padding ->
-        ExerciseCatalog(
-            exercises = exercises,
-            onClick = { opened = it },
-            modifier = Modifier.padding(padding).fillMaxSize(),
+    Box(modifier.fillMaxSize()) {
+        ExerciseCatalog(exercises = exercises, onClick = { opened = it }, modifier = Modifier.fillMaxSize().padding(top = 12.dp))
+        ExtendedFloatingActionButton(
+            onClick = { opened = Exercise(name = "", muscleGroup = MuscleGroup.CHEST, type = ExerciseType.WEIGHT_REPS) },
+            icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+            text = { Text(stringResource(R.string.exercise_new)) },
+            shape = CircleShape,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
         )
     }
 

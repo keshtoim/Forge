@@ -71,7 +71,7 @@ fun HistoryScreen(onOpen: (Long) -> Unit, viewModel: HistoryViewModel = viewMode
     val zone = ZoneId.systemDefault()
     val months = remember(workouts) { workouts.groupBy { YearMonth.from(Instant.ofEpochMilli(it.workout.startedAt).atZone(zone)) } }
 
-    Scaffold(topBar = { ScreenHeader(stringResource(R.string.tab_history)) }) { padding ->
+    Scaffold(topBar = { ScreenHeader(stringResource(R.string.tab_diary)) }) { padding ->
         if (workouts.isEmpty()) {
             Box(Modifier.padding(padding).fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
                 Text(stringResource(R.string.history_empty), color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
@@ -97,7 +97,7 @@ private fun MonthHeader(month: YearMonth, count: Int) {
     val name = month.month.getDisplayName(TextStyle.FULL_STANDALONE, locale) +
         if (month.year != LocalDate.now().year) " ${month.year}" else ""
     Row(Modifier.padding(top = 8.dp, bottom = 2.dp), verticalAlignment = Alignment.Bottom) {
-        Text(name.uppercase(locale), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+        Text(name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
         Text(
             pluralStringResource(R.plurals.plural_workouts, count, count),
             style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),

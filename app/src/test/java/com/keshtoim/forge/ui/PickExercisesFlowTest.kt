@@ -29,10 +29,10 @@ class PickExercisesFlowTest {
     @Before
     fun chooseBodyType() {
         // First launch asks which figure the muscle map should show.
-        rule.onNodeWithText("MALE", useUnmergedTree = true).performClick()
-        rule.onNodeWithText("LET'S GO", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("Male", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
         // Home renders once its data has loaded from Room.
-        rule.waitUntilAtLeastOneExists(hasText("HI!"), timeoutMillis = 5_000)
+        rule.waitUntilAtLeastOneExists(hasText("Hi!"), timeoutMillis = 5_000)
     }
 
     // Button labels live in the unmerged semantics tree.
@@ -44,7 +44,7 @@ class PickExercisesFlowTest {
     private fun pickBenchPress() {
         rule.waitUntilAtLeastOneExists(hasText("Bench Press"), timeoutMillis = 10_000)
         rule.onNodeWithText("Bench Press").performClick()
-        rule.onNode(hasClickAction() and hasAnyDescendant(hasText("ADD (1)")), useUnmergedTree = true).performClick()
+        rule.onNode(hasClickAction() and hasAnyDescendant(hasText("Add (1)")), useUnmergedTree = true).performClick()
     }
 
     @Test
@@ -56,21 +56,21 @@ class PickExercisesFlowTest {
         pickBenchPress()
 
         rule.waitUntilAtLeastOneExists(hasText("Bench Press"), timeoutMillis = 5_000)
-        rule.onNodeWithText("SAVE", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("Save", useUnmergedTree = true).performClick()
 
         // The only template becomes the next one in rotation, shown in the hero card with its exercise count.
-        rule.waitUntilAtLeastOneExists(hasText("PUSH"), timeoutMillis = 5_000)
+        rule.waitUntilAtLeastOneExists(hasText("Push"), timeoutMillis = 5_000)
         rule.waitUntilAtLeastOneExists(hasText("1 exercise", substring = true), timeoutMillis = 5_000)
     }
 
     @Test
     fun pickedExerciseIsAddedToActiveWorkout() {
-        rule.onNodeWithText("LET'S GO", useUnmergedTree = true).performClick()
-        waitForButton("ADD EXERCISES")
-        rule.onNodeWithText("ADD EXERCISES", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
+        waitForButton("Add exercises")
+        rule.onNodeWithText("Add exercises", useUnmergedTree = true).performClick()
         pickBenchPress()
 
-        rule.waitUntilAtLeastOneExists(hasText("BENCH PRESS"), timeoutMillis = 5_000)
-        waitForButton("DONE")
+        rule.waitUntilAtLeastOneExists(hasText("Bench Press"), timeoutMillis = 5_000)
+        waitForButton("Done")
     }
 }

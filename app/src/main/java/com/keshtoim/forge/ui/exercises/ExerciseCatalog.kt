@@ -84,7 +84,7 @@ fun ExerciseCatalog(
             grouped.forEach { (muscle, items) ->
                 stickyHeader(key = muscle) {
                     Text(
-                        stringResource(muscle.labelRes).uppercase(),
+                        stringResource(muscle.labelRes),
                         style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),
                         modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background).padding(top = 14.dp, bottom = 4.dp),
                     )

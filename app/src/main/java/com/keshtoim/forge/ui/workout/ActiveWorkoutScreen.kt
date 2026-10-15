@@ -137,7 +137,7 @@ fun ActiveWorkoutScreen(
                 border = BorderStroke(2.dp, MaterialTheme.colorScheme.onSurface),
                 modifier = Modifier.height(44.dp),
             ) {
-                Text(stringResource(R.string.workout_finish_short).uppercase(), style = MaterialTheme.typography.titleLarge.copy(fontSize = 14.sp), color = MaterialTheme.colorScheme.onSurface)
+                Text(stringResource(R.string.workout_finish_short), style = MaterialTheme.typography.titleLarge.copy(fontSize = 14.sp), color = MaterialTheme.colorScheme.onSurface)
             }
         }
         rest?.let { RestPill(it, onAdd = { viewModel.adjustRest(15) }, onSkip = viewModel::skipRest) }
@@ -159,7 +159,7 @@ fun ActiveWorkoutScreen(
         ) {
             ExerciseProgress(ordered, focus.workoutExercise.id) { listOpen = true }
             BasicText(
-                exercise.displayName(context).uppercase(),
+                exercise.displayName(context),
                 style = MaterialTheme.typography.displaySmall.copy(color = MaterialTheme.colorScheme.onSurface),
                 maxLines = 2,
                 autoSize = TextAutoSize.StepBased(minFontSize = 24.sp, maxFontSize = 40.sp),
@@ -206,7 +206,7 @@ fun ActiveWorkoutScreen(
                 modifier = Modifier.fillMaxWidth().height(64.dp),
             ) {
                 Text(
-                    ctaLabel.uppercase(),
+                    ctaLabel,
                     style = MaterialTheme.typography.titleLarge.copy(fontSize = 21.sp, letterSpacing = 0.04.em),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -364,7 +364,7 @@ private fun SetCard(number: Int, set: WorkoutSet, ghost: WorkoutSet?, exercise: 
         Column(Modifier.padding(horizontal = 16.dp, vertical = 18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    stringResource(R.string.set_label, number).uppercase(),
+                    stringResource(R.string.set_label, number),
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
                     color = colors.onSecondaryContainer,
                     modifier = Modifier.clip(CircleShape).background(colors.secondaryContainer).padding(horizontal = 10.dp, vertical = 5.dp),
@@ -442,7 +442,7 @@ private fun StepButton(icon: ImageVector, description: String, onClick: () -> Un
 private fun EmptyWorkout(onAddExercises: () -> Unit, modifier: Modifier) {
     Column(modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
         Button(onClick = onAddExercises, shape = CircleShape, modifier = Modifier.fillMaxWidth().height(64.dp)) {
-            Text(stringResource(R.string.add_exercises).uppercase(), style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp))
+            Text(stringResource(R.string.add_exercises), style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp))
         }
     }
 }
@@ -462,7 +462,7 @@ private fun ExerciseList(
     val colors = MaterialTheme.colorScheme
     Column(Modifier.padding(bottom = 24.dp)) {
         Text(
-            stringResource(R.string.workout_exercises).uppercase(),
+            stringResource(R.string.workout_exercises),
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 8.dp),
         )

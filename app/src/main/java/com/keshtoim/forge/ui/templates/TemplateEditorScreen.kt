@@ -84,7 +84,7 @@ fun TemplateEditorScreen(
                 shape = CircleShape,
                 modifier = Modifier.navigationBarsPadding().padding(horizontal = 18.dp, vertical = 12.dp).fillMaxWidth().height(64.dp),
             ) {
-                Text(stringResource(R.string.save).uppercase(), style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp, letterSpacing = 0.04.em))
+                Text(stringResource(R.string.save), style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp, letterSpacing = 0.04.em))
             }
         },
     ) { padding ->

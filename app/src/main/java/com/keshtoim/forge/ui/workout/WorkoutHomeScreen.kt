@@ -126,7 +126,7 @@ fun WorkoutHomeScreen(
         item(span = { GridItemSpan(2) }) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    stringResource(R.string.templates).uppercase(),
+                    stringResource(R.string.templates),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.weight(1f),
                 )
@@ -162,7 +162,7 @@ private fun Header(onOpenSettings: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(date, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(stringResource(R.string.home_greeting).uppercase(), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(top = 2.dp))
+            Text(stringResource(R.string.home_greeting), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(top = 2.dp))
         }
         Surface(
             onClick = onOpenSettings,
@@ -186,14 +186,14 @@ private fun Hero(label: String, title: String, subtitle: String, heat: Map<Muscl
             MuscleMap(heat, Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = 14.dp).width(196.dp), MuscleMapDefaults.onDark())
             Column(Modifier.fillMaxSize().padding(20.dp)) {
                 Text(
-                    label.uppercase(),
+                    label,
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
                     color = colors.onSecondary,
                     modifier = Modifier.clip(CircleShape).background(colors.secondary).padding(horizontal = 12.dp, vertical = 6.dp),
                 )
                 // Long template names shrink so they never run into the body map on the right.
                 BasicText(
-                    title.uppercase(),
+                    title,
                     style = MaterialTheme.typography.displayLarge.copy(color = ForgeTheme.panel.onPanel),
                     maxLines = 2,
                     autoSize = TextAutoSize.StepBased(minFontSize = 26.sp, maxFontSize = 64.sp),
@@ -209,7 +209,7 @@ private fun Hero(label: String, title: String, subtitle: String, heat: Map<Muscl
                 )
                 Spacer(Modifier.weight(1f))
                 Button(onClick = onAction, modifier = Modifier.fillMaxWidth().height(58.dp)) {
-                    Text(action.uppercase(), style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp, letterSpacing = 0.04.em))
+                    Text(action, style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp, letterSpacing = 0.04.em))
                 }
             }
         }
@@ -277,7 +277,7 @@ private fun TemplateTile(name: String, lastDone: String, onClick: () -> Unit) {
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.SpaceBetween) {
             Text(
-                name.uppercase(),
+                name,
                 style = MaterialTheme.typography.titleLarge.copy(fontSize = 17.sp, lineHeight = 1.05.em),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -311,7 +311,7 @@ private fun TemplateSheet(summary: TemplateSummary, canStart: Boolean, onDismiss
         Column(Modifier.padding(start = 20.dp, end = 20.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(summary.template.name.uppercase(), style = MaterialTheme.typography.headlineSmall)
+                    Text(summary.template.name, style = MaterialTheme.typography.headlineSmall)
                     Text(relativeDay(context, summary.lastDoneAt), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 MuscleMap(muscleHeat(summary.exercises), Modifier.width(96.dp))

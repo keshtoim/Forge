@@ -35,13 +35,13 @@ class ExerciseMusclesFlowTest {
     @Before
     fun chooseBodyType() {
         // First launch asks which figure the muscle map should show.
-        rule.onNodeWithText("MALE", useUnmergedTree = true).performClick()
-        rule.onNodeWithText("LET'S GO", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("Male", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
         // Home renders once its data has loaded from Room.
-        rule.waitUntilAtLeastOneExists(hasText("HI!"), timeoutMillis = 5_000)
+        rule.waitUntilAtLeastOneExists(hasText("Hi!"), timeoutMillis = 5_000)
     }
 
-    private fun openExercisesTab() = rule.onNodeWithContentDescription("Exercises").performClick()
+    private fun openExercisesTab() = rule.onNodeWithText("Library").performClick()
 
     @Test
     fun builtInExerciseShowsItsMuscles() {

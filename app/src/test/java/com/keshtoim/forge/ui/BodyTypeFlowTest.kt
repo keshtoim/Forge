@@ -30,15 +30,15 @@ class BodyTypeFlowTest {
     @Test
     fun firstLaunchAsksForFigureAndRemembersIt() {
         assertNull(preferences.bodyType.value)
-        rule.onNodeWithText("WHICH FIGURE TO SHOW?").assertIsDisplayed()
+        rule.onNodeWithText("Which figure to show?").assertIsDisplayed()
         // Nothing is chosen until the user picks a card.
-        rule.onNodeWithText("LET'S GO", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
         assertNull(preferences.bodyType.value)
 
-        rule.onNodeWithText("FEMALE", useUnmergedTree = true).performClick()
-        rule.onNodeWithText("LET'S GO", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("Female", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
 
-        rule.waitUntilAtLeastOneExists(hasText("HI!"), timeoutMillis = 5_000)
+        rule.waitUntilAtLeastOneExists(hasText("Hi!"), timeoutMillis = 5_000)
         assertEquals(BodyType.FEMALE, preferences.bodyType.value)
         // A fresh instance reads the stored choice, so the question is not asked again.
         assertEquals(BodyType.FEMALE, UserPreferences(rule.activity).bodyType.value)
@@ -46,9 +46,9 @@ class BodyTypeFlowTest {
 
     @Test
     fun figureCanBeChangedInSettings() {
-        rule.onNodeWithText("MALE", useUnmergedTree = true).performClick()
-        rule.onNodeWithText("LET'S GO", useUnmergedTree = true).performClick()
-        rule.waitUntilAtLeastOneExists(hasText("HI!"), timeoutMillis = 5_000)
+        rule.onNodeWithText("Male", useUnmergedTree = true).performClick()
+        rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
+        rule.waitUntilAtLeastOneExists(hasText("Hi!"), timeoutMillis = 5_000)
         rule.onNodeWithContentDescription("Settings", useUnmergedTree = true).performClick()
 
         rule.onNodeWithText("Female").performScrollTo().performClick()
