@@ -15,7 +15,7 @@ fun monthGrid(month: YearMonth, firstDay: DayOfWeek): List<LocalDate> {
     return generateSequence(start) { it.plusDays(1) }.takeWhile { it <= end }.toList()
 }
 
-fun trainedDays(finished: List<Workout>, zone: ZoneId): Set<LocalDate> = finished.mapTo(HashSet()) { it.startedAt.toDate(zone) }
+fun workoutsByDay(finished: List<Workout>, zone: ZoneId): Map<LocalDate, List<Workout>> = finished.groupBy { it.startedAt.toDate(zone) }
 
 // Templates are done in rotation: the next one is the template done longest ago, never-done ones first.
 fun <T> nextInRotation(templates: List<T>, lastDoneAt: (T) -> Long?): T? =

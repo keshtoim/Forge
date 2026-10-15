@@ -6,9 +6,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.keshtoim.forge.ForgeApplication
+import com.keshtoim.forge.data.Upcoming
+import com.keshtoim.forge.data.upcoming
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseDao
 import com.keshtoim.forge.data.db.MuscleGroup
+import com.keshtoim.forge.data.db.PlanDao
+import com.keshtoim.forge.data.db.PlannedWorkout
 import com.keshtoim.forge.data.db.Template
 import com.keshtoim.forge.data.db.TemplateDao
 import com.keshtoim.forge.data.db.TemplateExercise
@@ -36,7 +40,9 @@ data class HomeState(
     val active: Workout?,
     val next: TemplateSummary?,
     val others: List<TemplateSummary>,
-    val trainedDays: Set<LocalDate>,
+    val workoutsByDay: Map<LocalDate, List<Workout>>,
+    val plans: List<PlannedWorkout>,
+    val upcoming: Upcoming?,
     val totals: Totals,
     val weeks: List<WeekBar>,
     val heat: Map<MuscleGroup, Int>,
@@ -47,13 +53,15 @@ class WorkoutHomeViewModel(
     exerciseDao: ExerciseDao,
     private val workoutDao: WorkoutDao,
     private val restTimer: RestTimer,
+    planDao: PlanDao,
 ) : ViewModel() {
     val state = combine(
         templateDao.observeAll(),
         exerciseDao.observeAll(),
         workoutDao.observeFinished(),
         workoutDao.observeActive(),
-    ) { templates, exercises, details, active ->
+        planDao.observeAll(),
+    ) { templates, exercises, details, active, plans ->
         val finished = details.map { it.workout }
         val byId = exercises.associateBy { it.id }
         val lastDone = lastDoneByTemplate(finished)
@@ -70,7 +78,9 @@ class WorkoutHomeViewModel(
             active = active,
             next = next,
             others = summaries.filter { it != next },
-            trainedDays = trainedDays(finished, zone),
+            workoutsByDay = workoutsByDay(finished, zone),
+            plans = plans,
+            upcoming = upcoming(plans, today).firstOrNull(),
             totals = totals(details, today.minusDays(29), zone),
             weeks = weekBars(details, today, zone, WeekFields.of(Locale.getDefault()).firstDayOfWeek),
             heat = recentHeat(details, byId, today.minusDays(4), zone),
@@ -111,7 +121,7 @@ class WorkoutHomeViewModel(
             initializer {
                 val app = this[APPLICATION_KEY] as ForgeApplication
                 val db = app.database
-                WorkoutHomeViewModel(db.templateDao(), db.exerciseDao(), db.workoutDao(), app.restTimer)
+                WorkoutHomeViewModel(db.templateDao(), db.exerciseDao(), db.workoutDao(), app.restTimer, db.planDao())
             }
         }
     }

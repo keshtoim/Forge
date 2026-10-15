@@ -35,6 +35,13 @@
     <string name="month_next">Следующий месяц</string>
     <string name="calendar_done">выполнено</string>
     <string name="calendar_active">идёт</string>
+    <string name="calendar_planned">запланировано</string>
+    <string name="day_planned">Запланировано · %s</string>
+    <string name="day_done">Выполнено</string>
+    <string name="day_empty">В этот день тренировок нет.</string>
+    <string name="day_plan_more">Запланировать на этот день</string>
+    <string name="plan_repeat_on">Повтор: %s</string>
+    <string name="edit">Изменить</string>
     <string name="stats_title">Статистика за 30 дней</string>
     <string name="stats_workouts">Тренировки</string>
     <string name="stats_exercises">Упражнения</string>

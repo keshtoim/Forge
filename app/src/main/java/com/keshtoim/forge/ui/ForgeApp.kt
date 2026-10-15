@@ -171,7 +171,7 @@ private fun MainScreen(viewModel: ForgeViewModel) {
                 WorkoutHomeScreen(
                     onOpenWorkout = { id -> entry.ifResumed { navController.openWorkout(id) } },
                     onOpenProgress = { entry.ifResumed { navController.navigate(ProgressRoute) } },
-                    onWorkoutFinished = { id -> entry.ifResumed { navController.navigate(WorkoutDetailRoute(id)) } },
+                    onOpenDetail = { id -> entry.ifResumed { navController.navigate(WorkoutDetailRoute(id)) } },
                     onPlan = { id, epochDay -> entry.ifResumed { navController.navigate(PlanRoute(id, epochDay)) } },
                 )
             }

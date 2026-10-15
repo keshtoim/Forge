@@ -21,3 +21,10 @@ fun PlannedWorkout.occurrences(from: LocalDate, to: LocalDate): List<LocalDate> 
     generateSequence(maxOf(from, date)) { it.plusDays(1) }.takeWhile { it <= to }.filter(::fallsOn).toList()
 
 fun PlannedWorkout.nextOccurrence(from: LocalDate): LocalDate? = occurrences(from, maxOf(from, date).plusDays(7)).firstOrNull()
+
+data class Upcoming(val plan: PlannedWorkout, val date: LocalDate)
+
+// The next occurrence of every plan from [today] on, soonest first.
+fun upcoming(plans: List<PlannedWorkout>, today: LocalDate): List<Upcoming> =
+    plans.mapNotNull { plan -> plan.nextOccurrence(today)?.let { Upcoming(plan, it) } }
+        .sortedWith(compareBy({ it.date }, { it.plan.minuteOfDay }))

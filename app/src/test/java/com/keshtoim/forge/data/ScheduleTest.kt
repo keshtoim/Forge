@@ -42,4 +42,17 @@ class ScheduleTest {
         )
         assertEquals(LocalDate.of(2026, 10, 27), repeating.nextOccurrence(LocalDate.of(2026, 10, 23)))
     }
+
+    @Test
+    fun `upcoming lists each plan once by its next day and time and drops past one-offs`() {
+        val late = plan(saturday).copy(id = 1, minuteOfDay = 20 * 60)
+        val early = plan(saturday).copy(id = 2, minuteOfDay = 9 * 60)
+        val weekly = plan(saturday.minusWeeks(2), DayOfWeek.MONDAY).copy(id = 3)
+        val past = plan(saturday.minusDays(3)).copy(id = 4)
+
+        val result = upcoming(listOf(late, weekly, past, early), saturday.minusDays(1))
+
+        assertEquals(listOf(2L, 1L, 3L), result.map { it.plan.id })
+        assertEquals(LocalDate.of(2026, 10, 19), result.last().date)
+    }
 }

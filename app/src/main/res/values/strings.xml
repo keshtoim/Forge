@@ -36,6 +36,13 @@
     <string name="month_next">Next month</string>
     <string name="calendar_done">done</string>
     <string name="calendar_active">in progress</string>
+    <string name="calendar_planned">planned</string>
+    <string name="day_planned">Planned · %s</string>
+    <string name="day_done">Done</string>
+    <string name="day_empty">No workouts on this day.</string>
+    <string name="day_plan_more">Plan for this day</string>
+    <string name="plan_repeat_on">Repeats: %s</string>
+    <string name="edit">Edit</string>
     <string name="stats_title">Last 30 days</string>
     <string name="stats_workouts">Workouts</string>
     <string name="stats_exercises">Exercises</string>

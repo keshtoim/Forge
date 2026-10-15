@@ -36,10 +36,10 @@ class HomeStateTest {
     }
 
     @Test
-    fun `trained days are local dates of finished workouts`() {
+    fun `workouts are grouped by their local day`() {
         val finished = listOf(workout(friday, 60), workout(friday, 30), workout(friday.minusDays(2), 45))
 
-        assertEquals(setOf(friday, friday.minusDays(2)), trainedDays(finished, zone))
+        assertEquals(mapOf(friday to finished.take(2), friday.minusDays(2) to finished.drop(2)), workoutsByDay(finished, zone))
     }
 
     @Test
