@@ -219,6 +219,8 @@
     <string name="exercise_all_progress">Весь прогресс</string>
     <string name="exercise_add_to_workout">Добавить в тренировку</string>
     <string name="exercise_info">Об упражнении</string>
+    <string name="exercise_technique">Техника</string>
+    <string name="exercise_mistakes">Частые ошибки</string>
 
     <string name="muscle_chest">Грудь</string>
     <string name="muscle_back">Спина</string>

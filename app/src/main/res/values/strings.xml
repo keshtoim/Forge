@@ -220,6 +220,8 @@
     <string name="exercise_all_progress">All progress</string>
     <string name="exercise_add_to_workout">Add to workout</string>
     <string name="exercise_info">About the exercise</string>
+    <string name="exercise_technique">Technique</string>
+    <string name="exercise_mistakes">Common mistakes</string>
 
     <string name="muscle_chest">Chest</string>
     <string name="muscle_back">Back</string>

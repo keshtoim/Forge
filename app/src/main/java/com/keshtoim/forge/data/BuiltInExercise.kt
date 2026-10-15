@@ -117,4 +117,7 @@ enum class BuiltInExercise(
 
 // Resolved from code rather than the stored column so existing installs pick up changes to built-ins.
 val Exercise.secondary: List<MuscleGroup>
-    get() = BuiltInExercise.entries.firstOrNull { it.name == builtInKey }?.secondary ?: secondaryMuscles
+    get() = builtIn?.secondary ?: secondaryMuscles
+
+val Exercise.builtIn: BuiltInExercise?
+    get() = BuiltInExercise.entries.firstOrNull { it.name == builtInKey }

@@ -4,9 +4,9 @@ import android.content.Context
 import androidx.annotation.StringRes
 import com.keshtoim.forge.R
 import com.keshtoim.forge.data.BodyType
-import com.keshtoim.forge.data.BuiltInExercise
 import com.keshtoim.forge.data.ThemeMode
 import com.keshtoim.forge.data.Upcoming
+import com.keshtoim.forge.data.builtIn
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.MuscleGroup
@@ -26,7 +26,7 @@ import java.util.Locale
 import kotlin.math.roundToLong
 
 fun Exercise.displayName(context: Context): String =
-    BuiltInExercise.entries.firstOrNull { it.name == builtInKey }?.let { context.getString(it.nameRes) }
+    builtIn?.let { context.getString(it.nameRes) }
         ?: name ?: builtInKey.orEmpty()
 
 fun WorkoutSet.summary(type: ExerciseType, context: Context): String {

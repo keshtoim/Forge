@@ -35,14 +35,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
+import com.keshtoim.forge.data.builtIn
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.MuscleGroup
 import com.keshtoim.forge.data.db.SetPoint
+import com.keshtoim.forge.data.guide
 import com.keshtoim.forge.data.secondary
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
@@ -93,6 +96,10 @@ fun ExerciseDetailScreen(
         ) {
             item { MapCard(exercise) }
             item { MusclesCard(exercise) }
+            exercise.builtIn?.guide?.let { guide ->
+                item { TechniqueCard(stringArrayResource(guide.steps)) }
+                item { MistakesCard(stringArrayResource(guide.mistakes)) }
+            }
             item { HistoryCard(exercise, sets, onAllProgress = { onOpenProgress(exercise.id) }) }
         }
     }
@@ -169,6 +176,40 @@ private fun MuscleRow(group: MuscleGroup) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
         Text(anatomy ?: label, style = MaterialTheme.typography.bodyLarge)
         if (anatomy != null) Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun TechniqueCard(steps: Array<String>) {
+    val colors = MaterialTheme.colorScheme
+    ForgeCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(stringResource(R.string.exercise_technique), style = MaterialTheme.typography.titleSmall)
+            steps.forEachIndexed { index, step ->
+                Row {
+                    Box(Modifier.size(26.dp).clip(CircleShape).background(colors.primaryContainer), contentAlignment = Alignment.Center) {
+                        Text("${index + 1}", style = MaterialTheme.typography.labelMedium, color = colors.onPrimaryContainer)
+                    }
+                    Text(step, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f).padding(start = 12.dp, top = 3.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MistakesCard(mistakes: Array<String>) {
+    val colors = MaterialTheme.colorScheme
+    ForgeCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(stringResource(R.string.exercise_mistakes), style = MaterialTheme.typography.titleSmall)
+            mistakes.forEach { mistake ->
+                Row(verticalAlignment = Alignment.Top) {
+                    Box(Modifier.padding(top = 7.dp).size(6.dp).clip(CircleShape).background(colors.secondary))
+                    Text(mistake, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f).padding(start = 12.dp))
+                }
+            }
+        }
     }
 }
 
