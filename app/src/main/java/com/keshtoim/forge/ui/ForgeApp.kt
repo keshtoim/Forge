@@ -176,7 +176,10 @@ private fun MainScreen(viewModel: ForgeViewModel) {
                 )
             }
             composable<HistoryRoute> { entry ->
-                HistoryScreen(onOpen = { id -> entry.ifResumed { navController.navigate(WorkoutDetailRoute(id)) } })
+                HistoryScreen(
+                    onOpen = { id -> entry.ifResumed { navController.navigate(WorkoutDetailRoute(id)) } },
+                    onOpenPlan = { id, epochDay -> entry.ifResumed { navController.navigate(PlanRoute(id, epochDay)) } },
+                )
             }
             composable<WorkoutDetailRoute> { entry ->
                 WorkoutDetailScreen(onBack = { entry.ifResumed { navController.popBackStack() } })

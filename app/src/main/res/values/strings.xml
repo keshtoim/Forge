@@ -41,7 +41,7 @@
     <string name="day_done">Done</string>
     <string name="day_empty">No workouts on this day.</string>
     <string name="day_plan_more">Plan for this day</string>
-    <string name="plan_repeat_on">Repeats: %s</string>
+    <string name="plan_repeat_on">repeats %s</string>
     <string name="edit">Edit</string>
     <string name="stats_title">Last 30 days</string>
     <string name="stats_workouts">Workouts</string>
@@ -83,6 +83,7 @@
     <string name="workout_discard_message">The workout and all its sets will be deleted.</string>
     <string name="workout_delete">Delete workout</string>
     <string name="history_empty">Finished workouts will appear here.</string>
+    <string name="diary_upcoming">Upcoming</string>
     <string name="exercise_remove">Remove exercise</string>
     <string name="set_add">Add set</string>
     <string name="workout_finish_short">Finish</string>

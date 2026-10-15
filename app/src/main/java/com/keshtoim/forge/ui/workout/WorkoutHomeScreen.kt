@@ -81,6 +81,7 @@ import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
 import com.keshtoim.forge.ui.exercises.MuscleMap
 import com.keshtoim.forge.ui.exercises.MuscleMapDefaults
+import com.keshtoim.forge.ui.moment
 import com.keshtoim.forge.ui.relativeDay
 import com.keshtoim.forge.ui.theme.ForgeTheme
 import java.time.Instant
@@ -334,17 +335,12 @@ private fun UpcomingCard(next: Upcoming, name: String, onClick: () -> Unit) {
                 Icon(Icons.Filled.Schedule, contentDescription = null, tint = colors.primary, modifier = Modifier.size(20.dp))
             }
             Column(Modifier.weight(1f).padding(start = 12.dp)) {
-                Text(stringResource(R.string.day_planned, planMoment(next.date, next.plan)), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
+                Text(stringResource(R.string.day_planned, next.moment()), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
                 Text(name, style = MaterialTheme.typography.titleMedium)
             }
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = colors.outline)
         }
     }
-}
-
-private fun planMoment(date: LocalDate, plan: PlannedWorkout): String {
-    val locale = Locale.getDefault()
-    return date.format(DateTimeFormatter.ofPattern("EEE, d MMM", locale)) + " · " + plan.time.format(DateTimeFormatter.ofPattern("HH:mm"))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

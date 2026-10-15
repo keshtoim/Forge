@@ -1,6 +1,7 @@
 package com.keshtoim.forge.ui.history
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,15 +44,17 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
-import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.data.db.WorkoutDetail
+import com.keshtoim.forge.data.repeats
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
 import com.keshtoim.forge.ui.displayName
 import com.keshtoim.forge.ui.formatDateTime
 import com.keshtoim.forge.ui.formatMinutes
 import com.keshtoim.forge.ui.formatWeight
+import com.keshtoim.forge.ui.moment
 import com.keshtoim.forge.ui.summary
+import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.ui.volumeKg
 import com.keshtoim.forge.ui.workout.formatNumber
 import java.time.Instant
@@ -59,6 +63,7 @@ import java.time.YearMonth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
+import java.time.temporal.WeekFields
 import java.util.Locale
 import kotlin.math.roundToLong
 
@@ -66,13 +71,18 @@ private val WorkoutDetail.minutes get() = ((workout.finishedAt ?: workout.starte
 private val WorkoutDetail.doneSets get() = exercises.sumOf { e -> e.sets.count { it.completed } }
 
 @Composable
-fun HistoryScreen(onOpen: (Long) -> Unit, viewModel: HistoryViewModel = viewModel(factory = HistoryViewModel.Factory)) {
+fun HistoryScreen(
+    onOpen: (Long) -> Unit,
+    onOpenPlan: (planId: Long, epochDay: Long) -> Unit,
+    viewModel: HistoryViewModel = viewModel(factory = HistoryViewModel.Factory),
+) {
     val workouts by viewModel.workouts.collectAsStateWithLifecycle()
+    val upcoming by viewModel.upcoming.collectAsStateWithLifecycle()
     val zone = ZoneId.systemDefault()
     val months = remember(workouts) { workouts.groupBy { YearMonth.from(Instant.ofEpochMilli(it.workout.startedAt).atZone(zone)) } }
 
     Scaffold(topBar = { ScreenHeader(stringResource(R.string.tab_diary)) }) { padding ->
-        if (workouts.isEmpty()) {
+        if (workouts.isEmpty() && upcoming.isEmpty()) {
             Box(Modifier.padding(padding).fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
                 Text(stringResource(R.string.history_empty), color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
             }
@@ -83,9 +93,42 @@ fun HistoryScreen(onOpen: (Long) -> Unit, viewModel: HistoryViewModel = viewMode
             contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            if (upcoming.isNotEmpty()) {
+                item(key = "upcoming") {
+                    Text(stringResource(R.string.diary_upcoming), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp, bottom = 2.dp))
+                }
+                items(upcoming, key = { "plan-${it.upcoming.plan.id}" }) { item ->
+                    UpcomingRow(item) { onOpenPlan(item.upcoming.plan.id, item.upcoming.plan.epochDay) }
+                }
+            }
             months.forEach { (month, list) ->
                 item(key = month.toString()) { MonthHeader(month, list.size) }
                 items(list, key = { it.workout.id }) { detail -> WorkoutRow(detail) { onOpen(detail.workout.id) } }
+            }
+        }
+    }
+}
+
+@Composable
+private fun UpcomingRow(item: UpcomingPlan, onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    val locale = Locale.getDefault()
+    val plan = item.upcoming.plan
+    val repeat = if (plan.repeatDays == 0) "" else {
+        val firstDay = WeekFields.of(locale).firstDayOfWeek
+        " · " + stringResource(
+            R.string.plan_repeat_on,
+            (0L until 7L).map { firstDay.plus(it) }.filter { it in plan.repeats }.joinToString { it.getDisplayName(TextStyle.SHORT, locale).lowercase(locale) },
+        )
+    }
+    ForgeCard(Modifier.fillMaxWidth(), onClick = onClick) {
+        Row(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(40.dp).border(2.dp, colors.primary, CircleShape), contentAlignment = Alignment.Center) {
+                Icon(Icons.Filled.Schedule, contentDescription = null, tint = colors.primary, modifier = Modifier.size(18.dp))
+            }
+            Column(Modifier.weight(1f).padding(start = 14.dp)) {
+                Text(item.name, style = MaterialTheme.typography.titleMedium)
+                Text(item.upcoming.moment() + repeat, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
             }
         }
     }

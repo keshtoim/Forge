@@ -6,11 +6,13 @@ import com.keshtoim.forge.R
 import com.keshtoim.forge.data.BodyType
 import com.keshtoim.forge.data.BuiltInExercise
 import com.keshtoim.forge.data.ThemeMode
+import com.keshtoim.forge.data.Upcoming
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.MuscleGroup
 import com.keshtoim.forge.data.db.WorkoutDetail
 import com.keshtoim.forge.data.db.WorkoutSet
+import com.keshtoim.forge.data.time
 import com.keshtoim.forge.ui.workout.formatDuration
 import com.keshtoim.forge.ui.workout.formatNumber
 import com.keshtoim.forge.ui.workout.toDate
@@ -20,6 +22,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 import kotlin.math.roundToLong
 
 fun Exercise.displayName(context: Context): String =
@@ -106,3 +109,6 @@ val ThemeMode.labelRes: Int
         ThemeMode.LIGHT -> R.string.theme_light
         ThemeMode.DARK -> R.string.theme_dark
     }
+
+fun Upcoming.moment(): String =
+    date.format(DateTimeFormatter.ofPattern("EEE, d MMM", Locale.getDefault())) + " · " + plan.time.format(DateTimeFormatter.ofPattern("HH:mm"))
