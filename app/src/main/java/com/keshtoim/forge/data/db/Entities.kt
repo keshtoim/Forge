@@ -101,3 +101,20 @@ data class WorkoutSet(
     val distanceM: Double? = null,
     val completed: Boolean = false,
 )
+
+@Serializable
+@Entity(
+    tableName = "planned_workouts",
+    foreignKeys = [ForeignKey(Template::class, ["id"], ["templateId"], onDelete = ForeignKey.CASCADE)],
+    indices = [Index("templateId")],
+)
+data class PlannedWorkout(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val templateId: Long,
+    // The only day of a one-off plan, or the first day of a repeating one.
+    val epochDay: Long,
+    val minuteOfDay: Int,
+    // Bit n is set when the plan repeats on DayOfWeek.of(n + 1); 0 means a one-off plan.
+    val repeatDays: Int = 0,
+    val remindBefore: Int? = null,
+)

@@ -155,8 +155,21 @@ class DaoTest {
     }
 
     @Test
+    fun `deleting a template drops its plans and editing a plan keeps its id`() = runTest {
+        val templateId = templates.save(Template(name = "Push"), listOf(item(bench, 1)))
+        val planId = db.planDao().save(PlannedWorkout(templateId = templateId, epochDay = 20_000, minuteOfDay = 600))
+
+        assertEquals(planId, db.planDao().save(db.planDao().get(planId)!!.copy(minuteOfDay = 660)))
+        assertEquals(660, db.planDao().get(planId)!!.minuteOfDay)
+
+        templates.delete(templates.get(templateId)!!.template)
+        assertNull(db.planDao().get(planId))
+    }
+
+    @Test
     fun `backup survives json round trip into an empty database`() = runTest {
-        templates.save(Template(name = "Push"), listOf(item(bench, 3)))
+        val templateId = templates.save(Template(name = "Push"), listOf(item(bench, 3)))
+        db.planDao().save(PlannedWorkout(templateId = templateId, epochDay = 20_000, minuteOfDay = 18 * 60 + 30, repeatDays = 0b100000, remindBefore = 30))
         val id = workouts.start("Push", null, listOf(bench to 2), now = 1_000)
         completeAll(id, weight = 100.0, reps = 5)
         workouts.finish(id, now = 2_000)
@@ -169,6 +182,7 @@ class DaoTest {
         val restored = target.workoutDao().observeDetail(id).first()
         assertNotNull(restored)
         assertEquals(2, restored!!.exercises.single().sets.count { it.completed })
+        assertEquals(1, target.backupDao().plannedWorkouts().size)
         target.close()
     }
 

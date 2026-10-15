@@ -15,6 +15,7 @@ data class Backup(
     val workouts: List<Workout>,
     val workoutExercises: List<WorkoutExercise>,
     val workoutSets: List<WorkoutSet>,
+    val plannedWorkouts: List<PlannedWorkout> = emptyList(),
 )
 
 @Dao
@@ -25,7 +26,9 @@ interface BackupDao {
     @Query("SELECT * FROM workouts") suspend fun workouts(): List<Workout>
     @Query("SELECT * FROM workout_exercises") suspend fun workoutExercises(): List<WorkoutExercise>
     @Query("SELECT * FROM workout_sets") suspend fun workoutSets(): List<WorkoutSet>
+    @Query("SELECT * FROM planned_workouts") suspend fun plannedWorkouts(): List<PlannedWorkout>
 
+    @Query("DELETE FROM planned_workouts") suspend fun deletePlannedWorkouts()
     @Query("DELETE FROM workout_sets") suspend fun deleteWorkoutSets()
     @Query("DELETE FROM workout_exercises") suspend fun deleteWorkoutExercises()
     @Query("DELETE FROM workouts") suspend fun deleteWorkouts()
@@ -39,6 +42,7 @@ interface BackupDao {
     @Insert suspend fun insertWorkouts(items: List<Workout>)
     @Insert suspend fun insertWorkoutExercises(items: List<WorkoutExercise>)
     @Insert suspend fun insertWorkoutSets(items: List<WorkoutSet>)
+    @Insert suspend fun insertPlannedWorkouts(items: List<PlannedWorkout>)
 
     @Transaction
     suspend fun export() = Backup(
@@ -48,11 +52,13 @@ interface BackupDao {
         workouts = workouts(),
         workoutExercises = workoutExercises(),
         workoutSets = workoutSets(),
+        plannedWorkouts = plannedWorkouts(),
     )
 
     // Ids are kept as-is so foreign keys inside the backup stay valid.
     @Transaction
     suspend fun replaceAll(backup: Backup) {
+        deletePlannedWorkouts()
         deleteWorkoutSets()
         deleteWorkoutExercises()
         deleteWorkouts()
@@ -65,5 +71,6 @@ interface BackupDao {
         insertWorkouts(backup.workouts)
         insertWorkoutExercises(backup.workoutExercises)
         insertWorkoutSets(backup.workoutSets)
+        insertPlannedWorkouts(backup.plannedWorkouts)
     }
 }
