@@ -69,6 +69,7 @@ import com.keshtoim.forge.ui.exercises.ExercisePickerScreen
 import com.keshtoim.forge.ui.exercises.LocalBodyType
 import com.keshtoim.forge.ui.library.LibraryScreen
 import com.keshtoim.forge.ui.more.MoreScreen
+import com.keshtoim.forge.ui.plan.PlanScreen
 import com.keshtoim.forge.ui.exercises.PICKED_EXERCISES
 import com.keshtoim.forge.ui.history.HistoryScreen
 import com.keshtoim.forge.ui.history.WorkoutDetailScreen
@@ -96,6 +97,7 @@ import kotlinx.serialization.Serializable
 @Serializable data class ExerciseProgressRoute(val exerciseId: Long)
 @Serializable object SettingsRoute
 @Serializable object MoreRoute
+@Serializable data class PlanRoute(val id: Long, val epochDay: Long)
 
 private enum class Tab(val route: Any, @StringRes val label: Int, val icon: ImageVector) {
     Home(WorkoutRoute, R.string.tab_home, Icons.Filled.Home),
@@ -170,6 +172,7 @@ private fun MainScreen(viewModel: ForgeViewModel) {
                     onOpenWorkout = { id -> entry.ifResumed { navController.openWorkout(id) } },
                     onOpenProgress = { entry.ifResumed { navController.navigate(ProgressRoute) } },
                     onWorkoutFinished = { id -> entry.ifResumed { navController.navigate(WorkoutDetailRoute(id)) } },
+                    onPlan = { id, epochDay -> entry.ifResumed { navController.navigate(PlanRoute(id, epochDay)) } },
                 )
             }
             composable<HistoryRoute> { entry ->
@@ -224,6 +227,9 @@ private fun MainScreen(viewModel: ForgeViewModel) {
                     },
                     onAddExercises = { entry.ifResumed { navController.navigate(ExercisePickerRoute) } },
                 )
+            }
+            composable<PlanRoute> { entry ->
+                PlanScreen(onBack = { entry.ifResumed { navController.popBackStack() } })
             }
             composable<SettingsRoute> { entry ->
                 SettingsScreen(onBack = { entry.ifResumed { navController.popBackStack() } })

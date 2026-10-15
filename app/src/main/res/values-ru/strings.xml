@@ -50,6 +50,17 @@
     <string name="muscles_empty">За последние 5 дней тренировок не было</string>
     <string name="heat_low">мало</string>
     <string name="heat_high">много</string>
+    <string name="plan_title">Запланировать</string>
+    <string name="plan_edit">План тренировки</string>
+    <string name="plan_template">Тренировка</string>
+    <string name="plan_no_templates">Сначала создай шаблон в «Справочниках».</string>
+    <string name="plan_date">Дата</string>
+    <string name="plan_calendar">Календарь</string>
+    <string name="plan_time">Время</string>
+    <string name="plan_repeat">Повторять каждую неделю</string>
+    <string name="plan_repeat_none">Не повторяется</string>
+    <string name="plan_save_on">Запланировать на %s</string>
+    <string name="plan_delete">Удалить из плана</string>
     <string name="workout_new">Новая тренировка</string>
     <string name="workout_finish">Завершить</string>
     <string name="workout_finish_confirm">Завершить тренировку?</string>

@@ -51,6 +51,17 @@
     <string name="muscles_empty">No workouts in the last 5 days</string>
     <string name="heat_low">low</string>
     <string name="heat_high">high</string>
+    <string name="plan_title">Plan a workout</string>
+    <string name="plan_edit">Planned workout</string>
+    <string name="plan_template">Workout</string>
+    <string name="plan_no_templates">Create a template in Library first.</string>
+    <string name="plan_date">Date</string>
+    <string name="plan_calendar">Calendar</string>
+    <string name="plan_time">Time</string>
+    <string name="plan_repeat">Repeat every week</string>
+    <string name="plan_repeat_none">Doesn\'t repeat</string>
+    <string name="plan_save_on">Plan for %s</string>
+    <string name="plan_delete">Remove from plan</string>
     <string name="workout_new">New workout</string>
     <string name="workout_finish">Finish</string>
     <string name="workout_finish_confirm">Finish the workout?</string>

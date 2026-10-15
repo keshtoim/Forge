@@ -25,6 +25,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
@@ -87,6 +88,7 @@ fun WorkoutHomeScreen(
     onOpenWorkout: (Long) -> Unit,
     onOpenProgress: () -> Unit,
     onWorkoutFinished: (Long) -> Unit,
+    onPlan: (planId: Long, epochDay: Long) -> Unit,
     viewModel: WorkoutHomeViewModel = viewModel(factory = WorkoutHomeViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -145,6 +147,7 @@ fun WorkoutHomeScreen(
             onDismiss = { picking = false },
             onStartTemplate = { picking = false; viewModel.startTemplate(it, onOpenWorkout) },
             onStartEmpty = { picking = false; viewModel.startEmpty(defaultName, onOpenWorkout) },
+            onPlan = { picking = false; onPlan(0, LocalDate.now().toEpochDay()) },
         )
     }
     if (confirmFinish && active != null) {
@@ -429,6 +432,7 @@ private fun StartSheet(
     onDismiss: () -> Unit,
     onStartTemplate: (TemplateSummary) -> Unit,
     onStartEmpty: () -> Unit,
+    onPlan: () -> Unit,
 ) {
     val context = LocalContext.current
     val itemColors = ListItemDefaults.colors(containerColor = Color.Transparent)
@@ -451,6 +455,13 @@ private fun StartSheet(
                 leadingContent = { Icon(Icons.Filled.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 colors = itemColors,
                 modifier = Modifier.padding(horizontal = 8.dp).clip(MaterialTheme.shapes.small).clickable(onClick = onStartEmpty),
+            )
+            HorizontalDivider(Modifier.padding(horizontal = 24.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.outlineVariant)
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.plan_title)) },
+                leadingContent = { Icon(Icons.Filled.Event, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                colors = itemColors,
+                modifier = Modifier.padding(horizontal = 8.dp).clip(MaterialTheme.shapes.small).clickable(onClick = onPlan),
             )
         }
     }
