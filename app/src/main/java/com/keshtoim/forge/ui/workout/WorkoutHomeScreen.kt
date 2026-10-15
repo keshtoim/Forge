@@ -1,21 +1,25 @@
 package com.keshtoim.forge.ui.workout
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -27,6 +31,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -34,6 +39,9 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -56,9 +65,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
+import com.keshtoim.forge.data.db.MuscleGroup
 import com.keshtoim.forge.data.db.Workout
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
+import com.keshtoim.forge.ui.exercises.MuscleMap
+import com.keshtoim.forge.ui.exercises.MuscleMapDefaults
 import com.keshtoim.forge.ui.relativeDay
 import com.keshtoim.forge.ui.theme.ForgeTheme
 import java.time.Instant
@@ -108,6 +120,9 @@ fun WorkoutHomeScreen(
                         ActiveCard(active, onResume = { onOpenWorkout(active.id) }, onFinish = { confirmFinish = true })
                     }
                 }
+                item { TotalsCard(home.totals) }
+                item { WeeksCard(home.weeks) }
+                item { MusclesCard(home.heat) }
             }
         }
         if (active == null) {
@@ -272,6 +287,134 @@ private fun ActiveCard(workout: Workout, onResume: () -> Unit, onFinish: () -> U
                     modifier = Modifier.weight(1f).height(48.dp),
                 ) {
                     Text(stringResource(R.string.workout_finish), color = panel.onPanel)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TotalsCard(totals: Totals) {
+    val cells = listOf(
+        totals.workouts to R.string.stats_workouts,
+        totals.exercises to R.string.stats_exercises,
+        totals.sets to R.string.stats_sets,
+        totals.reps to R.string.stats_reps,
+    )
+    ForgeCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.stats_title), style = MaterialTheme.typography.titleMedium)
+            cells.chunked(2).forEach { row ->
+                Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    row.forEach { (value, label) ->
+                        Column(
+                            Modifier
+                                .weight(1f)
+                                .clip(MaterialTheme.shapes.small)
+                                .background(MaterialTheme.colorScheme.background)
+                                .padding(12.dp),
+                        ) {
+                            Text("%,d".format(Locale.getDefault(), value), style = MaterialTheme.typography.headlineSmall)
+                            Text(stringResource(label), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private enum class ChartMetric(@StringRes val label: Int) { BOTH(R.string.chart_both), TIME(R.string.chart_time), VOLUME(R.string.chart_volume) }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WeeksCard(weeks: List<WeekBar>) {
+    val colors = MaterialTheme.colorScheme
+    val locale = Locale.getDefault()
+    var metric by rememberSaveable { mutableStateOf(ChartMetric.BOTH) }
+    // Each metric is scaled to its own maximum, so minutes and kilograms share the chart height.
+    val maxMinutes = weeks.maxOf { it.minutes }.coerceAtLeast(1)
+    val maxVolume = weeks.maxOf { it.volumeKg }.coerceAtLeast(1.0)
+    val showTime = metric != ChartMetric.VOLUME
+    val showVolume = metric != ChartMetric.TIME
+
+    ForgeCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.weeks_title), style = MaterialTheme.typography.titleMedium)
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(top = 10.dp)) {
+                ChartMetric.entries.forEachIndexed { index, entry ->
+                    SegmentedButton(
+                        selected = entry == metric,
+                        onClick = { metric = entry },
+                        shape = SegmentedButtonDefaults.itemShape(index, ChartMetric.entries.size),
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = colors.primaryContainer,
+                            activeContentColor = colors.onPrimaryContainer,
+                        ),
+                    ) { Text(stringResource(entry.label), maxLines = 1) }
+                }
+            }
+            Row(Modifier.fillMaxWidth().height(130.dp).padding(top = 16.dp), verticalAlignment = Alignment.Bottom) {
+                weeks.forEach { week ->
+                    Row(Modifier.weight(1f).fillMaxHeight(), horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.Bottom) {
+                        if (showTime) Bar(week.minutes.toFloat() / maxMinutes, colors.primary)
+                        if (showVolume) Bar((week.volumeKg / maxVolume).toFloat(), colors.secondary)
+                    }
+                }
+            }
+            HorizontalDivider(color = colors.outlineVariant)
+            Row(Modifier.padding(top = 6.dp)) {
+                weeks.forEach { week ->
+                    Text(
+                        DateTimeFormatter.ofPattern("d MMM", locale).format(week.start),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+            Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                if (showTime) Legend(colors.primary, 10.dp, stringResource(R.string.chart_time_legend))
+                if (showVolume) Legend(colors.secondary, 10.dp, stringResource(R.string.chart_volume_legend))
+            }
+        }
+    }
+}
+
+@Composable
+private fun Bar(fraction: Float, color: Color) {
+    if (fraction <= 0f) return
+    Box(Modifier.width(16.dp).fillMaxHeight(fraction).clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)).background(color))
+}
+
+@Composable
+private fun MusclesCard(heat: Map<MuscleGroup, Int>) {
+    val mapColors = MuscleMapDefaults.colors()
+    ForgeCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.fillMaxWidth()) { Text(stringResource(R.string.muscles_title), style = MaterialTheme.typography.titleMedium) }
+            MuscleMap(heat, Modifier.padding(top = 10.dp).width(280.dp), mapColors)
+            if (heat.isEmpty()) {
+                Text(
+                    stringResource(R.string.muscles_empty),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            } else {
+                Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.heat_low), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .padding(horizontal = 8.dp)
+                            .height(8.dp)
+                            .clip(CircleShape)
+                            .background(Brush.horizontalGradient(mapColors.levels)),
+                    )
+                    Text(stringResource(R.string.heat_high), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.keshtoim.forge.ForgeApplication
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseDao
+import com.keshtoim.forge.data.db.MuscleGroup
 import com.keshtoim.forge.data.db.Template
 import com.keshtoim.forge.data.db.TemplateDao
 import com.keshtoim.forge.data.db.TemplateExercise
@@ -20,6 +21,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.temporal.WeekFields
+import java.util.Locale
 
 data class TemplateSummary(
     val template: Template,
@@ -29,7 +32,15 @@ data class TemplateSummary(
 )
 
 // [next] is the template suggested in rotation; it is null while a workout is in progress.
-data class HomeState(val active: Workout?, val next: TemplateSummary?, val others: List<TemplateSummary>, val trainedDays: Set<LocalDate>)
+data class HomeState(
+    val active: Workout?,
+    val next: TemplateSummary?,
+    val others: List<TemplateSummary>,
+    val trainedDays: Set<LocalDate>,
+    val totals: Totals,
+    val weeks: List<WeekBar>,
+    val heat: Map<MuscleGroup, Int>,
+)
 
 class WorkoutHomeViewModel(
     templateDao: TemplateDao,
@@ -40,9 +51,10 @@ class WorkoutHomeViewModel(
     val state = combine(
         templateDao.observeAll(),
         exerciseDao.observeAll(),
-        workoutDao.observeFinishedWorkouts(),
+        workoutDao.observeFinished(),
         workoutDao.observeActive(),
-    ) { templates, exercises, finished, active ->
+    ) { templates, exercises, details, active ->
+        val finished = details.map { it.workout }
         val byId = exercises.associateBy { it.id }
         val lastDone = lastDoneByTemplate(finished)
         val summaries = templates
@@ -52,7 +64,17 @@ class WorkoutHomeViewModel(
             }
             .sortedBy { it.lastDoneAt ?: Long.MIN_VALUE }
         val next = if (active == null) nextInRotation(summaries) { it.lastDoneAt } else null
-        HomeState(active, next, summaries.filter { it != next }, trainedDays(finished, ZoneId.systemDefault()))
+        val zone = ZoneId.systemDefault()
+        val today = LocalDate.now(zone)
+        HomeState(
+            active = active,
+            next = next,
+            others = summaries.filter { it != next },
+            trainedDays = trainedDays(finished, zone),
+            totals = totals(details, today.minusDays(29), zone),
+            weeks = weekBars(details, today, zone, WeekFields.of(Locale.getDefault()).firstDayOfWeek),
+            heat = recentHeat(details, byId, today.minusDays(4), zone),
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun startEmpty(name: String, onStarted: (Long) -> Unit) = start(name, null, emptyList(), onStarted)
