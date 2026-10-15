@@ -3,6 +3,7 @@ package com.keshtoim.forge.data
 import com.keshtoim.forge.data.db.PlannedWorkout
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 val PlannedWorkout.date: LocalDate get() = LocalDate.ofEpochDay(epochDay)
@@ -28,3 +29,12 @@ data class Upcoming(val plan: PlannedWorkout, val date: LocalDate)
 fun upcoming(plans: List<PlannedWorkout>, today: LocalDate): List<Upcoming> =
     plans.mapNotNull { plan -> plan.nextOccurrence(today)?.let { Upcoming(plan, it) } }
         .sortedWith(compareBy({ it.date }, { it.plan.minuteOfDay }))
+
+// The reminder may fall on the previous day for an early workout, so occurrences are taken from today on.
+fun PlannedWorkout.nextReminder(now: LocalDateTime): LocalDateTime? {
+    val before = remindBefore ?: return null
+    val today = now.toLocalDate()
+    return occurrences(today, maxOf(today, date).plusDays(8))
+        .map { it.atTime(time).minusMinutes(before.toLong()) }
+        .firstOrNull { it > now }
+}

@@ -12,6 +12,9 @@ interface PlanDao {
     @Query("SELECT * FROM planned_workouts")
     fun observeAll(): Flow<List<PlannedWorkout>>
 
+    @Query("SELECT * FROM planned_workouts")
+    suspend fun getAll(): List<PlannedWorkout>
+
     @Query("SELECT * FROM planned_workouts WHERE id = :id")
     suspend fun get(id: Long): PlannedWorkout?
 

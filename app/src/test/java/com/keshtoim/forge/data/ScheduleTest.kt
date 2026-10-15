@@ -55,4 +55,22 @@ class ScheduleTest {
         assertEquals(listOf(2L, 1L, 3L), result.map { it.plan.id })
         assertEquals(LocalDate.of(2026, 10, 19), result.last().date)
     }
+
+    @Test
+    fun `reminder goes off before the next occurrence that is still ahead`() {
+        val weekly = plan(saturday, DayOfWeek.SATURDAY).copy(remindBefore = 30)
+
+        assertEquals(saturday.atTime(18, 0), weekly.nextReminder(saturday.atTime(17, 0)))
+        // Past this Saturday's reminder, the next one is a week later.
+        assertEquals(saturday.plusWeeks(1).atTime(18, 0), weekly.nextReminder(saturday.atTime(18, 10)))
+        assertNull(plan(saturday).nextReminder(saturday.atTime(9, 0)))
+    }
+
+    @Test
+    fun `reminder for an early workout falls on the previous evening and ends with a one-off plan`() {
+        val early = plan(saturday).copy(minuteOfDay = 15, remindBefore = 60)
+
+        assertEquals(saturday.minusDays(1).atTime(23, 15), early.nextReminder(saturday.minusDays(1).atTime(12, 0)))
+        assertNull(early.nextReminder(saturday.atTime(0, 0)))
+    }
 }

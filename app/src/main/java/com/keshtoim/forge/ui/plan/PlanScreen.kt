@@ -1,6 +1,11 @@
 package com.keshtoim.forge.ui.plan
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.text.format.DateFormat
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,6 +17,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,6 +35,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,6 +45,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -58,6 +67,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
@@ -84,6 +94,9 @@ fun PlanScreen(onBack: () -> Unit, viewModel: PlanViewModel = viewModel(factory 
     var pickDate by rememberSaveable { mutableStateOf(false) }
     var pickTime by rememberSaveable { mutableStateOf(false) }
     val dateLabel = viewModel.date.format(DateTimeFormatter.ofPattern("EEE, d MMMM", locale))
+    val context = LocalContext.current
+    // The plan is saved whatever the answer; without the permission the reminder just stays silent.
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { viewModel.save(onBack) }
 
     LaunchedEffect(list) {
         if (isNew && viewModel.templateId == null) viewModel.templateId = list.firstOrNull()?.template?.id
@@ -101,7 +114,11 @@ fun PlanScreen(onBack: () -> Unit, viewModel: PlanViewModel = viewModel(factory 
         },
         bottomBar = {
             Button(
-                onClick = { viewModel.save(onBack) },
+                onClick = {
+                    val askNotifications = viewModel.remindBefore != null && Build.VERSION.SDK_INT >= 33 &&
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                    if (askNotifications) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS) else viewModel.save(onBack)
+                },
                 enabled = viewModel.templateId != null,
                 modifier = Modifier.navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp).fillMaxWidth().height(56.dp),
             ) {
@@ -146,7 +163,7 @@ fun PlanScreen(onBack: () -> Unit, viewModel: PlanViewModel = viewModel(factory 
                 }
             }
             item {
-                Section(stringResource(R.string.plan_date), action = stringResource(R.string.plan_calendar), onAction = { pickDate = true }) {
+                Section(stringResource(R.string.plan_date), trailing = { TextButton(onClick = { pickDate = true }) { Text(stringResource(R.string.plan_calendar)) } }) {
                     val today = LocalDate.now()
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 16.dp),
@@ -187,6 +204,37 @@ fun PlanScreen(onBack: () -> Unit, viewModel: PlanViewModel = viewModel(factory 
                     }
                 }
             }
+            item {
+                val remind = viewModel.remindBefore
+                Section(
+                    stringResource(R.string.plan_remind),
+                    trailing = {
+                        Switch(
+                            checked = remind != null,
+                            onCheckedChange = { viewModel.remindBefore = if (it) 30 else null },
+                            modifier = Modifier.padding(end = 8.dp),
+                        )
+                    },
+                ) {
+                    if (remind != null) {
+                        Row(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            listOf(15, 30, 60).forEach { minutes ->
+                                FilterChip(
+                                    selected = minutes == remind,
+                                    onClick = { viewModel.remindBefore = minutes },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = colors.primaryContainer,
+                                        selectedLabelColor = colors.onPrimaryContainer,
+                                    ),
+                                    label = {
+                                        Text(if (minutes == 60) stringResource(R.string.plan_remind_hour) else stringResource(R.string.plan_remind_before, minutes))
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -211,7 +259,7 @@ fun PlanScreen(onBack: () -> Unit, viewModel: PlanViewModel = viewModel(factory 
         ) { DatePicker(state) }
     }
     if (pickTime) {
-        val state = rememberTimePickerState(viewModel.time.hour, viewModel.time.minute, DateFormat.is24HourFormat(LocalContext.current))
+        val state = rememberTimePickerState(viewModel.time.hour, viewModel.time.minute, DateFormat.is24HourFormat(context))
         AlertDialog(
             onDismissRequest = { pickTime = false },
             confirmButton = {
@@ -232,12 +280,12 @@ private fun Long.toUtcDate(): LocalDate = Instant.ofEpochMilli(this).atZone(Zone
 private fun DayOfWeek.shortName(locale: Locale) = getDisplayName(TextStyle.SHORT, locale).lowercase(locale)
 
 @Composable
-private fun Section(title: String, action: String? = null, onAction: () -> Unit = {}, content: @Composable () -> Unit) {
+private fun Section(title: String, trailing: @Composable () -> Unit = {}, content: @Composable () -> Unit) {
     ForgeCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 8.dp)) {
-            Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp).height(40.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp).heightIn(min = 40.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                if (action != null) TextButton(onClick = onAction) { Text(action) }
+                trailing()
             }
             content()
         }

@@ -19,6 +19,7 @@ import com.keshtoim.forge.data.db.TemplateDao
 import com.keshtoim.forge.data.repeatMask
 import com.keshtoim.forge.data.repeats
 import com.keshtoim.forge.data.time
+import com.keshtoim.forge.reminder.PlanReminders
 import com.keshtoim.forge.ui.PlanRoute
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -27,7 +28,12 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 
-class PlanViewModel(savedStateHandle: SavedStateHandle, private val planDao: PlanDao, templateDao: TemplateDao) : ViewModel() {
+class PlanViewModel(
+    savedStateHandle: SavedStateHandle,
+    private val planDao: PlanDao,
+    templateDao: TemplateDao,
+    private val reminders: PlanReminders,
+) : ViewModel() {
     private val route = savedStateHandle.toRoute<PlanRoute>()
     val planId = route.id
 
@@ -37,7 +43,7 @@ class PlanViewModel(savedStateHandle: SavedStateHandle, private val planDao: Pla
     var date by mutableStateOf(LocalDate.ofEpochDay(route.epochDay))
     var time by mutableStateOf(LocalTime.of(18, 0))
     var repeat by mutableStateOf(emptySet<DayOfWeek>())
-    private var remindBefore: Int? = null
+    var remindBefore by mutableStateOf<Int?>(30)
 
     init {
         if (planId != 0L) {
@@ -64,16 +70,15 @@ class PlanViewModel(savedStateHandle: SavedStateHandle, private val planDao: Pla
         if (busy) return
         busy = true
         viewModelScope.launch {
-            planDao.save(
-                PlannedWorkout(
-                    id = planId,
-                    templateId = template,
-                    epochDay = date.toEpochDay(),
-                    minuteOfDay = time.hour * 60 + time.minute,
-                    repeatDays = repeatMask(repeat),
-                    remindBefore = remindBefore,
-                ),
+            val plan = PlannedWorkout(
+                id = planId,
+                templateId = template,
+                epochDay = date.toEpochDay(),
+                minuteOfDay = time.hour * 60 + time.minute,
+                repeatDays = repeatMask(repeat),
+                remindBefore = remindBefore,
             )
+            reminders.schedule(plan.copy(id = planDao.save(plan)))
             onDone()
         }
     }
@@ -83,6 +88,7 @@ class PlanViewModel(savedStateHandle: SavedStateHandle, private val planDao: Pla
         busy = true
         viewModelScope.launch {
             planDao.get(planId)?.let { planDao.delete(it) }
+            reminders.cancel(planId)
             onDone()
         }
     }
@@ -90,8 +96,9 @@ class PlanViewModel(savedStateHandle: SavedStateHandle, private val planDao: Pla
     companion object {
         val Factory = viewModelFactory {
             initializer {
-                val db = (this[APPLICATION_KEY] as ForgeApplication).database
-                PlanViewModel(createSavedStateHandle(), db.planDao(), db.templateDao())
+                val app = this[APPLICATION_KEY] as ForgeApplication
+                val db = app.database
+                PlanViewModel(createSavedStateHandle(), db.planDao(), db.templateDao(), app.planReminders)
             }
         }
     }

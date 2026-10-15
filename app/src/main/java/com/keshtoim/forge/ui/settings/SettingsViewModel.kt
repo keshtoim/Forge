@@ -14,6 +14,7 @@ import com.keshtoim.forge.data.UserPreferences
 import com.keshtoim.forge.data.db.Backup
 import com.keshtoim.forge.data.db.BackupDao
 import com.keshtoim.forge.data.db.ExerciseDao
+import com.keshtoim.forge.reminder.PlanReminders
 import com.keshtoim.forge.rest.RestTimer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,6 +27,7 @@ class SettingsViewModel(
     private val contentResolver: ContentResolver,
     private val restTimer: RestTimer,
     private val preferences: UserPreferences,
+    private val reminders: PlanReminders,
 ) : ViewModel() {
     val bodyType = preferences.bodyType
 
@@ -57,7 +59,9 @@ class SettingsViewModel(
                 }
                 val backup = json.decodeFromString(Backup.serializer(), text)
                 restTimer.stop()
+                backupDao.plannedWorkouts().forEach { reminders.cancel(it.id) }
                 backupDao.replaceAll(backup)
+                backup.plannedWorkouts.forEach(reminders::schedule)
                 // An older backup lacks built-in exercises added since it was made.
                 exerciseDao.seedBuiltIns()
             }.isSuccess
@@ -69,7 +73,7 @@ class SettingsViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as ForgeApplication
-                SettingsViewModel(app.database.backupDao(), app.database.exerciseDao(), app.contentResolver, app.restTimer, app.preferences)
+                SettingsViewModel(app.database.backupDao(), app.database.exerciseDao(), app.contentResolver, app.restTimer, app.preferences, app.planReminders)
             }
         }
     }

@@ -68,6 +68,12 @@
     <string name="plan_repeat_none">Не повторяется</string>
     <string name="plan_save_on">Запланировать на %s</string>
     <string name="plan_delete">Удалить из плана</string>
+    <string name="plan_remind">Напомнить</string>
+    <string name="plan_remind_before">за %d мин</string>
+    <string name="plan_remind_hour">за 1 час</string>
+    <string name="channel_plan_reminders">Напоминания о тренировках</string>
+    <string name="reminder_title">Скоро тренировка</string>
+    <string name="reminder_text">%1$s в %2$s</string>
     <string name="workout_new">Новая тренировка</string>
     <string name="workout_finish">Завершить</string>
     <string name="workout_finish_confirm">Завершить тренировку?</string>

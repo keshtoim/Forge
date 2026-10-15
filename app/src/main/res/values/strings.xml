@@ -69,6 +69,12 @@
     <string name="plan_repeat_none">Doesn\'t repeat</string>
     <string name="plan_save_on">Plan for %s</string>
     <string name="plan_delete">Remove from plan</string>
+    <string name="plan_remind">Remind me</string>
+    <string name="plan_remind_before">%d min before</string>
+    <string name="plan_remind_hour">1 hour before</string>
+    <string name="channel_plan_reminders">Workout reminders</string>
+    <string name="reminder_title">Workout soon</string>
+    <string name="reminder_text">%1$s at %2$s</string>
     <string name="workout_new">New workout</string>
     <string name="workout_finish">Finish</string>
     <string name="workout_finish_confirm">Finish the workout?</string>

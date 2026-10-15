@@ -1,5 +1,6 @@
 package com.keshtoim.forge.ui
 
+import android.Manifest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
@@ -23,6 +24,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.Shadows.shadowOf
 import java.time.LocalDate
 
 @OptIn(ExperimentalTestApi::class)
@@ -34,6 +36,8 @@ class PlanFlowTest {
     private val db get() = (rule.activity.application as ForgeApplication).database
 
     private fun launchWithTemplate(): Long {
+        // Plans remind by default, so saving would otherwise stop at the permission prompt.
+        shadowOf(rule.activity.application).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
         rule.onNodeWithText("Male", useUnmergedTree = true).performClick()
         rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
         val templateId = runBlocking {
