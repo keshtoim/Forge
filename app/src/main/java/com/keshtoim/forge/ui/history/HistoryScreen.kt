@@ -82,6 +82,7 @@ private val WorkoutDetail.doneSets get() = exercises.sumOf { e -> e.sets.count {
 fun HistoryScreen(
     onOpen: (Long) -> Unit,
     onOpenPlan: (planId: Long, epochDay: Long) -> Unit,
+    onOpenMeasure: (epochDay: Long) -> Unit,
     viewModel: HistoryViewModel = viewModel(factory = HistoryViewModel.Factory),
 ) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
@@ -94,7 +95,7 @@ fun HistoryScreen(
         }
         when (tab) {
             0 -> WorkoutsTab(onOpen, onOpenPlan, viewModel)
-            else -> BodyLogTab()
+            else -> BodyLogTab(onOpenMeasure)
         }
     }
 }

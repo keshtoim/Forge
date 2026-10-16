@@ -41,14 +41,8 @@ class ProfileViewModel(private val preferences: UserPreferences, private val mea
 
     fun setBirthDate(date: LocalDate) = preferences.setBirthDate(date)
 
-    fun delete(measurement: BodyMeasurement) {
-        viewModelScope.launch { measurements.delete(measurement) }
-    }
-
-    fun recordWeight(kg: Double) = record { it.copy(weightKg = kg) }
-
-    fun record(update: (BodyMeasurement) -> BodyMeasurement) {
-        viewModelScope.launch { measurements.record(LocalDate.now().toEpochDay(), update) }
+    fun recordWeight(kg: Double) {
+        viewModelScope.launch { measurements.record(LocalDate.now().toEpochDay()) { it.copy(weightKg = kg) } }
     }
 
     companion object {
