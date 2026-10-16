@@ -23,6 +23,11 @@ data class ProfileState(val sex: BodyType, val heightCm: Int?, val birthDate: Lo
 
     val weightKg get() = weights.lastOrNull()?.value
 
+    // The latest value of each girth, which may come from different days.
+    val neckCm get() = measurements.series { it.neckCm }.lastOrNull()?.value
+    val waistCm get() = measurements.series { it.waistCm }.lastOrNull()?.value
+    val hipsCm get() = measurements.series { it.hipsCm }.lastOrNull()?.value
+
     // Weigh-ins of the last three months that the chart and the trend are based on.
     fun recent(today: LocalDate): List<Reading> = weights.filter { it.epochDay >= today.minusMonths(3).toEpochDay() }
 

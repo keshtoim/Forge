@@ -1,6 +1,7 @@
 package com.keshtoim.forge.data
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.LocalDate
 
@@ -31,6 +32,40 @@ class BodyTest {
         assertEquals(57.4, robinsonWeight(165, BodyType.FEMALE), 0.05)
         assertEquals(61.4, devineWeight(165, BodyType.MALE), 0.05)
         assertEquals(61.4, robinsonWeight(165, BodyType.MALE), 0.05)
+    }
+
+    @Test
+    fun `navy body fat for a man and a woman`() {
+        assertEquals(16.4, navyBodyFat(BodyType.MALE, 178, neckCm = 38.0, waistCm = 85.0, hipsCm = null)!!, 0.1)
+        assertEquals(26.3, navyBodyFat(BodyType.FEMALE, 165, neckCm = 31.5, waistCm = 71.2, hipsCm = 96.0)!!, 0.1)
+        assertNull(navyBodyFat(BodyType.FEMALE, 165, neckCm = 31.5, waistCm = 71.2, hipsCm = null))
+        assertNull(navyBodyFat(BodyType.MALE, 178, neckCm = 40.0, waistCm = 39.0, hipsCm = null))
+    }
+
+    @Test
+    fun `body fat categories differ by sex`() {
+        assertEquals(BodyFatCategory.FITNESS, bodyFatCategory(BodyType.MALE, 16.4))
+        assertEquals(BodyFatCategory.AVERAGE, bodyFatCategory(BodyType.FEMALE, 26.3))
+        assertEquals(BodyFatCategory.ESSENTIAL, bodyFatCategory(BodyType.MALE, 4.0))
+        assertEquals(BodyFatCategory.OBESE, bodyFatCategory(BodyType.FEMALE, 32.0))
+    }
+
+    @Test
+    fun `fat-free mass index is normalised to 1_8 m`() {
+        // 80 kg at 180 cm with 15 % fat: 68 kg lean over 3.24 m², no height correction.
+        assertEquals(20.99, ffmi(80.0, 180, 15.0), 0.01)
+        // 64 kg lean at 170 cm gets 0.61 added for being 10 cm shorter.
+        assertEquals(22.76, ffmi(80.0, 170, 20.0), 0.01)
+    }
+
+    @Test
+    fun `waist ratios use the usual cut-offs`() {
+        assertEquals(WaistRisk.LOW, waistToHeightRisk(71.2 / 165))
+        assertEquals(WaistRisk.INCREASED, waistToHeightRisk(0.55))
+        assertEquals(WaistRisk.HIGH, waistToHeightRisk(0.6))
+        assertEquals(WaistRisk.LOW, waistToHipRisk(BodyType.FEMALE, 71.2 / 96))
+        assertEquals(WaistRisk.INCREASED, waistToHipRisk(BodyType.MALE, 0.95))
+        assertEquals(WaistRisk.HIGH, waistToHipRisk(BodyType.FEMALE, 0.86))
     }
 
     @Test

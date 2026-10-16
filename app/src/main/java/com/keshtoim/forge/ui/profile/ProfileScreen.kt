@@ -66,12 +66,19 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
 import com.keshtoim.forge.data.BmiCategory
 import com.keshtoim.forge.data.BmiFormula
+import com.keshtoim.forge.data.BodyFatCategory
 import com.keshtoim.forge.data.BodyType
 import com.keshtoim.forge.data.Reading
+import com.keshtoim.forge.data.WaistRisk
 import com.keshtoim.forge.data.age
+import com.keshtoim.forge.data.bodyFatCategory
 import com.keshtoim.forge.data.devineWeight
+import com.keshtoim.forge.data.ffmi
+import com.keshtoim.forge.data.navyBodyFat
 import com.keshtoim.forge.data.normalWeightRange
 import com.keshtoim.forge.data.robinsonWeight
+import com.keshtoim.forge.data.waistToHeightRisk
+import com.keshtoim.forge.data.waistToHipRisk
 import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
@@ -92,7 +99,7 @@ private enum class Editing { HEIGHT, WEIGHT, BIRTH }
 internal fun one(value: Double) = formatNumber((value * 10).roundToLong() / 10.0)
 
 @Composable
-fun ProfileScreen(onBack: () -> Unit, viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory)) {
+fun ProfileScreen(onBack: () -> Unit, onMeasure: () -> Unit, viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory)) {
     val loaded by viewModel.state.collectAsStateWithLifecycle()
     val state = loaded ?: return
     var editing by rememberSaveable { mutableStateOf<Editing?>(null) }
@@ -122,6 +129,7 @@ fun ProfileScreen(onBack: () -> Unit, viewModel: ProfileViewModel = viewModel(fa
                     }
                 }
             }
+            state.heightCm?.let { height -> item { CompositionCard(state, height, onMeasure) } }
             item { WeightCard(state, onRecord = { editing = Editing.WEIGHT }) }
         }
     }
@@ -481,4 +489,70 @@ private fun BirthDateDialog(initial: LocalDate?, onDismiss: () -> Unit, onSave: 
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     ) { DatePicker(state) }
+}
+
+private val BodyFatCategory.labelRes get() = when (this) {
+    BodyFatCategory.ESSENTIAL -> R.string.bf_essential
+    BodyFatCategory.ATHLETIC -> R.string.bf_athletic
+    BodyFatCategory.FITNESS -> R.string.bf_fitness
+    BodyFatCategory.AVERAGE -> R.string.bf_average
+    BodyFatCategory.OBESE -> R.string.bf_obese
+}
+
+private val WaistRisk.labelRes get() = when (this) {
+    WaistRisk.LOW -> R.string.risk_low
+    WaistRisk.INCREASED -> R.string.risk_increased
+    WaistRisk.HIGH -> R.string.risk_high
+}
+
+private fun two(value: Double) = formatNumber((value * 100).roundToLong() / 100.0)
+
+// Estimates from tape measurements, which tell fat from muscle where the weight-based indices cannot.
+@Composable
+private fun CompositionCard(state: ProfileState, heightCm: Int, onMeasure: () -> Unit) {
+    val neck = state.neckCm
+    val waist = state.waistCm
+    val hips = state.hipsCm
+    val fat = if (neck != null && waist != null) navyBodyFat(state.sex, heightCm, neck, waist, hips) else null
+    val weight = state.weightKg
+    val kg = stringResource(R.string.unit_kg)
+    ForgeCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(vertical = 8.dp)) {
+            Text(
+                stringResource(R.string.composition_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+            if (fat != null) {
+                IndexRow(
+                    stringResource(R.string.composition_fat),
+                    stringResource(R.string.composition_fat_hint, stringResource(bodyFatCategory(state.sex, fat).labelRes)),
+                    one(fat) + " %",
+                )
+                if (weight != null) {
+                    IndexRow(stringResource(R.string.composition_lean), stringResource(R.string.composition_lean_hint), one(weight * (1 - fat / 100)) + " " + kg)
+                    IndexRow(stringResource(R.string.composition_ffmi), stringResource(R.string.composition_ffmi_hint), one(ffmi(weight, heightCm, fat)))
+                }
+            }
+            if (waist != null) {
+                val ratio = waist / heightCm
+                IndexRow(stringResource(R.string.composition_whtr), stringResource(waistToHeightRisk(ratio).labelRes), two(ratio))
+                if (hips != null) {
+                    val hipRatio = waist / hips
+                    IndexRow(stringResource(R.string.composition_whr), stringResource(waistToHipRisk(state.sex, hipRatio).labelRes), two(hipRatio))
+                }
+            }
+            if (fat == null) {
+                Text(
+                    stringResource(if (state.sex == BodyType.MALE) R.string.composition_missing_male else R.string.composition_missing_female),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+                OutlinedButton(onClick = onMeasure, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth().height(48.dp)) {
+                    Text(stringResource(R.string.measure_add))
+                }
+            }
+        }
+    }
 }

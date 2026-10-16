@@ -88,6 +88,7 @@ import com.keshtoim.forge.ui.workout.WorkoutHomeScreen
 import com.keshtoim.forge.ui.workout.rememberElapsed
 import com.keshtoim.forge.ui.workout.rememberRemaining
 import kotlinx.serialization.Serializable
+import java.time.LocalDate
 
 @Serializable object WorkoutRoute
 @Serializable object HistoryRoute
@@ -253,7 +254,10 @@ private fun MainScreen(viewModel: ForgeViewModel) {
                 MeasureScreen(onBack = { entry.ifResumed { navController.popBackStack() } })
             }
             composable<ProfileRoute> { entry ->
-                ProfileScreen(onBack = { entry.ifResumed { navController.popBackStack() } })
+                ProfileScreen(
+                    onBack = { entry.ifResumed { navController.popBackStack() } },
+                    onMeasure = { entry.ifResumed { navController.navigate(MeasureRoute(LocalDate.now().toEpochDay())) } },
+                )
             }
             composable<PlanRoute> { entry ->
                 PlanScreen(onBack = { entry.ifResumed { navController.popBackStack() } })
