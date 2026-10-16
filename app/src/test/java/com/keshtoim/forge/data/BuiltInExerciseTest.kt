@@ -1,7 +1,11 @@
 package com.keshtoim.forge.data
 
+import com.keshtoim.forge.data.db.Discipline
+import com.keshtoim.forge.data.db.Equipment
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
+import com.keshtoim.forge.data.db.Force
+import com.keshtoim.forge.data.db.Mechanics
 import com.keshtoim.forge.data.db.MuscleGroup
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -15,6 +19,22 @@ class BuiltInExerciseTest {
             assertEquals(exercise.name, exercise.secondary.distinct(), exercise.secondary)
             assertTrue(exercise.name, exercise.secondary.none { it == MuscleGroup.CARDIO || it == MuscleGroup.OTHER })
         }
+    }
+
+    @Test
+    fun `exercises loaded with plates are barbell exercises`() {
+        BuiltInExercise.entries.filter { it.barKg != null }.forEach { exercise ->
+            assertEquals(exercise.name, Equipment.BARBELL, exercise.traits.equipment)
+        }
+    }
+
+    @Test
+    fun `built-in characteristics come from code, custom ones from their columns`() {
+        val stored = Exercise(builtInKey = "LAT_PULLDOWN", muscleGroup = MuscleGroup.BACK, type = ExerciseType.WEIGHT_REPS, equipment = Equipment.OTHER)
+        assertEquals(ExerciseTraits(Mechanics.COMPOUND, Discipline.STRENGTH, Equipment.CABLE, Force.PULL), stored.traits)
+
+        val custom = Exercise(name = "Swing", muscleGroup = MuscleGroup.GLUTES, type = ExerciseType.REPS, equipment = Equipment.KETTLEBELL)
+        assertEquals(ExerciseTraits(null, null, Equipment.KETTLEBELL, null), custom.traits)
     }
 
     @Test

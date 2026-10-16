@@ -17,6 +17,15 @@ enum class ExerciseType { WEIGHT_REPS, REPS, DURATION, DISTANCE }
 // Persisted by name: never rename entries.
 enum class SetEffort { WARMUP, LIGHT, MEDIUM, HEAVY, MAX }
 
+// Exercise characteristics, persisted by name: never rename entries.
+enum class Mechanics { COMPOUND, ISOLATION, OTHER }
+
+enum class Discipline { STRENGTH, CARDIO, STRETCHING, PLYOMETRIC, POWERLIFTING, WEIGHTLIFTING }
+
+enum class Equipment { NONE, BARBELL, DUMBBELL, KETTLEBELL, MACHINE, CABLE, BAND, FITBALL, OTHER }
+
+enum class Force { PUSH, PULL, STATIC, OTHER }
+
 @Serializable
 @Entity(tableName = "exercises", indices = [Index(value = ["builtInKey"], unique = true)])
 data class Exercise(
@@ -31,6 +40,11 @@ data class Exercise(
     val archived: Boolean = false,
     // Weight of the bar when sets are entered as plates per side; null means the total weight is entered.
     val barKg: Double? = null,
+    // Characteristics of custom exercises; built-ins take theirs from BuiltInExercise.traits.
+    val mechanics: Mechanics? = null,
+    val discipline: Discipline? = null,
+    val equipment: Equipment? = null,
+    val force: Force? = null,
 )
 
 @Serializable

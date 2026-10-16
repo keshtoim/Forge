@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -18,8 +18,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
@@ -40,8 +40,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
+import com.keshtoim.forge.data.db.Discipline
+import com.keshtoim.forge.data.db.Equipment
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
+import com.keshtoim.forge.data.db.Force
+import com.keshtoim.forge.data.db.Mechanics
 import com.keshtoim.forge.data.db.MuscleGroup
 import com.keshtoim.forge.ui.labelRes
 
@@ -90,6 +94,10 @@ internal fun ExerciseDialog(
     var muscle by rememberSaveable { mutableStateOf(initial.muscleGroup) }
     var type by rememberSaveable { mutableStateOf(initial.type) }
     var secondary by rememberSaveable { mutableStateOf(initial.secondaryMuscles) }
+    var mechanics by rememberSaveable { mutableStateOf(initial.mechanics) }
+    var discipline by rememberSaveable { mutableStateOf(initial.discipline) }
+    var equipment by rememberSaveable { mutableStateOf(initial.equipment) }
+    var force by rememberSaveable { mutableStateOf(initial.force) }
     val isNew = initial.id == 0L
 
     AlertDialog(
@@ -111,6 +119,11 @@ internal fun ExerciseDialog(
                     enabled = !typeLocked,
                     hint = if (typeLocked) stringResource(R.string.exercise_type_locked) else null,
                 ) { type = it }
+                // Characteristics are optional, so each list starts with "not set".
+                Dropdown(stringResource(R.string.trait_equipment), equipment, listOf(null) + Equipment.entries, { it?.labelRes ?: R.string.trait_unset }) { equipment = it }
+                Dropdown(stringResource(R.string.trait_mechanics), mechanics, listOf(null) + Mechanics.entries, { it?.labelRes ?: R.string.trait_unset }) { mechanics = it }
+                Dropdown(stringResource(R.string.trait_discipline), discipline, listOf(null) + Discipline.entries, { it?.labelRes ?: R.string.trait_unset }) { discipline = it }
+                Dropdown(stringResource(R.string.trait_force), force, listOf(null) + Force.entries, { it?.labelRes ?: R.string.trait_unset }) { force = it }
                 Text(stringResource(R.string.muscles_secondary_pick), style = MaterialTheme.typography.labelLarge)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     MuscleGroup.entries.filter { it != muscle && it != MuscleGroup.CARDIO && it != MuscleGroup.OTHER }.forEach { group ->
@@ -131,7 +144,18 @@ internal fun ExerciseDialog(
         confirmButton = {
             TextButton(
                 enabled = name.isNotBlank(),
-                onClick = { onSave(initial.copy(name = name.trim(), muscleGroup = muscle, secondaryMuscles = secondary - muscle, type = type)) },
+                onClick = { onSave(
+                        initial.copy(
+                            name = name.trim(),
+                            muscleGroup = muscle,
+                            secondaryMuscles = secondary - muscle,
+                            type = type,
+                            mechanics = mechanics,
+                            discipline = discipline,
+                            equipment = equipment,
+                            force = force,
+                        ),
+                    ) },
             ) { Text(stringResource(R.string.save)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },

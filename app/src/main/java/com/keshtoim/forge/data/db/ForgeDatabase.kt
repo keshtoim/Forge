@@ -14,7 +14,7 @@ import com.keshtoim.forge.data.BuiltInExercise
 
 @Database(
     entities = [Exercise::class, Template::class, TemplateExercise::class, Workout::class, WorkoutExercise::class, WorkoutSet::class, PlannedWorkout::class, BodyMeasurement::class],
-    version = 7,
+    version = 8,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3, spec = ForgeDatabase.BarWeightMigration::class),
@@ -22,6 +22,7 @@ import com.keshtoim.forge.data.BuiltInExercise
         AutoMigration(from = 4, to = 5),
         AutoMigration(from = 5, to = 6),
         AutoMigration(from = 6, to = 7, spec = ForgeDatabase.MeasurementsMigration::class),
+        AutoMigration(from = 7, to = 8),
     ],
 )
 @TypeConverters(Converters::class)

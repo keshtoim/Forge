@@ -48,6 +48,8 @@ import com.keshtoim.forge.data.db.MuscleGroup
 import com.keshtoim.forge.data.db.SetPoint
 import com.keshtoim.forge.data.guide
 import com.keshtoim.forge.data.secondary
+import com.keshtoim.forge.data.traits
+import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
 import com.keshtoim.forge.ui.anatomyRes
@@ -97,6 +99,7 @@ fun ExerciseDetailScreen(
         ) {
             item { MapCard(exercise) }
             item { MusclesCard(exercise) }
+            item { TraitsCard(exercise) }
             exercise.builtIn?.guide?.let { guide ->
                 item { TechniqueCard(stringArrayResource(guide.steps)) }
                 item { MistakesCard(stringArrayResource(guide.mistakes)) }
@@ -129,16 +132,6 @@ private fun MapCard(exercise: Exercise) {
                 LegendDot(colors.levels[2], stringResource(R.string.exercise_legend_primary))
                 if (exercise.secondary.isNotEmpty()) LegendDot(colors.levels[1], stringResource(R.string.exercise_legend_secondary))
             }
-            Text(
-                stringResource(exercise.type.labelRes),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .padding(top = 12.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-            )
         }
     }
 }
@@ -148,6 +141,29 @@ private fun LegendDot(color: Color, label: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(12.dp).clip(CircleShape).background(color))
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 6.dp))
+    }
+}
+
+@Composable
+private fun TraitsCard(exercise: Exercise) {
+    val traits = exercise.traits
+    val rows = listOfNotNull(
+        R.string.exercise_type to exercise.type.labelRes,
+        traits.mechanics?.let { R.string.trait_mechanics to it.labelRes },
+        traits.discipline?.let { R.string.trait_discipline to it.labelRes },
+        traits.equipment?.let { R.string.trait_equipment to it.labelRes },
+        traits.force?.let { R.string.trait_force to it.labelRes },
+    )
+    ForgeCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(vertical = 12.dp)) {
+            SectionTitle(stringResource(R.string.exercise_traits))
+            rows.forEach { (label, value) ->
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(label), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                    Text(stringResource(value), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
+                }
+            }
+        }
     }
 }
 
@@ -248,7 +264,7 @@ private fun HistoryCard(exercise: Exercise, sets: List<SetPoint>, onAllProgress:
 @Composable
 private fun Stat(value: String, label: String, modifier: Modifier) {
     Column(modifier.clip(MaterialTheme.shapes.small).background(MaterialTheme.colorScheme.background).padding(12.dp)) {
-        Text(value, style = MaterialTheme.typography.titleLarge, maxLines = 1)
-        Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+        FitText(value, style = MaterialTheme.typography.titleLarge)
+        FitText(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

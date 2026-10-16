@@ -7,8 +7,12 @@ import com.keshtoim.forge.data.BodyType
 import com.keshtoim.forge.data.ThemeMode
 import com.keshtoim.forge.data.Upcoming
 import com.keshtoim.forge.data.builtIn
+import com.keshtoim.forge.data.db.Discipline
+import com.keshtoim.forge.data.db.Equipment
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
+import com.keshtoim.forge.data.db.Force
+import com.keshtoim.forge.data.db.Mechanics
 import com.keshtoim.forge.data.db.MuscleGroup
 import com.keshtoim.forge.data.db.SetEffort
 import com.keshtoim.forge.data.db.WorkoutDetail
@@ -161,4 +165,46 @@ val SetEffort.hintRes: Int
         SetEffort.MEDIUM -> R.string.effort_medium_hint
         SetEffort.HEAVY -> R.string.effort_heavy_hint
         SetEffort.MAX -> R.string.effort_max_hint
+    }
+
+@get:StringRes
+val Mechanics.labelRes: Int
+    get() = when (this) {
+        Mechanics.COMPOUND -> R.string.mechanics_compound
+        Mechanics.ISOLATION -> R.string.mechanics_isolation
+        Mechanics.OTHER -> R.string.trait_other
+    }
+
+@get:StringRes
+val Discipline.labelRes: Int
+    get() = when (this) {
+        Discipline.STRENGTH -> R.string.discipline_strength
+        Discipline.CARDIO -> R.string.discipline_cardio
+        Discipline.STRETCHING -> R.string.discipline_stretching
+        Discipline.PLYOMETRIC -> R.string.discipline_plyometric
+        Discipline.POWERLIFTING -> R.string.discipline_powerlifting
+        Discipline.WEIGHTLIFTING -> R.string.discipline_weightlifting
+    }
+
+@get:StringRes
+val Equipment.labelRes: Int
+    get() = when (this) {
+        Equipment.NONE -> R.string.equipment_none
+        Equipment.BARBELL -> R.string.equipment_barbell
+        Equipment.DUMBBELL -> R.string.equipment_dumbbell
+        Equipment.KETTLEBELL -> R.string.equipment_kettlebell
+        Equipment.MACHINE -> R.string.equipment_machine
+        Equipment.CABLE -> R.string.equipment_cable
+        Equipment.BAND -> R.string.equipment_band
+        Equipment.FITBALL -> R.string.equipment_fitball
+        Equipment.OTHER -> R.string.trait_other
+    }
+
+@get:StringRes
+val Force.labelRes: Int
+    get() = when (this) {
+        Force.PUSH -> R.string.force_push
+        Force.PULL -> R.string.force_pull
+        Force.STATIC -> R.string.force_static
+        Force.OTHER -> R.string.trait_other
     }
