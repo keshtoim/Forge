@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -166,7 +167,7 @@ private fun MusclesCard(exercise: Exercise) {
 
 @Composable
 private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
-    Text(text, style = MaterialTheme.typography.titleSmall, modifier = modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+    Text(text, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), modifier = modifier.padding(horizontal = 16.dp, vertical = 6.dp))
 }
 
 @Composable
@@ -174,7 +175,7 @@ private fun MuscleRow(group: MuscleGroup) {
     val label = stringResource(group.labelRes)
     val anatomy = group.anatomyRes?.let { stringResource(it) }
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
-        Text(anatomy ?: label, style = MaterialTheme.typography.bodyLarge)
+        Text(anatomy ?: label, style = MaterialTheme.typography.bodyMedium)
         if (anatomy != null) Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
@@ -184,7 +185,7 @@ private fun TechniqueCard(steps: Array<String>) {
     val colors = MaterialTheme.colorScheme
     ForgeCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.exercise_technique), style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(R.string.exercise_technique), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
             steps.forEachIndexed { index, step ->
                 Row {
                     Box(Modifier.size(26.dp).clip(CircleShape).background(colors.primaryContainer), contentAlignment = Alignment.Center) {
@@ -202,7 +203,7 @@ private fun MistakesCard(mistakes: Array<String>) {
     val colors = MaterialTheme.colorScheme
     ForgeCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(R.string.exercise_mistakes), style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(R.string.exercise_mistakes), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
             mistakes.forEach { mistake ->
                 Row(verticalAlignment = Alignment.Top) {
                     Box(Modifier.padding(top = 7.dp).size(6.dp).clip(CircleShape).background(colors.secondary))
@@ -220,7 +221,7 @@ private fun HistoryCard(exercise: Exercise, sets: List<SetPoint>, onAllProgress:
     ForgeCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.exercise_history), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                Text(stringResource(R.string.exercise_history), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), modifier = Modifier.weight(1f))
                 if (workouts > 0) TextButton(onClick = onAllProgress) { Text(stringResource(R.string.exercise_all_progress)) }
             }
             if (workouts == 0) {
