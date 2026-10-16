@@ -56,40 +56,43 @@ fun BodyTypeScreen(onPick: (BodyType) -> Unit) {
     // Nothing is preselected so the choice is never nudged.
     var selected by rememberSaveable { mutableStateOf<BodyType?>(null) }
 
-    Column(
-        Modifier.fillMaxSize().background(colors.background).windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(start = 20.dp, end = 20.dp, top = 32.dp, bottom = 24.dp),
-    ) {
-        Text(
-            stringResource(R.string.body_type_step),
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
-            color = colors.onSecondaryContainer,
-            modifier = Modifier.clip(CircleShape).background(colors.secondaryContainer).padding(horizontal = 12.dp, vertical = 6.dp),
-        )
-        Text(
-            stringResource(R.string.body_type_title),
-            style = MaterialTheme.typography.displaySmall,
-            modifier = Modifier.padding(top = 14.dp),
-        )
-        Text(
-            stringResource(R.string.body_type_hint),
-            style = MaterialTheme.typography.bodyLarge,
-            color = colors.onSurfaceVariant,
-            modifier = Modifier.padding(top = 12.dp),
-        )
-        Row(Modifier.padding(top = 28.dp).selectableGroup(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            BodyType.entries.forEach { type ->
-                FigureCard(type, selected == type, Modifier.weight(1f)) { selected = type }
-            }
-        }
-        Spacer(Modifier.weight(1f))
-        Button(
-            onClick = { selected?.let(onPick) },
-            enabled = selected != null,
-            shape = CircleShape,
-            modifier = Modifier.fillMaxWidth().height(64.dp),
+    // Shown before the app's Scaffold exists, so this Surface is what gives the text its theme colour.
+    Surface(color = colors.background, contentColor = colors.onBackground) {
+        Column(
+            Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)
+                .padding(start = 20.dp, end = 20.dp, top = 32.dp, bottom = 24.dp),
         ) {
-            Text(stringResource(R.string.home_go), style = MaterialTheme.typography.titleLarge.copy(letterSpacing = 0.04.em))
+            Text(
+                stringResource(R.string.body_type_step),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
+                color = colors.onSecondaryContainer,
+                modifier = Modifier.clip(CircleShape).background(colors.secondaryContainer).padding(horizontal = 12.dp, vertical = 6.dp),
+            )
+            Text(
+                stringResource(R.string.body_type_title),
+                style = MaterialTheme.typography.displaySmall,
+                modifier = Modifier.padding(top = 14.dp),
+            )
+            Text(
+                stringResource(R.string.body_type_hint),
+                style = MaterialTheme.typography.bodyLarge,
+                color = colors.onSurfaceVariant,
+                modifier = Modifier.padding(top = 12.dp),
+            )
+            Row(Modifier.padding(top = 28.dp).selectableGroup(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                BodyType.entries.forEach { type ->
+                    FigureCard(type, selected == type, Modifier.weight(1f)) { selected = type }
+                }
+            }
+            Spacer(Modifier.weight(1f))
+            Button(
+                onClick = { selected?.let(onPick) },
+                enabled = selected != null,
+                shape = CircleShape,
+                modifier = Modifier.fillMaxWidth().height(64.dp),
+            ) {
+                Text(stringResource(R.string.home_go), style = MaterialTheme.typography.titleLarge.copy(letterSpacing = 0.04.em))
+            }
         }
     }
 }
