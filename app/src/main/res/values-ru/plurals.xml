@@ -35,12 +35,6 @@
         <item quantity="many">%d подходов</item>
         <item quantity="other">%d подхода</item>
     </plurals>
-    <plurals name="sets_left">
-        <item quantity="one">ещё %d подход</item>
-        <item quantity="few">ещё %d подхода</item>
-        <item quantity="many">ещё %d подходов</item>
-        <item quantity="other">ещё %d подхода</item>
-    </plurals>
     <plurals name="age_years">
         <item quantity="one">%d год</item>
         <item quantity="few">%d года</item>

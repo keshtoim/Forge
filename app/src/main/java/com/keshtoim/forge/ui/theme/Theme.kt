@@ -99,9 +99,26 @@ private val DarkPanel = PanelColors(panel = Color(0xFF2A2535), onPanel = Color.W
 
 private val LocalPanelColors = staticCompositionLocalOf { LightPanel }
 
+// Set effort levels run from cool to hot and also differ in lightness, so they stay apart without colour vision.
+@Immutable
+data class EffortColors(val warmup: Color, val light: Color, val medium: Color, val heavy: Color, val max: Color, val none: Color)
+
+private val LightEffort = EffortColors(
+    warmup = Color(0xFF9A94AE), light = Color(0xFF2FA37F), medium = Color(0xFFE2A91E),
+    heavy = Color(0xFFF07A2B), max = Color(0xFFE0453A), none = Color(0xFFDCD4F0),
+)
+private val DarkEffort = EffortColors(
+    warmup = Color(0xFF8E88A6), light = Color(0xFF3FBF96), medium = Color(0xFFF2C04A),
+    heavy = Color(0xFFFF8F45), max = Color(0xFFFF6257), none = Color(0xFF3A3348),
+)
+
+private val LocalEffortColors = staticCompositionLocalOf { LightEffort }
+
 object ForgeTheme {
     val panel: PanelColors
         @Composable get() = LocalPanelColors.current
+    val effort: EffortColors
+        @Composable get() = LocalEffortColors.current
 }
 
 private fun style(size: Int, weight: FontWeight, lineHeight: Float = 1.3f) =
@@ -142,7 +159,10 @@ fun ThemeMode.isDark(): Boolean = when (this) {
 
 @Composable
 fun ForgeTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
-    CompositionLocalProvider(LocalPanelColors provides if (dark) DarkPanel else LightPanel) {
+    CompositionLocalProvider(
+        LocalPanelColors provides if (dark) DarkPanel else LightPanel,
+        LocalEffortColors provides if (dark) DarkEffort else LightEffort,
+    ) {
         MaterialTheme(colorScheme = if (dark) DarkColors else LightColors, typography = ForgeTypography, shapes = ForgeShapes, content = content)
     }
 }

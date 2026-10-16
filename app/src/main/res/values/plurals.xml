@@ -23,10 +23,6 @@
         <item quantity="one">%d set</item>
         <item quantity="other">%d sets</item>
     </plurals>
-    <plurals name="sets_left">
-        <item quantity="one">%d more set</item>
-        <item quantity="other">%d more sets</item>
-    </plurals>
     <plurals name="age_years">
         <item quantity="one">%d year</item>
         <item quantity="other">%d years</item>

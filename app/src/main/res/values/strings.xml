@@ -123,7 +123,6 @@
     <string name="workout_exercises">Workout exercises</string>
     <string name="set_remove">Remove set</string>
     <string name="set_add_short">Set</string>
-    <string name="set_chip_hint">Set %1$d: %2$s. Tap to edit</string>
     <string name="sets_progress">%1$d of %2$d</string>
     <string name="effort_title">Set type</string>
     <string name="effort_warmup">Warm-up</string>
@@ -136,6 +135,17 @@
     <string name="effort_medium_short">med.</string>
     <string name="effort_heavy_short">heavy</string>
     <string name="effort_max_short">max</string>
+    <string name="effort_explain">What the levels mean</string>
+    <string name="effort_guide_title">Set levels</string>
+    <string name="effort_guide_ok">Got it</string>
+    <string name="effort_warmup_hint">Warming up with a light weight. Not counted in records or statistics.</string>
+    <string name="effort_light_hint">Plenty of reps left in the tank, easy technique.</string>
+    <string name="effort_medium_hint">A working set with 3–4 reps left.</string>
+    <string name="effort_heavy_hint">Hard: only 1–2 more reps were possible.</string>
+    <string name="effort_max_hint">To failure or a record weight.</string>
+    <string name="effort_none">No level</string>
+    <string name="effort_none_hint">A level is optional, the stripe stays neutral.</string>
+    <string name="set_was">was %s</string>
 
     <string name="rest_title">Rest</string>
     <string name="rest_add">+15 s</string>

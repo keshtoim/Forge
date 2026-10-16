@@ -10,6 +10,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.keshtoim.forge.MainActivity
@@ -73,5 +74,9 @@ class PickExercisesFlowTest {
 
         rule.waitUntilAtLeastOneExists(hasText("Bench Press"), timeoutMillis = 5_000)
         waitForButton("Done")
+
+        // The set card explains its effort levels on request.
+        rule.onNode(hasContentDescription("What the levels mean")).performScrollTo().performClick()
+        rule.onNodeWithText("Set levels").assertExists()
     }
 }

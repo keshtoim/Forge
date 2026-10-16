@@ -63,6 +63,7 @@ import com.keshtoim.forge.ui.shortRes
 import com.keshtoim.forge.ui.summary
 import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.ui.volumeKg
+import com.keshtoim.forge.ui.workout.color
 import com.keshtoim.forge.ui.workout.formatNumber
 import java.time.Instant
 import java.time.LocalDate
@@ -245,7 +246,7 @@ fun WorkoutDetailScreen(onBack: () -> Unit, viewModel: WorkoutDetailViewModel = 
                         item.sets.sortedBy { it.position }.forEachIndexed { index, set ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(
-                                    Modifier.size(26.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                                    Modifier.size(26.dp).clip(CircleShape).background(set.effort?.color()?.copy(alpha = 0.3f) ?: MaterialTheme.colorScheme.surfaceContainerHigh),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text("${index + 1}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

@@ -5,27 +5,41 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -33,6 +47,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
@@ -69,14 +84,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -99,9 +118,11 @@ import com.keshtoim.forge.data.db.WorkoutSet
 import com.keshtoim.forge.rest.Rest
 import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.displayName
+import com.keshtoim.forge.ui.hintRes
 import com.keshtoim.forge.ui.labelRes
 import com.keshtoim.forge.ui.shortRes
 import com.keshtoim.forge.ui.summary
+import com.keshtoim.forge.ui.theme.ForgeTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -184,24 +205,25 @@ fun ActiveWorkoutScreen(
                     Icon(Icons.Outlined.Info, contentDescription = stringResource(R.string.exercise_info), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            SetChips(sets, current, exercise, onEdit = { viewModel.toggleCompleted(it.id, null) }, onAdd = { viewModel.addSet(focus.workoutExercise.id) })
-            if (current != null) {
-                SetCard(
-                    number = currentIndex + 1,
-                    set = current,
-                    ghost = previous.getOrNull(currentIndex),
-                    exercise = exercise,
-                    onEdit = { transform -> viewModel.editSet(current.id, transform) },
-                    onBarChange = { viewModel.setBar(exercise, it) },
-                )
-            } else {
+            SetList(
+                sets = sets,
+                current = current,
+                previous = previous,
+                exercise = exercise,
+                onReopen = { viewModel.toggleCompleted(it.id, null) },
+                onEdit = { transform -> current?.let { viewModel.editSet(it.id, transform) } },
+                onBarChange = { viewModel.setBar(exercise, it) },
+                onAdd = { viewModel.addSet(focus.workoutExercise.id) },
+            )
+            if (current == null) {
                 Text(
                     stringResource(R.string.all_sets_done),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 24.dp),
+                    modifier = Modifier.padding(top = 16.dp),
                 )
             }
+            Spacer(Modifier.height(12.dp))
         }
 
         Column(Modifier.padding(start = 18.dp, end = 18.dp, top = 12.dp, bottom = 12.dp)) {
@@ -233,8 +255,8 @@ fun ActiveWorkoutScreen(
                 )
             }
             if (current != null && nextName != null) {
-                TextButton(onClick = { focusedId = next.workoutExercise.id }, modifier = Modifier.align(Alignment.End).padding(top = 4.dp)) {
-                    Text(stringResource(R.string.next_exercise, nextName.lowercase()) + " →", color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                TextButton(onClick = { focusedId = next.workoutExercise.id }, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 4.dp)) {
+                    Text(stringResource(R.string.next_exercise, nextName.lowercase()), color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -334,45 +356,168 @@ private fun ExerciseProgress(exercises: List<WorkoutExerciseWithSets>, focusedId
 }
 
 @Composable
-private fun SetChips(sets: List<WorkoutSet>, current: WorkoutSet?, exercise: Exercise, onEdit: (WorkoutSet) -> Unit, onAdd: () -> Unit) {
-    val context = LocalContext.current
-    val colors = MaterialTheme.colorScheme
-    val done = sets.withIndex().filter { it.value.completed }
-    val later = sets.count { !it.completed && it != current }
-    // Adding a set stays pinned beside the scrolling chips, so it is visible however many sets are done.
-    Row(Modifier.padding(top = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-        Row(
-            Modifier.weight(1f).horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            done.forEach { (index, set) ->
-                val summary = listOfNotNull(set.summary(exercise.type, context), set.effort?.let { stringResource(it.shortRes) }).joinToString(" · ")
-                val hint = stringResource(R.string.set_chip_hint, index + 1, summary)
-                Surface(
-                    onClick = { onEdit(set) },
-                    shape = CircleShape,
-                    color = colors.primaryContainer,
-                    modifier = Modifier.height(36.dp).semantics { contentDescription = hint },
-                ) {
-                    Box(Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
-                        Text("✓ $summary", style = MaterialTheme.typography.labelLarge, color = colors.onPrimaryContainer)
-                    }
-                }
-            }
-            if (later > 0) {
-                Surface(shape = CircleShape, color = colors.background, border = BorderStroke(2.dp, colors.surfaceVariant), modifier = Modifier.height(36.dp)) {
-                    Box(Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
-                        Text(pluralStringResource(R.plurals.sets_left, later, later), style = MaterialTheme.typography.labelLarge, color = colors.outline)
+fun SetEffort?.color(): Color {
+    val palette = ForgeTheme.effort
+    return when (this) {
+        SetEffort.WARMUP -> palette.warmup
+        SetEffort.LIGHT -> palette.light
+        SetEffort.MEDIUM -> palette.medium
+        SetEffort.HEAVY -> palette.heavy
+        SetEffort.MAX -> palette.max
+        null -> palette.none
+    }
+}
+
+private val NUMBER_WIDTH = 36.dp
+private val LEVEL_WIDTH = 52.dp
+
+// Sets run top to bottom: done rows, the current set as a full card, then the ones still ahead.
+@Composable
+private fun SetList(
+    sets: List<WorkoutSet>,
+    current: WorkoutSet?,
+    previous: List<WorkoutSet>,
+    exercise: Exercise,
+    onReopen: (WorkoutSet) -> Unit,
+    onEdit: ((WorkoutSet) -> WorkoutSet) -> Unit,
+    onBarChange: (Double?) -> Unit,
+    onAdd: () -> Unit,
+) {
+    val fields = SetField.forType(exercise.type)
+    // Rows present when the exercise is opened appear at once; only sets added afterwards animate in.
+    val initial = remember(exercise.id) { sets.map { it.id }.toSet() }
+    var explaining by rememberSaveable { mutableStateOf(false) }
+    Column(Modifier.padding(top = 12.dp).animateContentSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        SetHeader(fields)
+        sets.forEachIndexed { index, set ->
+            key(set.id) {
+                AppearOnce(animate = set.id !in initial) {
+                    val ghost = previous.getOrNull(index)
+                    when {
+                        set.completed -> DoneRow(index + 1, set, ghost, fields) { onReopen(set) }
+                        set == current -> SetCard(index + 1, set, ghost, exercise, onEdit, onBarChange, onExplain = { explaining = true })
+                        else -> UpcomingRow(index + 1, set, ghost, fields)
                     }
                 }
             }
         }
-        Surface(onClick = onAdd, shape = CircleShape, color = colors.surfaceContainerHigh, modifier = Modifier.padding(start = 8.dp).height(36.dp)) {
-            Row(Modifier.padding(start = 8.dp, end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Surface(onClick = onAdd, shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+            Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Text(stringResource(R.string.set_add_short), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(start = 4.dp))
+                Text(stringResource(R.string.set_add_short), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(start = 6.dp))
             }
+        }
+    }
+    if (explaining) EffortGuide(onDismiss = { explaining = false })
+}
+
+@Composable
+private fun AppearOnce(animate: Boolean, content: @Composable () -> Unit) {
+    val state = remember { MutableTransitionState(!animate).apply { targetState = true } }
+    AnimatedVisibility(
+        visibleState = state,
+        enter = fadeIn(tween(220)) + expandVertically(spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)) +
+            slideInVertically(spring(dampingRatio = Spring.DampingRatioMediumBouncy)) { it / 2 },
+    ) { content() }
+}
+
+@Composable
+private fun SetHeader(fields: List<SetField>) {
+    val style = MaterialTheme.typography.labelMedium
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
+    Row(Modifier.padding(start = 12.dp, end = 4.dp), verticalAlignment = Alignment.Bottom) {
+        Text("№", style = style, color = color, modifier = Modifier.width(NUMBER_WIDTH))
+        fields.forEach { Text(stringResource(it.unitRes), style = style, color = color, textAlign = TextAlign.Center, modifier = Modifier.weight(1f)) }
+        Spacer(Modifier.width(LEVEL_WIDTH))
+    }
+}
+
+// A row with the effort stripe on its left edge, shared by done and upcoming sets.
+@Composable
+private fun SetRow(number: Int, stripe: Color, modifier: Modifier, content: @Composable RowScope.() -> Unit) {
+    Row(modifier.fillMaxWidth().height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.width(6.dp).fillMaxHeight().background(stripe))
+        Text(
+            "$number",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 6.dp).width(NUMBER_WIDTH),
+        )
+        content()
+    }
+}
+
+@Composable
+private fun DoneRow(number: Int, set: WorkoutSet, ghost: WorkoutSet?, fields: List<SetField>, onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    val effort = set.effort
+    Surface(onClick = onClick, shape = RoundedCornerShape(14.dp), color = colors.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
+        SetRow(number, effort.color(), Modifier.heightIn(min = 56.dp).padding(end = 4.dp)) {
+            fields.forEach { field ->
+                Column(Modifier.weight(1f).padding(vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(verticalAlignment = Alignment.Top) {
+                        Text(field.read(set).ifEmpty { "—" }, style = MaterialTheme.typography.titleLarge)
+                        delta(field, set, ghost)?.let { (text, color) ->
+                            Text(text, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = color, modifier = Modifier.padding(start = 2.dp))
+                        }
+                    }
+                    ghost?.let(field::read)?.takeIf { it.isNotEmpty() }?.let {
+                        Text(stringResource(R.string.set_was, it), style = MaterialTheme.typography.labelSmall, color = colors.outline)
+                    }
+                }
+            }
+            Text(
+                effort?.let { stringResource(it.shortRes).replaceFirstChar { c -> c.titlecase() } }.orEmpty(),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                color = effort.color(),
+                textAlign = TextAlign.End,
+                modifier = Modifier.width(LEVEL_WIDTH),
+            )
+        }
+    }
+}
+
+// Change against the same set last time; green when it grew, red when it dropped.
+@Composable
+private fun delta(field: SetField, set: WorkoutSet, ghost: WorkoutSet?): Pair<String, Color>? {
+    val now = field.value(set) ?: return null
+    val before = ghost?.let(field::value) ?: return null
+    val diff = now - before
+    val colors = ForgeTheme.effort
+    return when {
+        diff > 0.001 -> "+${formatNumber(diff)}" to colors.light
+        diff < -0.001 -> "−${formatNumber(-diff)}" to colors.max
+        else -> "±0" to MaterialTheme.colorScheme.outline
+    }
+}
+
+@Composable
+private fun UpcomingRow(number: Int, set: WorkoutSet, ghost: WorkoutSet?, fields: List<SetField>) {
+    val colors = MaterialTheme.colorScheme
+    val dash = colors.surfaceVariant
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .drawBehind {
+                drawRoundRect(
+                    dash,
+                    cornerRadius = CornerRadius(14.dp.toPx()),
+                    style = Stroke(width = 1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()))),
+                )
+            }
+            .clip(RoundedCornerShape(14.dp)),
+    ) {
+        SetRow(number, Color.Transparent, Modifier.height(48.dp).padding(end = 4.dp)) {
+            fields.forEach { field ->
+                Text(
+                    field.read(set).ifEmpty { ghost?.let(field::read).orEmpty() }.ifEmpty { "—" },
+                    style = MaterialTheme.typography.titleMedium,
+                    color = colors.outline,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Spacer(Modifier.width(LEVEL_WIDTH))
         }
     }
 }
@@ -385,61 +530,105 @@ private fun SetCard(
     exercise: Exercise,
     onEdit: ((WorkoutSet) -> WorkoutSet) -> Unit,
     onBarChange: (Double?) -> Unit,
+    onExplain: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
     val context = LocalContext.current
+    val stripe by animateColorAsState(set.effort.color(), label = "effort")
     Surface(
         shape = MaterialTheme.shapes.large,
         color = colors.surfaceContainer,
+        border = BorderStroke(2.dp, if (set.effort == null) Color.Transparent else stripe),
         shadowElevation = 3.dp,
-        modifier = Modifier.padding(top = 14.dp, bottom = 4.dp).fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    stringResource(R.string.set_label, number),
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
-                    color = colors.onSecondaryContainer,
-                    modifier = Modifier.clip(CircleShape).background(colors.secondaryContainer).padding(horizontal = 10.dp, vertical = 5.dp),
-                )
-                Spacer(Modifier.weight(1f))
-                ghost?.let {
+        Row(Modifier.height(IntrinsicSize.Min)) {
+            Box(Modifier.width(6.dp).fillMaxHeight().background(stripe))
+            Column(Modifier.padding(start = 12.dp, end = 16.dp, top = 16.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        stringResource(R.string.last_time, it.summary(exercise.type, context)),
-                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                        color = colors.onSurfaceVariant,
+                        stringResource(R.string.set_label, number),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
+                        color = colors.onSecondaryContainer,
+                        modifier = Modifier.clip(CircleShape).background(colors.secondaryContainer).padding(horizontal = 10.dp, vertical = 5.dp),
                     )
+                    Spacer(Modifier.weight(1f))
+                    ghost?.let {
+                        Text(
+                            stringResource(R.string.last_time, it.summary(exercise.type, context)),
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                            color = colors.onSurfaceVariant,
+                        )
+                    }
                 }
+                val plates = exercise.barKg?.let(::PlateLoading)
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SetField.forType(exercise.type).forEach { field ->
+                        key(set.id, field) { BigField(field, set, ghost, plates.takeIf { field == SetField.WEIGHT }, onEdit, Modifier.fillMaxWidth()) }
+                    }
+                }
+                EffortPicker(set.effort, onExplain) { effort -> onEdit { it.copy(effort = effort) } }
+                if (exercise.type == ExerciseType.WEIGHT_REPS) BarSelector(exercise.barKg, onBarChange)
             }
-            val plates = exercise.barKg?.let(::PlateLoading)
-            SetField.forType(exercise.type).forEach { field ->
-                key(set.id, field) { BigField(field, set, ghost, plates.takeIf { field == SetField.WEIGHT }, onEdit) }
-            }
-            EffortPicker(set.effort) { effort -> onEdit { it.copy(effort = effort) } }
-            if (exercise.type == ExerciseType.WEIGHT_REPS) BarSelector(exercise.barKg, onBarChange)
         }
     }
 }
 
-
 // Tapping the selected level again clears it: most sets need no label.
 @Composable
-private fun EffortPicker(effort: SetEffort?, onSelect: (SetEffort?) -> Unit) {
+private fun EffortPicker(effort: SetEffort?, onExplain: () -> Unit, onSelect: (SetEffort?) -> Unit) {
     val colors = MaterialTheme.colorScheme
-    val title = stringResource(R.string.effort_title)
-    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().semantics { contentDescription = title }) {
-        SetEffort.entries.forEachIndexed { index, level ->
-            val label = stringResource(level.labelRes)
-            SegmentedButton(
-                selected = level == effort,
-                onClick = { onSelect(if (level == effort) null else level) },
-                shape = SegmentedButtonDefaults.itemShape(index, SetEffort.entries.size),
-                colors = SegmentedButtonDefaults.colors(activeContainerColor = colors.primaryContainer, activeContentColor = colors.onPrimaryContainer),
-                icon = {},
-                modifier = Modifier.semantics { contentDescription = label },
-            ) { FitText(stringResource(level.shortRes).replaceFirstChar { it.titlecase() }, style = MaterialTheme.typography.labelMedium) }
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.effort_title), style = MaterialTheme.typography.labelLarge, color = colors.onSurfaceVariant, modifier = Modifier.weight(1f))
+            IconButton(onClick = onExplain) {
+                Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = stringResource(R.string.effort_explain), tint = colors.onSurfaceVariant)
+            }
+        }
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            SetEffort.entries.forEachIndexed { index, level ->
+                val label = stringResource(level.labelRes)
+                val tint = level.color()
+                SegmentedButton(
+                    selected = level == effort,
+                    onClick = { onSelect(if (level == effort) null else level) },
+                    shape = SegmentedButtonDefaults.itemShape(index, SetEffort.entries.size),
+                    colors = SegmentedButtonDefaults.colors(activeContainerColor = tint.copy(alpha = 0.22f), activeContentColor = colors.onSurface, activeBorderColor = tint),
+                    icon = {},
+                    modifier = Modifier.semantics { contentDescription = label },
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(Modifier.size(8.dp).clip(CircleShape).background(tint))
+                        FitText(stringResource(level.shortRes).replaceFirstChar { it.titlecase() }, style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+            }
         }
     }
+}
+
+@Composable
+private fun EffortGuide(onDismiss: () -> Unit) {
+    val levels = SetEffort.entries.map { Triple(it.color(), stringResource(it.labelRes), stringResource(it.hintRes)) } +
+        Triple(null.color(), stringResource(R.string.effort_none), stringResource(R.string.effort_none_hint))
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.effort_guide_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                levels.forEach { (color, name, hint) ->
+                    Row(Modifier.height(IntrinsicSize.Min)) {
+                        Box(Modifier.width(6.dp).fillMaxHeight().clip(CircleShape).background(color))
+                        Column(Modifier.padding(start = 12.dp)) {
+                            Text(name, style = MaterialTheme.typography.titleSmall)
+                            Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.effort_guide_ok)) } },
+    )
 }
 
 @Composable
@@ -467,7 +656,14 @@ private fun barLabel(barKg: Double?) =
     if (barKg == null) stringResource(R.string.bar_none) else stringResource(R.string.bar_weight, formatNumber(barKg))
 
 @Composable
-private fun BigField(field: SetField, set: WorkoutSet, ghost: WorkoutSet?, plates: PlateLoading?, onEdit: ((WorkoutSet) -> WorkoutSet) -> Unit) {
+private fun BigField(
+    field: SetField,
+    set: WorkoutSet,
+    ghost: WorkoutSet?,
+    plates: PlateLoading?,
+    onEdit: ((WorkoutSet) -> WorkoutSet) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val colors = MaterialTheme.colorScheme
     // With plates the field shows one side while the stored set and every edit keep the total.
     val view = { s: WorkoutSet -> plates?.toSide(s) ?: s }
@@ -480,9 +676,12 @@ private fun BigField(field: SetField, set: WorkoutSet, ghost: WorkoutSet?, plate
     LaunchedEffect(stored, focused) { if (!focused) text = stored }
     val focusManager = LocalFocusManager.current
     val unit = stringResource(if (plates != null) R.string.unit_kg_per_side else field.unitRes)
-    val style = MaterialTheme.typography.displayMedium.copy(textAlign = TextAlign.Center)
+    val style = MaterialTheme.typography.headlineMedium.copy(textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
 
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    Row(
+        modifier.clip(RoundedCornerShape(16.dp)).background(colors.surfaceContainerHigh).padding(horizontal = 4.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         StepButton(Icons.Filled.Remove, "−${formatNumber(field.step)} $unit") {
             focusManager.clearFocus()
             onEdit { back(field.step(view(it), shownGhost, -1)) }
@@ -502,17 +701,17 @@ private fun BigField(field: SetField, set: WorkoutSet, ghost: WorkoutSet?, plate
                 modifier = Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused }.semantics { contentDescription = unit },
                 decorationBox = { inner ->
                     Box(contentAlignment = Alignment.Center) {
-                        if (text.isEmpty()) Text(shownGhost?.let(field::read).orEmpty(), style = style, color = lerp(colors.surfaceVariant, colors.outline, 0.6f))
+                        if (text.isEmpty()) Text(shownGhost?.let(field::read).orEmpty(), style = style, maxLines = 1, color = lerp(colors.surfaceVariant, colors.outline, 0.6f))
                         inner()
                     }
                 },
             )
-            Text(unit, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold), color = colors.onSurfaceVariant)
+            FitText(unit, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), color = colors.onSurfaceVariant)
             if (plates != null) {
                 (set.weightKg ?: ghost?.weightKg)?.let { total ->
-                    Text(
+                    FitText(
                         stringResource(R.string.plates_total, formatNumber(total)),
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelSmall,
                         color = colors.onSurfaceVariant,
                     )
                 }
@@ -527,7 +726,7 @@ private fun BigField(field: SetField, set: WorkoutSet, ghost: WorkoutSet?, plate
 
 @Composable
 private fun StepButton(icon: ImageVector, description: String, onClick: () -> Unit) {
-    Surface(onClick = onClick, shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.size(56.dp)) {
+    Surface(onClick = onClick, shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.size(44.dp)) {
         Box(contentAlignment = Alignment.Center) { Icon(icon, contentDescription = description) }
     }
 }

@@ -152,3 +152,13 @@ val SetEffort.shortRes: Int
         SetEffort.HEAVY -> R.string.effort_heavy_short
         SetEffort.MAX -> R.string.effort_max_short
     }
+
+@get:StringRes
+val SetEffort.hintRes: Int
+    get() = when (this) {
+        SetEffort.WARMUP -> R.string.effort_warmup_hint
+        SetEffort.LIGHT -> R.string.effort_light_hint
+        SetEffort.MEDIUM -> R.string.effort_medium_hint
+        SetEffort.HEAVY -> R.string.effort_heavy_hint
+        SetEffort.MAX -> R.string.effort_max_hint
+    }
