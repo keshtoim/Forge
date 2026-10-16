@@ -103,7 +103,7 @@
     <string name="all_sets_done">Все подходы сделаны</string>
     <string name="workout_exercises">Упражнения тренировки</string>
     <string name="set_remove">Убрать подход</string>
-    <string name="set_add_short">+ Подход</string>
+    <string name="set_add_short">Подход</string>
     <string name="set_chip_hint">Подход %1$d: %2$s. Нажми, чтобы изменить</string>
     <string name="sets_progress">%1$d из %2$d</string>
     <string name="effort_title">Сложность подхода</string>
@@ -114,7 +114,7 @@
     <string name="effort_max">Максимум</string>
     <string name="effort_warmup_short">разм.</string>
     <string name="effort_light_short">лёгк.</string>
-    <string name="effort_medium_short">средн.</string>
+    <string name="effort_medium_short">сред.</string>
     <string name="effort_heavy_short">тяж.</string>
     <string name="effort_max_short">макс.</string>
 

@@ -45,14 +45,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -96,6 +97,7 @@ import com.keshtoim.forge.data.db.SetEffort
 import com.keshtoim.forge.data.db.WorkoutExerciseWithSets
 import com.keshtoim.forge.data.db.WorkoutSet
 import com.keshtoim.forge.rest.Rest
+import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.displayName
 import com.keshtoim.forge.ui.labelRes
 import com.keshtoim.forge.ui.shortRes
@@ -182,7 +184,7 @@ fun ActiveWorkoutScreen(
                     Icon(Icons.Outlined.Info, contentDescription = stringResource(R.string.exercise_info), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            SetChips(sets, current, exercise, onEdit = { viewModel.toggleCompleted(it.id, null) })
+            SetChips(sets, current, exercise, onEdit = { viewModel.toggleCompleted(it.id, null) }, onAdd = { viewModel.addSet(focus.workoutExercise.id) })
             if (current != null) {
                 SetCard(
                     number = currentIndex + 1,
@@ -230,15 +232,9 @@ fun ActiveWorkoutScreen(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = { viewModel.addSet(focus.workoutExercise.id) }) {
-                    Text(stringResource(R.string.set_add_short), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                Spacer(Modifier.weight(1f))
-                if (current != null && nextName != null) {
-                    TextButton(onClick = { focusedId = next.workoutExercise.id }) {
-                        Text(stringResource(R.string.next_exercise, nextName.lowercase()) + " →", color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
+            if (current != null && nextName != null) {
+                TextButton(onClick = { focusedId = next.workoutExercise.id }, modifier = Modifier.align(Alignment.End).padding(top = 4.dp)) {
+                    Text(stringResource(R.string.next_exercise, nextName.lowercase()) + " →", color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -338,32 +334,44 @@ private fun ExerciseProgress(exercises: List<WorkoutExerciseWithSets>, focusedId
 }
 
 @Composable
-private fun SetChips(sets: List<WorkoutSet>, current: WorkoutSet?, exercise: Exercise, onEdit: (WorkoutSet) -> Unit) {
+private fun SetChips(sets: List<WorkoutSet>, current: WorkoutSet?, exercise: Exercise, onEdit: (WorkoutSet) -> Unit, onAdd: () -> Unit) {
     val context = LocalContext.current
     val colors = MaterialTheme.colorScheme
     val done = sets.withIndex().filter { it.value.completed }
     val later = sets.count { !it.completed && it != current }
-    if (done.isEmpty() && later == 0) return
-    Row(Modifier.padding(top = 14.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        done.forEach { (index, set) ->
-            val summary = listOfNotNull(set.summary(exercise.type, context), set.effort?.let { stringResource(it.shortRes) }).joinToString(" · ")
-            val hint = stringResource(R.string.set_chip_hint, index + 1, summary)
-            Surface(
-                onClick = { onEdit(set) },
-                shape = CircleShape,
-                color = colors.primaryContainer,
-                modifier = Modifier.height(36.dp).semantics { contentDescription = hint },
-            ) {
-                Box(Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
-                    Text("✓ $summary", style = MaterialTheme.typography.labelLarge, color = colors.onPrimaryContainer)
+    // Adding a set stays pinned beside the scrolling chips, so it is visible however many sets are done.
+    Row(Modifier.padding(top = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            done.forEach { (index, set) ->
+                val summary = listOfNotNull(set.summary(exercise.type, context), set.effort?.let { stringResource(it.shortRes) }).joinToString(" · ")
+                val hint = stringResource(R.string.set_chip_hint, index + 1, summary)
+                Surface(
+                    onClick = { onEdit(set) },
+                    shape = CircleShape,
+                    color = colors.primaryContainer,
+                    modifier = Modifier.height(36.dp).semantics { contentDescription = hint },
+                ) {
+                    Box(Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
+                        Text("✓ $summary", style = MaterialTheme.typography.labelLarge, color = colors.onPrimaryContainer)
+                    }
+                }
+            }
+            if (later > 0) {
+                Surface(shape = CircleShape, color = colors.background, border = BorderStroke(2.dp, colors.surfaceVariant), modifier = Modifier.height(36.dp)) {
+                    Box(Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
+                        Text(pluralStringResource(R.plurals.sets_left, later, later), style = MaterialTheme.typography.labelLarge, color = colors.outline)
+                    }
                 }
             }
         }
-        if (later > 0) {
-            Surface(shape = CircleShape, color = colors.background, border = BorderStroke(2.dp, colors.surfaceVariant), modifier = Modifier.height(36.dp)) {
-                Box(Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
-                    Text(pluralStringResource(R.plurals.sets_left, later, later), style = MaterialTheme.typography.labelLarge, color = colors.outline)
-                }
+        Surface(onClick = onAdd, shape = CircleShape, color = colors.surfaceContainerHigh, modifier = Modifier.padding(start = 8.dp).height(36.dp)) {
+            Row(Modifier.padding(start = 8.dp, end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(R.string.set_add_short), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(start = 4.dp))
             }
         }
     }
@@ -418,23 +426,22 @@ private fun SetCard(
 @Composable
 private fun EffortPicker(effort: SetEffort?, onSelect: (SetEffort?) -> Unit) {
     val colors = MaterialTheme.colorScheme
-    Column {
-        Text(stringResource(R.string.effort_title), style = MaterialTheme.typography.labelLarge, color = colors.onSurfaceVariant)
-        Row(Modifier.padding(top = 6.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            SetEffort.entries.forEach { level ->
-                FilterChip(
-                    selected = level == effort,
-                    onClick = { onSelect(if (level == effort) null else level) },
-                    label = { Text(stringResource(level.labelRes)) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = colors.primaryContainer,
-                        selectedLabelColor = colors.onPrimaryContainer,
-                    ),
-                )
-            }
+    val title = stringResource(R.string.effort_title)
+    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().semantics { contentDescription = title }) {
+        SetEffort.entries.forEachIndexed { index, level ->
+            val label = stringResource(level.labelRes)
+            SegmentedButton(
+                selected = level == effort,
+                onClick = { onSelect(if (level == effort) null else level) },
+                shape = SegmentedButtonDefaults.itemShape(index, SetEffort.entries.size),
+                colors = SegmentedButtonDefaults.colors(activeContainerColor = colors.primaryContainer, activeContentColor = colors.onPrimaryContainer),
+                icon = {},
+                modifier = Modifier.semantics { contentDescription = label },
+            ) { FitText(stringResource(level.shortRes).replaceFirstChar { it.titlecase() }, style = MaterialTheme.typography.labelMedium) }
         }
     }
 }
+
 @Composable
 private fun BarSelector(barKg: Double?, onSelect: (Double?) -> Unit) {
     var open by remember { mutableStateOf(false) }
