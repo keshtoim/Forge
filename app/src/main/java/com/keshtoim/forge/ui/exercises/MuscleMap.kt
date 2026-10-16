@@ -9,13 +9,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.PathParser
-import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.data.BodyType
 import com.keshtoim.forge.data.db.MuscleGroup
 import com.keshtoim.forge.data.db.MuscleGroup.ABS
@@ -29,6 +30,7 @@ import com.keshtoim.forge.data.db.MuscleGroup.HAMSTRINGS
 import com.keshtoim.forge.data.db.MuscleGroup.QUADS
 import com.keshtoim.forge.data.db.MuscleGroup.SHOULDERS
 import com.keshtoim.forge.data.db.MuscleGroup.TRICEPS
+import kotlin.math.max
 
 // Each view is drawn in a 100×220 box as its left half (x ≤ 50) and mirrored around x = 50.
 private const val VIEW_WIDTH = 100f
@@ -40,179 +42,165 @@ val LocalBodyType = staticCompositionLocalOf { BodyType.MALE }
 
 private fun path(data: String) = PathParser().parsePathString(data).toPath()
 
+// The male reference figure; the female one is derived from it by warpFemale().
+private const val OUTLINE =
+    "M50 3 C44.5 3 41.5 7 41.5 13 C41.5 16 41.2 17 41 18 C39.8 17.5 39.3 19 39.8 21 C40.2 22.6 41 23 41.8 22.5 " +
+        "C42.5 25.5 44 27.5 45.2 28.6 L44.6 31.5 C41 34 36 36 31.5 37.5 C26 38.5 22.5 41.5 21.6 47 C20.8 52 20.4 57 19.8 62 " +
+        "C19 70 18.6 78 18.4 84 C17.8 87 17 90 16.4 93 C15 100 13.8 108 13 115 C11.4 116.5 10.6 119 10.8 123 " +
+        "C11 127.5 12.6 130.5 15.6 130.6 C18.3 130.6 19.4 128 19.2 124.5 C19 121.5 18.4 119 17.6 117 C19.6 109 22.2 100 23.4 93 " +
+        "C24.2 90 25 88 25.3 86 C26.4 78 27.6 70 28.8 63 C29.6 60.5 30.6 59.5 31.4 60.4 C31.6 66 32.4 72 33.2 78 " +
+        "C33.8 84 34.6 89 34.8 93 C34.6 97 33.4 101 32.6 105 C31 112 30 120 30.2 128 C30.6 138 32.2 148 33.4 155 " +
+        "C33.8 158 33.8 161 33.6 164 C32.6 170 32.4 176 33.2 183 C34 190 35.6 196 36.6 202 C36.4 205 35 207 34.4 209.5 " +
+        "C33.8 212 35 213.6 37.6 213.6 L44.4 213.6 C46 213.6 46.4 212 46 210 C45.6 207.5 45 205 44.8 202 " +
+        "C44.6 196 45.4 190 45.6 184 C45.8 176 45 168 45.2 163 C45.4 160 45.6 158 46 155 C47.2 146 48.4 132 48.8 120 " +
+        "C49 117 49.2 115 50 114"
+
+// The fill runs a little past the centre line so the two mirrored halves leave no seam.
+private const val FILL_CLOSE = " L50.8 114 L50.8 3 Z"
+
 private class Region(val muscle: MuscleGroup, val data: String)
 
-// Body and muscle outlines below share one reference figure; warp() fits it to each body type's proportions.
-private const val BODY =
-    "M50 27 C47 27 45 28 45 31 C45 34 43 35 39 36 C30 37 22 38 19 46 C17 52 17 60 17 68 C16 76 15 82 14 86 " +
-        "C12 96 10 106 10 116 C9 120 8 126 10 131 C12 133 15 132 16 128 C16 124 16 120 17 117 C19 106 22 96 24 86 " +
-        "C25 80 26 74 27 66 L28 60 C29 72 31 86 32 98 C31 106 30 112 30 120 C29 134 30 148 32 160 " +
-        "C31 172 31 186 34 200 L33 210 C33 213 36 214 40 214 L45 214 C46 210 45 206 44 202 C46 190 47 176 45 164 " +
-        "C45 152 46 138 47 128 L50 123 Z"
-
-private const val LOWER_CHEST = "M49 49 L49 61 C44 64 37 63 32 59 C29.5 56 29.5 52 30.4 50 C36 48.5 43 48.5 49 49 Z"
-private const val LOWER_CHEST_FEMALE =
-    "M48.4 49.5 C48.6 55 48.4 60 46.5 63.5 C44 67.5 37.5 68 34 65 C30.5 62 29.6 56.5 30.4 50 C36 48.8 43 48.8 48.4 49.5 Z"
-
-// Each group is split into its visible heads/parts; all parts of a group light up together.
-private const val LATERAL_DELT = "M27 38 C22 39 19 43 18.5 49 C18 54 18.5 58 19 61 C20.5 56 22 52 25 48 C25.5 44 26 41 27 38 Z"
-private const val FOREARM_OUTER = "M15 88 C13 96 11.5 104 11 112 L13.5 113 C14.5 104 16.5 95 19 87.5 C17.5 87 16 87.2 15 88 Z"
-private const val FOREARM_INNER = "M19.8 87.5 C17.5 95 15.5 104 14.3 113 L16 115 C18 106 21 97 23 88 C22 87 21 87.2 19.8 87.5 Z"
+private const val FOREARM_OUTER = "M17.8 86.6 C16.6 92 15.4 100 14.4 108 C14 111 13.8 113.4 13.8 115.4 L15.2 115.8 C16.6 107 19 98 21.6 90.6 C20.8 88.6 19.4 87.2 17.8 86.6 Z"
+private const val FOREARM_INNER = "M22.6 89.6 C20 97 17.6 106 16.2 115.8 L17.4 116.6 C19.4 108 21.8 100 23.6 92.6 C23.4 91.4 23.1 90.4 22.6 89.6 Z"
+private const val KNUCKLES = "M12.4 122.6 C14 121.6 16 121.6 17.8 122.4"
+private const val PECTORAL =
+    "M49.4 41.2 C44 40 38.4 40 34.6 41.4 C31.6 44 29.8 48 29.4 52.6 C29.4 56 30.6 59 32.6 60.6 C36 62.6 41 63.2 45.4 62.6 C47.6 62.2 49 61.4 49.4 60 Z"
+// Drawn in final female coordinates, so it is swapped in after the warp.
+private const val BREAST =
+    "M49.2 44.6 C44.6 43 39.4 43.4 35.6 45.8 C33 48 32.2 51.6 32.8 55 C33.6 59.2 36.8 62.2 41 62.6 C44.8 63 47.8 61.2 49 58.6 Z"
 
 private val FRONT = listOf(
-    Region(BACK, "M45.5 31 C45 33.5 43 35 39.5 36 L46.5 36.2 C47.2 34 47.5 31.5 47.5 29.5 Z"),
-    Region(SHOULDERS, LATERAL_DELT),
-    Region(SHOULDERS, "M38 37 C34 37 30 37.4 27.8 38 C26.8 41 26.2 44 25.8 48 C28 46 30 45 32 44 C35 42 37 40 38 37 Z"),
-    Region(CHEST, "M49 40 L49 48 C43 47.5 36 47.5 30.5 49 C30 47 30.2 46 31 45 C35 41 42 39 49 40 Z"),
-    Region(CHEST, LOWER_CHEST),
-    Region(BICEPS, "M20 62 C18 68 18 76 19 82 C20 83 21.5 83 22.3 82 C22 75 22 68 22.3 61 C21.5 60.7 20.6 61.2 20 62 Z"),
-    Region(BICEPS, "M23.1 60.5 C22.9 68 22.9 75 23.2 81.8 C24.2 81 24.8 79.5 25 78 C26 72 26 66 25 60 C24.4 59.8 23.7 60 23.1 60.5 Z"),
+    Region(BACK, "M44.6 31.6 C41 34 36.5 36 32.2 37.4 C36 38 40.5 38 44.5 37.6 C45.5 35.5 45.2 33.5 44.6 31.6 Z"),
+    Region(SHOULDERS, "M32 38.2 C27 38.8 23 41.5 22.2 47 C21.6 51.5 21.6 55.5 22.8 59 C24.6 57 26.4 54.5 27.6 51.5 C28.8 47.5 30.4 43.4 33.6 40.2 C33.2 39.4 32.7 38.7 32 38.2 Z"),
+    Region(BICEPS, "M27.8 55 C25.4 58.5 23.4 63 22.4 68.5 C21.6 73.5 21.8 79 23.2 83.6 C24.2 84.6 25.4 84.4 25.8 83.4 C26.8 76.5 27.8 69.5 28.6 62.6 C28.6 60 28.4 57.4 27.8 55 Z"),
+    Region(TRICEPS, "M21.6 59.4 C20.8 64 20.2 70 19.8 76 C19.6 79.5 19.8 82.5 20.6 84.6 C21.4 80 21.6 74 21.8 68.5 C22 65 22.2 62 21.6 59.4 Z"),
     Region(FOREARMS, FOREARM_OUTER),
     Region(FOREARMS, FOREARM_INNER),
-    Region(ABS, "M31.5 61 C33 62 35 63 37 64 L37.5 68 C35.5 68 33.5 68 32 68.5 C31.5 66 31.3 63 31.5 61 Z"),
-    Region(ABS, "M49 64 L49 73 L40.5 73 L40.5 67 C43 65 46 64 49 64 Z"),
-    Region(ABS, "M49 74 L49 83 L40.5 83 L40.5 74 Z"),
-    Region(ABS, "M49 84 L49 93 L40.5 93 L40.5 84 Z"),
-    Region(ABS, "M49 94 L49 107 C46.5 108.5 43 108 41.5 105 L40.5 94 Z"),
-    Region(ABS, "M38 70 L39 102 C36 100 33 94 32 86 C31 80 31.5 74 32.5 70 C34.5 69.5 36.5 69.5 38 70 Z"),
-    Region(QUADS, "M32 118 C30 130 30 146 33.5 156 C35 157 36.5 157 37.5 156 C36.5 145 36 132 36.5 120 C35 118.5 33.5 117.5 32 118 Z"),
-    Region(QUADS, "M37.5 119.5 C37 132 37.5 145 38.5 154 C40 155 41.5 155 42.5 153 C43.5 143 44 131 43.5 121 C41.5 119.5 39.5 119 37.5 119.5 Z"),
-    Region(QUADS, "M43.5 145 C43 150 42.5 155 41 158.5 C42.5 159.5 44 158.5 44.8 156.5 C45.5 152 45.5 148 44.7 144 Z"),
-    Region(CALVES, "M32 166 C29 177 31 188 34 195 L35.5 195 C36 185 36.5 175 36 166 C34.5 165 33 165 32 166 Z"),
-    Region(CALVES, "M36.6 166 C37 176 37 187 37.2 198 L40 198 C40.3 187 40.4 176 40.2 166 Z"),
-    Region(CALVES, "M42 165 C45 172 45.5 182 44 192 L41.5 192 C41 183 41 174 41 166 Z"),
+    // Serratus, obliques and the four rows of the rectus all light up as abs.
+    Region(ABS, "M31.6 61.4 C32.4 62.4 33.6 63.2 35 63.6 L34.2 65.6 C33 65.2 32.2 64.6 31.8 64 Z"),
+    Region(ABS, "M32 65.6 C33 66.4 34.2 67 35.4 67.4 L34.8 69.4 C33.6 69 32.8 68.6 32.3 68 Z"),
+    Region(ABS, "M32.5 69.6 C33.5 70.4 34.6 70.9 35.8 71.2 L35.4 73.2 C34.2 72.9 33.4 72.5 32.9 72 Z"),
+    Region(ABS, "M36.6 64.4 C38.6 65 40.4 65.3 41.8 65.4 L42.3 88 C42.4 93 42 97 41 100.6 C38.6 99 36.6 96.6 35.4 93.4 C35 89 34.6 84.5 34.2 80.4 C35 76 36 70 36.6 64.4 Z"),
+    Region(ABS, "M43 64.6 C45 63.8 47.4 63.6 49.4 63.8 L49.4 71.4 L43.2 71.6 Z"),
+    Region(ABS, "M43.3 72.8 L49.4 72.6 L49.4 80.2 L43.5 80.4 Z"),
+    Region(ABS, "M43.6 81.6 L49.4 81.4 L49.4 89 L43.7 89.2 Z"),
+    Region(ABS, "M43.8 90.4 L49.4 90.2 L49.4 104 C47 104.6 45 103 44.4 100.4 C44 97 43.8 93.5 43.8 90.4 Z"),
+    Region(GLUTES, "M33.2 103.4 C32 107 31.4 110.5 31.6 113 L35 112.4 C35.4 109.4 35.6 106.4 35.2 103.4 Z"),
+    Region(QUADS, "M35.6 113.6 C32.6 115 31.2 120 31 127 C31 136 32.4 145 34.4 152.6 C35.6 154.2 36.8 154 37.4 152.6 C36.4 144 35.8 134 36.2 124 C36.4 120 36.6 116.6 35.6 113.6 Z"),
+    Region(QUADS, "M41.2 108.8 C38.6 112 37.4 118 37.2 126 C37.2 134 38.2 142 39.6 149 C40.4 150.4 41.6 150.4 42.2 149 C43.4 141 44 133 43.8 124 C43.6 118 42.8 112.6 41.2 108.8 Z"),
+    Region(QUADS, "M44.6 136.4 C43.4 141 42.8 146 43 150.4 C43.4 154.2 45 156.4 46.6 156 C47.8 152 47.8 146.6 47.2 141.6 C46.6 139.6 45.8 137.6 44.6 136.4 Z"),
+    Region(QUADS, "M47.6 112.8 C45.6 115 44.6 119.6 44.6 124.6 C44.8 128.6 45.6 132.4 46.8 135.2 C47.8 131 48.4 125 48.6 119 C48.6 116.6 48.4 114.6 47.6 112.8 Z"),
+    Region(CALVES, "M36.4 165 C35.4 171 35.2 178 35.8 186 C36.2 191 36.8 195.6 37.6 198.4 L38.8 198.2 C38.6 190 38.8 180 39.4 171 C39.4 168.6 38.4 166 36.4 165 Z"),
+    Region(CALVES, "M34.4 165.6 C33.2 170 32.8 176 33.4 181.6 C33.9 184 34.6 185.6 35.2 186.4 C35 180 35 172 35.6 166.4 Z"),
+    Region(CALVES, "M42.6 165 C44.4 168 45 174 44.6 180.4 C44.2 184.4 43.2 187.6 41.8 189 C41 184 40.8 176 41.2 170 C41.4 167.6 41.9 166 42.6 165 Z"),
+    // Chest goes last so it overlaps the serratus rather than the other way round.
+    Region(CHEST, PECTORAL),
+)
+
+private val FRONT_DETAILS = listOf(
+    "M38.2 156.6 C38.2 154.6 39.8 153.8 41 154 C42.4 154.2 43.2 155.6 43 157.4 C42.8 159.6 41.6 161 40.2 160.8 C38.8 160.6 38.2 158.8 38.2 156.6 Z",
+    "M45 29.2 C45.8 32 46.8 34.6 48.4 37.2",
+    "M41.6 101.6 C43.6 104.6 46 107.8 48.4 110.4",
+    KNUCKLES,
+    "M17.6 124.6 C16.4 126.4 15 127.4 13.6 127.6",
 )
 
 private val BACK_VIEW = listOf(
-    Region(BACK, "M50 27 L50 74 C47 66 43 56 37 44 C35 41 36 39 39 37.5 C42 36 44.5 34 45.5 31 C46.5 29 48 27.5 50 27 Z"),
-    Region(SHOULDERS, LATERAL_DELT),
-    Region(SHOULDERS, "M36 38.5 C33 38.5 29.5 39 27.5 39.6 C26.5 42.5 26 45.5 25.8 48.5 C28.5 46 31.5 44 34.5 43 C35.5 41.5 36 40 36 38.5 Z"),
-    Region(BACK, "M35.5 45 C33 47 31 50 30.5 54 C33 55 36 54.5 38.5 52.5 C38 49.5 37 47 35.5 45 Z"),
-    Region(BACK, "M30.5 56 C30.5 66 33 80 40 94 C42 96.5 43.5 98 44.3 99 C44.3 91 45 84 46.3 79 C44 71 42 63 39.5 55 C36.5 56.5 33.5 57 30.5 56 Z"),
-    Region(BACK, "M49 75 L49 104 C47.5 104 46 103.5 45 102 C45 94 45.5 86 47 79 C47.5 77 48.3 76 49 75 Z"),
-    Region(TRICEPS, "M18 62 C17 68 17 75 18 81 C19.5 82 20.5 81.5 21 80 C21 74 21.2 67 21.5 61 C20.2 60.3 19 60.8 18 62 Z"),
-    Region(TRICEPS, "M22.3 60.5 C22 67 22 74 22 80 C23.5 80 24.5 78 25 76 C25.5 70 25.5 65 25 61 C24 60.3 23 60.2 22.3 60.5 Z"),
+    Region(BACK, "M49.6 25.6 C48.8 27.8 47 30.4 45 32.4 C41 35 36.4 36.6 32.4 37.6 C35.4 39.6 39.4 41.8 42.6 45.4 C45 48.6 47 53.6 48.4 59 C49 61.6 49.4 64 49.6 66 Z"),
+    Region(SHOULDERS, "M32 38.4 C27 39 23.2 41.6 22.2 47 C21.6 51.4 21.8 55.4 23 58.6 C25 56.4 27 53.6 28.8 50.2 C30.4 47 32 44 34 41.6 C33.6 40.2 32.9 39.2 32 38.4 Z"),
+    Region(BACK, "M35.6 44 C33.4 46.4 32 49.6 32 53 C32.2 55.6 34.4 57.6 37.4 57.8 C40.2 57.8 42.6 56.4 43.4 54 C42.8 50 41 46.4 38.4 44.2 C37.4 43.6 36.4 43.6 35.6 44 Z"),
+    Region(BACK, "M31.6 56.4 C31 58.4 31 60.6 31.6 62.4 C33.6 62.6 35.8 61.8 37.6 60 C36 59.4 34.2 58.4 33 56.8 C32.5 56.4 32 56.3 31.6 56.4 Z"),
+    Region(BACK, "M38.4 60.6 C35.6 62.8 33 64 31.8 64.4 C32.2 70 33 76 34.2 81.8 C35.8 87.6 39.2 92.6 43.4 96 C44.6 97 46.2 97 47 95.6 C46.6 88 46.4 78 46.4 69 C43.6 66.6 41 63.8 38.4 60.6 Z"),
+    Region(BACK, "M49.6 70 L47.8 72 C47.4 80 47.4 88 47.8 96 C48.4 98.4 49 99.6 49.6 100 Z"),
+    Region(TRICEPS, "M22.4 59.6 C20.8 65 19.8 71 19.6 77 C19.6 80.6 20.4 83.4 21.8 84.8 L24.4 84.6 C25.8 78 27 70 28.2 62.6 C26.2 61 24.2 60 22.4 59.6 Z"),
     Region(FOREARMS, FOREARM_OUTER),
     Region(FOREARMS, FOREARM_INNER),
-    Region(GLUTES, "M32 106 C31 110 30.8 113 31 116 C33.5 110 37 106.5 41 105 C38 104 35 104.5 32 106 Z"),
-    Region(GLUTES, "M49 107 C44 106 38 107 34 112 C31.5 117 32 125 37 130 C42 133 46.5 131.5 49 128 Z"),
-    Region(HAMSTRINGS, "M32.5 136 C31.5 146 33 154 35.5 160 L39 160 C38.5 151 38.3 143 38.6 135 C36.5 135.5 34.5 135.8 32.5 136 Z"),
-    Region(HAMSTRINGS, "M39.6 134.8 C39.3 143 39.6 151 40.2 160 L44.5 160 C46 152 46 142 45.5 134 C43.5 134.5 41.5 134.8 39.6 134.8 Z"),
-    Region(CALVES, "M33 166 C30.5 173 31.5 182 35 188 C36.5 189 38 188.5 38.5 187 C38.5 179 38.4 172 38.6 165 C36.5 164.5 34.5 164.8 33 166 Z"),
-    Region(CALVES, "M39.6 165 C39.5 172 39.6 180 40 189 C41.5 191 43.5 191 44.6 189 C45.5 181 45.5 173 44.5 166 C43 164.8 41 164.6 39.6 165 Z"),
-    Region(CALVES, "M35.5 191 C36 194 37 197 38 199 L41 199 C41.5 197 42 194 42.2 192 C40 192.5 37.5 192.2 35.5 191 Z"),
+    Region(GLUTES, "M33.4 100.6 C32.6 103 32.4 105.6 32.8 108 C35 106 38 104.4 41.2 103.6 C38.8 101.6 36 100.6 33.4 100.6 Z"),
+    Region(GLUTES, "M48.8 102.4 C44.4 102.4 39.4 104 35.6 107.4 C33.4 109.6 32.6 113 33.2 116.6 C34.2 120.6 37.4 123.4 41.6 124 C44.8 124.4 47.4 123.8 49.2 122.8 C49.4 116 49.4 109 48.8 102.4 Z"),
+    Region(HAMSTRINGS, "M34.4 124.6 C32.4 130 31.8 137 32.4 144 C33 148.6 34.6 152.6 36.6 155 C37.8 155.4 38.6 154.6 38.8 153.2 C38.2 145 38.2 136 39.2 127.4 C37.6 126.6 36 125.8 34.4 124.6 Z"),
+    Region(HAMSTRINGS, "M40.6 127.6 C39.6 136 39.6 145 40.6 153 C41.2 155 42.6 155.6 44 154.4 C45.6 148 46.4 140 46.4 132.6 C46.4 130 46.2 127.6 45.6 125.4 C44 126.6 42.4 127.4 40.6 127.6 Z"),
+    Region(CALVES, "M35.2 162.6 C33.6 167 33 172.6 33.6 178 C34.2 182.4 36 185.6 38.4 186.8 C39.4 186.6 39.8 185.2 39.8 183.6 C39.6 177 39.6 170 40.2 164.4 C38.6 163.4 36.8 162.8 35.2 162.6 Z"),
+    Region(CALVES, "M41.2 163.6 C40.6 170 40.6 178 41 186 C41.4 188.6 42.8 189.2 44 188 C45.4 184 45.8 178 45.6 172.4 C45.4 168.6 44.8 165.6 43.8 163.6 C43 163.2 42 163.2 41.2 163.6 Z"),
+    Region(CALVES, "M36.4 188 C37 192 37.6 196 38.4 199 L43.2 199 C43.6 196 44 192.4 44.4 189.4 C43 190.6 41.6 190.6 40.6 189.4 C39.4 189.4 37.8 189 36.4 188 Z"),
 )
 
-// Head, ears and hair are drawn directly in final coordinates (not warped).
-private const val HEAD =
-    "M50 2 C56.5 2 60 6.5 60 13 C60 16 59.7 18 59.3 19.5 C59 23 57.5 26.5 54.5 28.8 C53 29.8 51.5 30.3 50 30.3 " +
-        "C48.5 30.3 47 29.8 45.5 28.8 C42.5 26.5 41 23 40.7 19.5 C40.3 18 40 16 40 13 C40 6.5 43.5 2 50 2 Z"
-private const val EAR = "M40.4 14.5 C38.6 14 38 15.5 38.3 17.5 C38.6 19.5 39.5 21 40.9 20.6 Z"
+private val BACK_DETAILS = listOf(
+    "M47.6 124.4 C46.8 127 46.8 130.4 47.2 133.6 C48 131.4 48.6 128 48.8 124.2",
+    "M22.6 75.6 C23.8 72.4 25.4 71 27 71.4",
+    "M37 159.6 C39.6 161.2 42.4 161.2 44.6 159.6",
+    "M40.8 199.6 L41 207",
+    KNUCKLES,
+    "M50 100 L50 66",
+)
 
-private class Hair(front: String, back: String, behind: String? = null) {
-    val front = path(front)
-    val back = path(back)
-    val behind = behind?.let(::path)
+// Female hair, in final coordinates: a band framing the head in front and a cap with strands behind.
+private const val HAIR_FRONT =
+    "M50 1.6 C43.4 1.6 39.8 6.2 39.8 13.4 C39.8 20 39.4 26.4 37.8 31.6 C40.4 32.6 42.8 32 44 30.4 C42.8 26.4 42.2 21.4 42.4 16.4 C42.8 10.2 45.8 6.6 50 6.2"
+private const val HAIR_BACK = "M50 1.6 C43.4 1.6 39.8 6.2 39.8 13.4 C39.8 20 39.4 26.4 37.8 31.6 C41.4 33.2 45.8 33.6 50 33.6"
+private const val HAIR_STRAND = "M44.6 8 C43 14 42.8 22 43.4 31.2"
+
+private class Hair(front: String, frontEnd: Float, back: String, backEnd: Float, val strand: Path) {
+    val frontFill = path("$front L50.8 $frontEnd L50.8 1.6 Z")
+    val frontLine = path(front)
+    val backFill = path("$back L50.8 $backEnd L50.8 1.6 Z")
+    val backLine = path(back)
 }
 
-private val SHORT_HAIR = Hair(
-    front = "M40.2 13 C39.8 5.5 44 1.4 50 1.4 C56 1.4 60.2 5.5 59.8 13 C58.6 9 55.2 7 50 7.2 C44.8 7 41.4 9 40.2 13 Z",
-    back = "M40 14 C39.6 5.5 44 1.4 50 1.4 C56 1.4 60.4 5.5 60 14 C59.8 18 59.3 21 58.3 23.5 C55.5 24.6 52.8 25 50 25 " +
-        "C47.2 25 44.5 24.6 41.7 23.5 C40.7 21 40.2 18 40 14 Z",
-)
+private val LONG_HAIR = Hair(HAIR_FRONT, 6.2f, HAIR_BACK, 33.6f, path(HAIR_STRAND))
 
-private val LONG_HAIR = Hair(
-    front = "M40.3 13 C40.5 5.5 44.5 1.6 50 1.6 C55.5 1.6 59.5 5.5 59.7 13 C57.5 9.5 54 8 50.5 8.8 C47 7.8 42.8 9 40.3 13 Z",
-    back = "M50 1 C57.5 1 61.6 6 61.4 14 C61.3 22 62 30 63 37 C59 38.5 41 38.5 37 37 C38 30 38.7 22 38.6 14 C38.4 6 42.5 1 50 1 Z",
-    behind = "M50 1 C57.5 1 61.6 6 61.4 14 C61.3 22 62 30 63 37 C60 38.4 57.5 38 55.6 36.6 L54.6 29 L45.4 29 L44.4 36.6 " +
-        "C42.5 38 40 38.4 37 37 C38 30 38.7 22 38.6 14 C38.4 6 42.5 1 50 1 Z",
+// Width of the female figure relative to the male one at each height: narrower shoulders and waist, wider hips.
+private val FEMALE_WIDTH = listOf(
+    0f to 0.93f, 30f to 0.92f, 40f to 0.87f, 62f to 0.86f, 84f to 0.84f, 94f to 0.86f,
+    106f to 1f, 118f to 1.05f, 140f to 1f, 162f to 0.93f, 220f to 0.92f,
 )
+private const val FEMALE_ARM_WIDTH = 0.87f
 
-private fun interpolate(table: List<Pair<Float, Float>>, v: Float): Float {
-    if (v <= table.first().first) return table.first().second
-    val i = table.indexOfFirst { v <= it.first }
-    if (i < 0) return table.last().second
-    val (a, b) = table[i - 1]
-    val (c, d) = table[i]
-    return b + (d - b) * (v - a) / (c - a)
+private fun femaleWidth(y: Float): Float {
+    val i = FEMALE_WIDTH.indexOfFirst { y <= it.first }
+    if (i <= 0) return if (i == 0) FEMALE_WIDTH.first().second else FEMALE_WIDTH.last().second
+    val (y0, k0) = FEMALE_WIDTH[i - 1]
+    val (y1, k1) = FEMALE_WIDTH[i]
+    val t = (y - y0) / (y1 - y0)
+    return k0 + (k1 - k0) * t * t * (3 - 2 * t)
 }
-
-// Real proportions: about 7.5 heads tall, legs half the height. Arms move rigidly with the shoulders.
-private val TORSO_Y = listOf(27f to 31f, 37f to 40f, 60f to 60f, 98f to 88f, 123f to 110f, 160f to 158f, 202f to 204f, 214f to 214f)
-private val ARM_Y = listOf(37f to 40f, 60f to 60f, 214f to 214f)
-
-private class Proportions(val widthByY: List<Pair<Float, Float>>, val armShift: Float, val hair: Hair)
-
-private val PROPORTIONS = mapOf(
-    // Broad shoulders and a narrow waist.
-    BodyType.MALE to Proportions(
-        listOf(27f to 1.18f, 31f to 1.12f, 37f to 0.95f, 45f to 0.9f, 60f to 0.95f, 98f to 0.8f, 112f to 0.83f, 130f to 0.85f, 160f to 0.8f, 214f to 0.8f),
-        armShift = 3.2f,
-        hair = SHORT_HAIR,
-    ),
-    // Narrower shoulders, the narrowest waist and wide hips.
-    BodyType.FEMALE to Proportions(
-        listOf(27f to 1f, 31f to 0.98f, 37f to 0.85f, 45f to 0.8f, 60f to 0.86f, 98f to 0.72f, 112f to 0.95f, 130f to 0.95f, 160f to 0.82f, 214f to 0.8f),
-        armShift = 6.3f,
-        hair = LONG_HAIR,
-    ),
-)
 
 private val COORDINATE = Regex("""(-?[\d.]+) (-?[\d.]+)""")
 
-private fun warp(data: String, p: Proportions): String = COORDINATE.replace(data) { match ->
+private fun warpFemale(data: String): String = COORDINATE.replace(data) { match ->
     val x = match.groupValues[1].toFloat()
     val y = match.groupValues[2].toFloat()
-    // In the reference figure everything left of x = 27.5 below the armpit belongs to an arm.
-    if (y > 58 && x < 27.5f) {
-        "${x + p.armShift} ${interpolate(ARM_Y, y)}"
-    } else {
-        "${50 + (x - 50) * interpolate(p.widthByY, y)} ${interpolate(TORSO_Y, y)}"
-    }
+    // Arms keep one slimming scale: following the hip curve would splay the forearms and fists outwards.
+    val arm = y > 56 && y < 132 && x < 31.3f && (y < 105 || x < 26)
+    "${50 - (50 - x) * if (arm) FEMALE_ARM_WIDTH else femaleWidth(y)} $y"
 }
 
 private class Figure(type: BodyType) {
-    private val proportions = PROPORTIONS.getValue(type)
-    val hair = proportions.hair
-    val body = path(warp(BODY, proportions))
-    val front = shapes(FRONT, type)
-    val back = shapes(BACK_VIEW, type)
-
-    // Chest goes last so the rounder female chest overlaps the upper abs rather than the other way round.
-    private fun shapes(regions: List<Region>, type: BodyType) = regions
-        .sortedBy { it.muscle == CHEST }
-        .map { region ->
-            val data = if (type == BodyType.FEMALE && region.data == LOWER_CHEST) LOWER_CHEST_FEMALE else region.data
-            region.muscle to path(warp(data, proportions))
-        }
+    private val warp: (String) -> String = if (type == BodyType.FEMALE) ::warpFemale else { data -> data }
+    val bodyFill = path(warp(OUTLINE) + FILL_CLOSE)
+    val outline = path(warp(OUTLINE))
+    val front = FRONT.map { region ->
+        val data = if (type == BodyType.FEMALE && region.data == PECTORAL) BREAST else warp(region.data)
+        region.muscle to path(data)
+    }
+    val back = BACK_VIEW.map { it.muscle to path(warp(it.data)) }
+    val frontDetails = FRONT_DETAILS.map { path(warp(it)) }
+    val backDetails = BACK_DETAILS.map { path(warp(it)) }
+    val hair = if (type == BodyType.FEMALE) LONG_HAIR else null
 }
 
 private val FIGURES = BodyType.entries.associateWith(::Figure)
-private val HEAD_PATH = path(HEAD)
-private val EAR_PATH = path(EAR)
 
-// [levels] colour load levels 1..3; anything else is drawn idle.
-class MuscleMapColors(val body: Color, val idle: Color, val levels: List<Color>, val hair: Color)
+// [levels] colour load levels 1..3; unloaded muscles keep the body colour and show only their outline.
+class MuscleMapColors(val body: Color, val line: Color, val levels: List<Color>)
 
 object MuscleMapDefaults {
     @Composable
     fun colors(): MuscleMapColors {
         val scheme = MaterialTheme.colorScheme
-        val body = scheme.surfaceVariant
-        val idle = lerp(body, scheme.onSurfaceVariant, 0.15f)
-        return MuscleMapColors(body, idle, levels(idle, scheme.primary), hair = lerp(body, Color.Black, 0.35f))
+        val body = lerp(scheme.surfaceContainer, scheme.surfaceContainerHigh, 0.5f)
+        val line = lerp(scheme.onSurfaceVariant, body, 0.15f)
+        return MuscleMapColors(body, line, listOf(lerp(body, scheme.primary, 0.3f), lerp(body, scheme.primary, 0.62f), scheme.primary))
     }
-
-    // For maps placed on the dark athletic panels.
-    @Composable
-    fun onDark(): MuscleMapColors {
-        val scheme = MaterialTheme.colorScheme
-        val body = lerp(ForgeTheme.panel.panel, ForgeTheme.panel.onPanel, 0.1f)
-        val idle = lerp(ForgeTheme.panel.panel, ForgeTheme.panel.onPanel, 0.18f)
-        return MuscleMapColors(body, idle, levels(idle, ForgeTheme.panel.accent), hair = lerp(ForgeTheme.panel.panel, Color.Black, 0.4f))
-    }
-
-    private fun levels(idle: Color, strong: Color) = listOf(lerp(idle, strong, 0.3f), lerp(idle, strong, 0.6f), strong)
 }
 
 // Front and back body views; [primary] is highlighted fully and [secondary] muscles faintly.
@@ -225,33 +213,48 @@ fun MuscleMap(primary: MuscleGroup, secondary: List<MuscleGroup>, modifier: Modi
 fun MuscleMap(heat: Map<MuscleGroup, Int>, modifier: Modifier = Modifier, colors: MuscleMapColors = MuscleMapDefaults.colors()) {
     val figure = FIGURES.getValue(LocalBodyType.current)
 
-    fun color(muscle: MuscleGroup) = heat[muscle]?.let { colors.levels.getOrNull(it - 1) } ?: colors.idle
+    fun color(muscle: MuscleGroup) = heat[muscle]?.let { colors.levels.getOrNull(it - 1) } ?: colors.body
 
     Canvas(modifier.aspectRatio(MAP_WIDTH / VIEW_HEIGHT)) {
-        scale(size.width / MAP_WIDTH, pivot = Offset.Zero) {
-            drawView(figure, figure.front, front = true, colors, ::color)
-            translate(left = VIEW_WIDTH + VIEW_GAP) { drawView(figure, figure.back, front = false, colors, ::color) }
+        val unit = size.width / MAP_WIDTH
+        // Lines stay at least a hairline wide when the map is drawn small.
+        val lines = Lines(
+            muscle = Stroke(width = max(0.55f, 0.8f / unit), join = StrokeJoin.Round),
+            outline = Stroke(width = max(0.8f, 1.2f / unit), join = StrokeJoin.Round, cap = StrokeCap.Round),
+        )
+        scale(unit, pivot = Offset.Zero) {
+            drawView(figure, figure.front, figure.frontDetails, front = true, colors, lines, ::color)
+            translate(left = VIEW_WIDTH + VIEW_GAP) { drawView(figure, figure.back, figure.backDetails, front = false, colors, lines, ::color) }
         }
     }
 }
 
+private class Lines(val muscle: Stroke, val outline: Stroke)
+
 private fun DrawScope.drawView(
     figure: Figure,
     regions: List<Pair<MuscleGroup, Path>>,
+    details: List<Path>,
     front: Boolean,
     colors: MuscleMapColors,
+    lines: Lines,
     color: (MuscleGroup) -> Color,
 ) {
-    mirrored { drawPath(figure.body, colors.body) }
-    if (front) figure.hair.behind?.let { drawPath(it, colors.hair) }
-    mirrored { drawPath(EAR_PATH, colors.body) }
-    drawPath(HEAD_PATH, colors.body)
-    drawPath(if (front) figure.hair.front else figure.hair.back, colors.hair)
+    // Fills overlap across the centre line, so both halves are filled before any line is drawn.
+    mirrored { drawPath(figure.bodyFill, colors.body) }
     mirrored {
         regions.forEach { (muscle, path) ->
             drawPath(path, color(muscle))
-            // Outlining in the body colour leaves thin seams between adjacent muscles.
-            drawPath(path, colors.body, style = Stroke(width = 0.6f))
+            drawPath(path, colors.line, style = lines.muscle)
+        }
+        details.forEach { drawPath(it, colors.line, style = lines.muscle) }
+        drawPath(figure.outline, colors.line, style = lines.outline)
+    }
+    figure.hair?.let { hair ->
+        mirrored { drawPath(if (front) hair.frontFill else hair.backFill, colors.body) }
+        mirrored {
+            drawPath(if (front) hair.frontLine else hair.backLine, colors.line, style = lines.outline)
+            if (!front) drawPath(hair.strand, colors.line, style = lines.muscle)
         }
     }
 }
