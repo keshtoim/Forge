@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -17,6 +19,8 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,9 +30,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isSpecified
+import androidx.compose.ui.unit.sp
 import com.keshtoim.forge.R
 
 // Top bar of every screen: optional back arrow, the title and trailing actions.
@@ -61,6 +69,19 @@ fun ScreenHeader(
         )
         actions()
     }
+}
+
+// One line that shrinks instead of wrapping or clipping when a narrow screen or a larger system font leaves too little room.
+@Composable
+fun FitText(text: String, modifier: Modifier = Modifier, style: TextStyle = LocalTextStyle.current, color: Color = Color.Unspecified) {
+    val max = if (style.fontSize.isSpecified) style.fontSize else 14.sp
+    BasicText(
+        text,
+        modifier,
+        style = style.merge(color = color.takeOrElse { style.color.takeOrElse { LocalContentColor.current } }),
+        maxLines = 1,
+        autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = max, stepSize = 0.5.sp),
+    )
 }
 
 // White rounded card on the lilac background.

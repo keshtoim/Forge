@@ -5,11 +5,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.DarkMode
@@ -45,6 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
 import com.keshtoim.forge.data.BodyType
 import com.keshtoim.forge.data.ThemeMode
+import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
 import com.keshtoim.forge.ui.labelRes
@@ -117,7 +118,8 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = viewModel(
                                     onClick = { viewModel.setThemeMode(mode) },
                                     shape = SegmentedButtonDefaults.itemShape(index, ThemeMode.entries.size),
                                     colors = segmentColors,
-                                ) { Text(stringResource(mode.labelRes), maxLines = 1) }
+                                    icon = {},
+                                ) { FitText(stringResource(mode.labelRes)) }
                             }
                         }
                     },
@@ -136,7 +138,8 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = viewModel(
                                     onClick = { viewModel.setBodyType(type) },
                                     shape = SegmentedButtonDefaults.itemShape(index, BodyType.entries.size),
                                     colors = segmentColors,
-                                ) { Text(stringResource(type.labelRes)) }
+                                    icon = {},
+                                ) { FitText(stringResource(type.labelRes)) }
                             }
                         }
                     },

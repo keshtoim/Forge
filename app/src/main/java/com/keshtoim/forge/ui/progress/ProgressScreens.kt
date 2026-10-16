@@ -4,13 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -62,22 +62,23 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
-import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.SetPoint
 import com.keshtoim.forge.data.secondary
+import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
 import com.keshtoim.forge.ui.displayName
-import com.keshtoim.forge.ui.relativeDay
 import com.keshtoim.forge.ui.exercises.MuscleMap
+import com.keshtoim.forge.ui.relativeDay
+import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.ui.workout.formatNumber
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Locale
 import kotlin.math.roundToLong
-import java.time.format.FormatStyle
 
 @Composable
 fun ProgressScreen(onBack: () -> Unit, onOpen: (Long) -> Unit, viewModel: ProgressViewModel = viewModel(factory = ProgressViewModel.Factory)) {
@@ -188,22 +189,28 @@ private fun ChartPanel(metric: Metric, series: List<Point>) {
         Column(Modifier.padding(20.dp)) {
             Text(stringResource(metric.labelRes), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black), color = muted)
             Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    series.lastOrNull()?.let { formatValue(it.value) } ?: "—",
-                    style = MaterialTheme.typography.displayLarge.copy(fontSize = 76.sp, lineHeight = 0.95.em),
-                )
-                Text(
-                    stringResource(metric.unitRes),
-                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
-                    color = muted,
-                    modifier = Modifier.padding(start = 8.dp, bottom = 12.dp),
-                )
-                Spacer(Modifier.weight(1f))
+                // The value shrinks before it squeezes the change badge into two lines.
+                Row(Modifier.weight(1f), verticalAlignment = Alignment.Bottom) {
+                    FitText(
+                        series.lastOrNull()?.let { formatValue(it.value) } ?: "—",
+                        style = MaterialTheme.typography.displayLarge.copy(fontSize = 76.sp, lineHeight = 0.95.em),
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    Text(
+                        stringResource(metric.unitRes),
+                        style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+                        color = muted,
+                        maxLines = 1,
+                        modifier = Modifier.padding(start = 8.dp, bottom = 12.dp),
+                    )
+                }
                 if (series.size > 1) {
                     val delta = series.last().value - series.first().value
                     Text(
                         (if (delta >= 0) "+" else "") + formatValue(delta),
                         style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),
+                        maxLines = 1,
+                        softWrap = false,
                         color = colors.onSecondary,
                         modifier = Modifier.padding(bottom = 12.dp).clip(CircleShape).background(colors.secondary).padding(horizontal = 12.dp, vertical = 4.dp),
                     )

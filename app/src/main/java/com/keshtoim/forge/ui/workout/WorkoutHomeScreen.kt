@@ -78,6 +78,7 @@ import com.keshtoim.forge.data.fallsOn
 import com.keshtoim.forge.data.occurrences
 import com.keshtoim.forge.data.repeats
 import com.keshtoim.forge.data.time
+import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
 import com.keshtoim.forge.ui.exercises.MuscleMap
@@ -465,13 +466,13 @@ private fun ActiveCard(workout: Workout, onResume: () -> Unit, onFinish: () -> U
                 Text(rememberElapsed(workout.startedAt), style = MaterialTheme.typography.headlineSmall)
             }
             Row(Modifier.padding(top = 14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(onClick = onResume, modifier = Modifier.weight(1f).height(48.dp)) { Text(stringResource(R.string.workout_resume)) }
+                Button(onClick = onResume, modifier = Modifier.weight(1f).height(48.dp)) { FitText(stringResource(R.string.workout_resume)) }
                 OutlinedButton(
                     onClick = onFinish,
                     border = BorderStroke(1.dp, panel.muted.copy(alpha = 0.5f)),
                     modifier = Modifier.weight(1f).height(48.dp),
                 ) {
-                    Text(stringResource(R.string.workout_finish), color = panel.onPanel)
+                    FitText(stringResource(R.string.workout_finish), color = panel.onPanel)
                 }
             }
         }
@@ -536,7 +537,8 @@ private fun WeeksCard(weeks: List<WeekBar>) {
                             activeContainerColor = colors.primaryContainer,
                             activeContentColor = colors.onPrimaryContainer,
                         ),
-                    ) { Text(stringResource(entry.label), maxLines = 1) }
+                        icon = {},
+                    ) { FitText(stringResource(entry.label)) }
                 }
             }
             Row(Modifier.fillMaxWidth().height(130.dp).padding(top = 16.dp), verticalAlignment = Alignment.Bottom) {

@@ -152,7 +152,7 @@ private fun MainScreen(viewModel: ForgeViewModel) {
                                     }
                                 },
                                 icon = { Icon(tab.icon, contentDescription = null) },
-                                label = { Text(stringResource(tab.label)) },
+                                label = { FitText(stringResource(tab.label)) },
                                 colors = NavigationBarItemDefaults.colors(
                                     indicatorColor = MaterialTheme.colorScheme.primaryContainer,
                                     selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,

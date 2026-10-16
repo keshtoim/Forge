@@ -72,6 +72,7 @@ import com.keshtoim.forge.data.db.BodyWeight
 import com.keshtoim.forge.data.devineWeight
 import com.keshtoim.forge.data.normalWeightRange
 import com.keshtoim.forge.data.robinsonWeight
+import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
 import com.keshtoim.forge.ui.relativeDay
@@ -165,7 +166,8 @@ private fun ParamsCard(state: ProfileState, onSex: (BodyType) -> Unit, onEdit: (
                             onClick = { onSex(sex) },
                             shape = SegmentedButtonDefaults.itemShape(index, 2),
                             colors = SegmentedButtonDefaults.colors(activeContainerColor = colors.primaryContainer, activeContentColor = colors.onPrimaryContainer),
-                        ) { Text(stringResource(label)) }
+                            icon = {},
+                        ) { FitText(stringResource(label)) }
                     }
                 }
             }
