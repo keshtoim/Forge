@@ -44,13 +44,13 @@ import kotlin.math.abs
 @Composable
 fun BodyLogTab(viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory)) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val weights = state?.weights ?: return
+    val weighed = state?.measurements?.filter { it.weightKg != null } ?: return
     var recording by rememberSaveable { mutableStateOf(false) }
     val colors = MaterialTheme.colorScheme
     val locale = Locale.getDefault()
     val kg = stringResource(R.string.unit_kg)
     // Newest first, each paired with the weigh-in before it for the change.
-    val rows = weights.zip(listOf(null) + weights.dropLast(1)).reversed()
+    val rows = weighed.zip(listOf(null) + weighed.dropLast(1)).reversed()
 
     Box(Modifier.fillMaxSize()) {
         if (rows.isEmpty()) {
@@ -69,21 +69,21 @@ fun BodyLogTab(viewModel: ProfileViewModel = viewModel(factory = ProfileViewMode
                 ForgeCard(Modifier.fillMaxWidth()) {
                     Row(Modifier.padding(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text(one(entry.weightKg) + " " + kg, style = MaterialTheme.typography.titleMedium)
+                            Text(one(entry.weightKg ?: 0.0) + " " + kg, style = MaterialTheme.typography.titleMedium)
                             Text(
                                 LocalDate.ofEpochDay(entry.epochDay).format(DateTimeFormatter.ofPattern("d MMMM yyyy, EEE", locale)),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = colors.onSurfaceVariant,
                             )
                         }
-                        previous?.let { entry.weightKg - it.weightKg }?.takeIf { abs(it) >= 0.05 }?.let { delta ->
+                        previous?.let { (entry.weightKg ?: 0.0) - (it.weightKg ?: 0.0) }?.takeIf { abs(it) >= 0.05 }?.let { delta ->
                             Text(
                                 (if (delta > 0) "+" else "−") + one(abs(delta)),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = colors.onSurfaceVariant,
                             )
                         }
-                        IconButton(onClick = { viewModel.deleteWeight(entry) }) {
+                        IconButton(onClick = { viewModel.delete(entry) }) {
                             Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.delete), tint = colors.outline)
                         }
                     }
@@ -105,7 +105,7 @@ fun BodyLogTab(viewModel: ProfileViewModel = viewModel(factory = ProfileViewMode
         NumberDialog(
             title = stringResource(R.string.profile_record_weight),
             unit = kg,
-            initial = weights.lastOrNull()?.let { one(it.weightKg) }.orEmpty(),
+            initial = state?.weightKg?.let(::one).orEmpty(),
             decimal = true,
             range = 20.0..400.0,
             onDismiss = { recording = false },

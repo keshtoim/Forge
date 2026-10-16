@@ -166,13 +166,16 @@ class DaoTest {
     }
 
     @Test
-    fun `a second weigh-in the same day replaces the first`() = runTest {
-        val weights = db.bodyWeightDao()
-        weights.record(epochDay = 100, weightKg = 64.0)
-        weights.record(epochDay = 101, weightKg = 63.5)
-        weights.record(epochDay = 100, weightKg = 63.8)
+    fun `measurements of one day merge into a single entry`() = runTest {
+        val log = db.bodyMeasurementDao()
+        log.record(100) { it.copy(weightKg = 64.0) }
+        log.record(101) { it.copy(weightKg = 63.5) }
+        log.record(100) { it.copy(weightKg = 63.8) }
+        log.record(100) { it.copy(waistCm = 72.0) }
 
-        assertEquals(listOf(100L to 63.8, 101L to 63.5), weights.observeAll().first().map { it.epochDay to it.weightKg })
+        val entries = log.observeAll().first()
+        assertEquals(listOf(100L to 63.8, 101L to 63.5), entries.map { it.epochDay to it.weightKg })
+        assertEquals(72.0, entries.first().waistCm)
     }
 
     @Test
@@ -200,7 +203,7 @@ class DaoTest {
     fun `backup survives json round trip into an empty database`() = runTest {
         val templateId = templates.save(Template(name = "Push"), listOf(item(bench, 3)))
         db.planDao().save(PlannedWorkout(templateId = templateId, epochDay = 20_000, minuteOfDay = 18 * 60 + 30, repeatDays = 0b100000, remindBefore = 30))
-        db.bodyWeightDao().record(epochDay = 20_000, weightKg = 80.5)
+        db.bodyMeasurementDao().record(20_000) { it.copy(weightKg = 80.5, waistCm = 84.0) }
         val id = workouts.start("Push", null, listOf(bench to 2), now = 1_000)
         completeAll(id, weight = 100.0, reps = 5)
         workouts.finish(id, now = 2_000)
@@ -214,7 +217,7 @@ class DaoTest {
         assertNotNull(restored)
         assertEquals(2, restored!!.exercises.single().sets.count { it.completed })
         assertEquals(1, target.backupDao().plannedWorkouts().size)
-        assertEquals(1, target.backupDao().bodyWeights().size)
+        assertEquals(84.0, target.backupDao().bodyMeasurements().single().waistCm)
         target.close()
     }
 

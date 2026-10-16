@@ -1,5 +1,6 @@
 package com.keshtoim.forge.data
 
+import com.keshtoim.forge.data.db.BodyMeasurement
 import java.time.LocalDate
 import java.time.Period
 import kotlin.math.pow
@@ -53,3 +54,9 @@ fun robinsonWeight(heightCm: Int, sex: BodyType): Double =
     if (sex == BodyType.MALE) 52 + 1.9 * inchesOver5Feet(heightCm) else 49 + 1.7 * inchesOver5Feet(heightCm)
 
 fun age(birthDate: LocalDate, today: LocalDate): Int = Period.between(birthDate, today).years
+
+data class Reading(val epochDay: Long, val value: Double)
+
+// One parameter's history, skipping days on which it was not measured.
+fun List<BodyMeasurement>.series(of: (BodyMeasurement) -> Double?): List<Reading> =
+    mapNotNull { m -> of(m)?.let { Reading(m.epochDay, it) } }

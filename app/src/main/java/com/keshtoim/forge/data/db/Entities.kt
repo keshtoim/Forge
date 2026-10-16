@@ -124,12 +124,19 @@ data class PlannedWorkout(
 )
 
 @Serializable
-@Entity(tableName = "body_weights", indices = [Index(value = ["epochDay"], unique = true)])
-data class BodyWeight(
+@Entity(tableName = "body_measurements", indices = [Index(value = ["epochDay"], unique = true)])
+data class BodyMeasurement(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    // One entry per day: a second weigh-in the same day replaces the first.
+    // One entry per day: values logged later the same day are merged into it.
     val epochDay: Long,
-    val weightKg: Double,
+    val weightKg: Double? = null,
+    val neckCm: Double? = null,
+    val chestCm: Double? = null,
+    val waistCm: Double? = null,
+    val hipsCm: Double? = null,
+    val bicepsCm: Double? = null,
+    val thighCm: Double? = null,
+    val calfCm: Double? = null,
 )
 
 // Warm-up sets are logged but left out of volume, records and statistics.

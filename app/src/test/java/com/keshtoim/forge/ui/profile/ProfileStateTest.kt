@@ -1,7 +1,7 @@
 package com.keshtoim.forge.ui.profile
 
 import com.keshtoim.forge.data.BodyType
-import com.keshtoim.forge.data.db.BodyWeight
+import com.keshtoim.forge.data.db.BodyMeasurement
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -11,7 +11,7 @@ class ProfileStateTest {
     private val today = LocalDate.of(2026, 10, 15)
 
     private fun state(vararg log: Pair<LocalDate, Double>) =
-        ProfileState(BodyType.FEMALE, 165, null, log.map { (day, kg) -> BodyWeight(epochDay = day.toEpochDay(), weightKg = kg) })
+        ProfileState(BodyType.FEMALE, 165, null, log.map { (day, kg) -> BodyMeasurement(epochDay = day.toEpochDay(), weightKg = kg) })
 
     @Test
     fun `trend covers only the last three months`() {

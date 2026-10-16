@@ -67,8 +67,8 @@ import com.keshtoim.forge.R
 import com.keshtoim.forge.data.BmiCategory
 import com.keshtoim.forge.data.BmiFormula
 import com.keshtoim.forge.data.BodyType
+import com.keshtoim.forge.data.Reading
 import com.keshtoim.forge.data.age
-import com.keshtoim.forge.data.db.BodyWeight
 import com.keshtoim.forge.data.devineWeight
 import com.keshtoim.forge.data.normalWeightRange
 import com.keshtoim.forge.data.robinsonWeight
@@ -190,7 +190,7 @@ private fun ParamsCard(state: ProfileState, onSex: (BodyType) -> Unit, onEdit: (
                 label = stringResource(R.string.profile_weight),
                 hint = last?.let { stringResource(R.string.profile_updated, relativeDay(context, LocalDate.ofEpochDay(it.epochDay).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()).lowercase(locale)) }
                     ?: stringResource(R.string.profile_not_set),
-                value = last?.let { one(it.weightKg) + " " + stringResource(R.string.unit_kg) } ?: "—",
+                value = last?.let { one(it.value) + " " + stringResource(R.string.unit_kg) } ?: "—",
                 onClick = { onEdit(Editing.WEIGHT) },
             )
         }
@@ -389,24 +389,24 @@ private fun WeightCard(state: ProfileState, onRecord: () -> Unit) {
 }
 
 @Composable
-private fun WeightChart(points: List<BodyWeight>, modifier: Modifier) {
+private fun WeightChart(points: List<Reading>, modifier: Modifier) {
     val colors = MaterialTheme.colorScheme
     val locale = Locale.getDefault()
-    val min = points.minOf { it.weightKg }
-    val max = points.maxOf { it.weightKg }
+    val min = points.minOf { it.value }
+    val max = points.maxOf { it.value }
     val firstDay = points.first().epochDay
     val span = (points.last().epochDay - firstDay).coerceAtLeast(1)
     val months = points.map { LocalDate.ofEpochDay(it.epochDay).month }.distinct()
     Column(modifier) {
         Row {
-            Text(one(points.first().weightKg), style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant, modifier = Modifier.weight(1f))
-            Text(one(points.last().weightKg), style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant)
+            Text(one(points.first().value), style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant, modifier = Modifier.weight(1f))
+            Text(one(points.last().value), style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant)
         }
         Canvas(Modifier.fillMaxWidth().height(110.dp).padding(vertical = 8.dp)) {
             val inset = 6.dp.toPx()
-            fun at(p: BodyWeight) = Offset(
+            fun at(p: Reading) = Offset(
                 inset + (size.width - 2 * inset) * (p.epochDay - firstDay) / span,
-                inset + (size.height - 2 * inset) * (if (max > min) ((max - p.weightKg) / (max - min)).toFloat() else 0.5f),
+                inset + (size.height - 2 * inset) * (if (max > min) ((max - p.value) / (max - min)).toFloat() else 0.5f),
             )
             drawLine(colors.outlineVariant, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
             val path = Path().apply {

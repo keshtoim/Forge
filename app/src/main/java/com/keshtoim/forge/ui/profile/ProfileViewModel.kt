@@ -7,26 +7,30 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.keshtoim.forge.ForgeApplication
 import com.keshtoim.forge.data.BodyType
+import com.keshtoim.forge.data.Reading
 import com.keshtoim.forge.data.UserPreferences
-import com.keshtoim.forge.data.db.BodyWeight
-import com.keshtoim.forge.data.db.BodyWeightDao
+import com.keshtoim.forge.data.db.BodyMeasurement
+import com.keshtoim.forge.data.db.BodyMeasurementDao
+import com.keshtoim.forge.data.series
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
-data class ProfileState(val sex: BodyType, val heightCm: Int?, val birthDate: LocalDate?, val weights: List<BodyWeight>) {
-    val weightKg get() = weights.lastOrNull()?.weightKg
+data class ProfileState(val sex: BodyType, val heightCm: Int?, val birthDate: LocalDate?, val measurements: List<BodyMeasurement>) {
+    val weights = measurements.series { it.weightKg }
+
+    val weightKg get() = weights.lastOrNull()?.value
 
     // Weigh-ins of the last three months that the chart and the trend are based on.
-    fun recent(today: LocalDate): List<BodyWeight> = weights.filter { it.epochDay >= today.minusMonths(3).toEpochDay() }
+    fun recent(today: LocalDate): List<Reading> = weights.filter { it.epochDay >= today.minusMonths(3).toEpochDay() }
 
-    fun recentChange(today: LocalDate): Double? = recent(today).takeIf { it.size >= 2 }?.let { it.last().weightKg - it.first().weightKg }
+    fun recentChange(today: LocalDate): Double? = recent(today).takeIf { it.size >= 2 }?.let { it.last().value - it.first().value }
 }
 
-class ProfileViewModel(private val preferences: UserPreferences, private val weights: BodyWeightDao) : ViewModel() {
-    val state = combine(preferences.bodyType, preferences.heightCm, preferences.birthDate, weights.observeAll()) { sex, height, birth, log ->
+class ProfileViewModel(private val preferences: UserPreferences, private val measurements: BodyMeasurementDao) : ViewModel() {
+    val state = combine(preferences.bodyType, preferences.heightCm, preferences.birthDate, measurements.observeAll()) { sex, height, birth, log ->
         // The figure is chosen on first launch, so the profile is only reachable once it is set.
         ProfileState(sex ?: BodyType.MALE, height, birth, log)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -37,19 +41,21 @@ class ProfileViewModel(private val preferences: UserPreferences, private val wei
 
     fun setBirthDate(date: LocalDate) = preferences.setBirthDate(date)
 
-    fun deleteWeight(weight: BodyWeight) {
-        viewModelScope.launch { weights.delete(weight) }
+    fun delete(measurement: BodyMeasurement) {
+        viewModelScope.launch { measurements.delete(measurement) }
     }
 
-    fun recordWeight(kg: Double) {
-        viewModelScope.launch { weights.record(LocalDate.now().toEpochDay(), kg) }
+    fun recordWeight(kg: Double) = record { it.copy(weightKg = kg) }
+
+    fun record(update: (BodyMeasurement) -> BodyMeasurement) {
+        viewModelScope.launch { measurements.record(LocalDate.now().toEpochDay(), update) }
     }
 
     companion object {
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as ForgeApplication
-                ProfileViewModel(app.preferences, app.database.bodyWeightDao())
+                ProfileViewModel(app.preferences, app.database.bodyMeasurementDao())
             }
         }
     }

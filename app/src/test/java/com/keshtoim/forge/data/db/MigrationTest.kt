@@ -65,6 +65,20 @@ class MigrationTest {
     }
 
     @Test
+    fun `migration 6 to 7 carries weigh-ins over into body measurements`() = runBlocking {
+        helper.createDatabase(6).use {
+            it.execSQL("INSERT INTO body_weights (id, epochDay, weightKg) VALUES (1, 20000, 80.5), (2, 20007, 79.8)")
+        }
+        helper.runMigrationsAndValidate(7).close()
+
+        val db = Room.databaseBuilder(context, ForgeDatabase::class.java, DB).build()
+        val entries = db.bodyMeasurementDao().observeAll().first()
+        assertEquals(listOf(20000L to 80.5, 20007L to 79.8), entries.map { it.epochDay to it.weightKg })
+        assertEquals(null, entries.first().waistCm)
+        db.close()
+    }
+
+    @Test
     fun `secondary muscles survive a round trip`() = runBlocking {
         val db = Room.inMemoryDatabaseBuilder(context, ForgeDatabase::class.java).build()
         val muscles = listOf(MuscleGroup.TRICEPS, MuscleGroup.SHOULDERS)
