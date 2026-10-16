@@ -271,6 +271,8 @@
     <string name="trait_force">Force</string>
     <string name="trait_other">Other</string>
     <string name="trait_unset">Not set</string>
+    <string name="filter_title">Filter</string>
+    <string name="filter_reset">Reset</string>
     <string name="mechanics_compound">Compound</string>
     <string name="mechanics_isolation">Isolation</string>
     <string name="discipline_strength">Strength</string>

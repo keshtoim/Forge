@@ -41,4 +41,10 @@
         <item quantity="many">%d лет</item>
         <item quantity="other">%d года</item>
     </plurals>
+    <plurals name="filter_show">
+        <item quantity="one">Показать %d упражнение</item>
+        <item quantity="few">Показать %d упражнения</item>
+        <item quantity="many">Показать %d упражнений</item>
+        <item quantity="other">Показать %d упражнения</item>
+    </plurals>
 </resources>

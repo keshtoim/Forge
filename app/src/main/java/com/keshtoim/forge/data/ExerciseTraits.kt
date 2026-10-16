@@ -19,6 +19,7 @@ import com.keshtoim.forge.data.db.Force.STATIC
 import com.keshtoim.forge.data.db.Mechanics
 import com.keshtoim.forge.data.db.Mechanics.COMPOUND
 import com.keshtoim.forge.data.db.Mechanics.ISOLATION
+import java.io.Serializable
 
 data class ExerciseTraits(val mechanics: Mechanics?, val discipline: Discipline?, val equipment: Equipment?, val force: Force?)
 
@@ -95,3 +96,18 @@ val BuiltInExercise.traits: ExerciseTraits
 // Built-ins come from code so existing installs pick up corrections; custom exercises use their own columns.
 val Exercise.traits: ExerciseTraits
     get() = builtIn?.traits ?: ExerciseTraits(mechanics, discipline, equipment, force)
+
+// Within a characteristic any picked value matches; across characteristics all must match. Nothing picked lets everything through.
+data class TraitFilter(
+    val mechanics: Set<Mechanics> = emptySet(),
+    val discipline: Set<Discipline> = emptySet(),
+    val equipment: Set<Equipment> = emptySet(),
+    val force: Set<Force> = emptySet(),
+) : Serializable {
+    val size get() = mechanics.size + discipline.size + equipment.size + force.size
+
+    fun matches(traits: ExerciseTraits) =
+        traits.mechanics.passes(mechanics) && traits.discipline.passes(discipline) && traits.equipment.passes(equipment) && traits.force.passes(force)
+
+    private fun <T> T?.passes(picked: Set<T>) = picked.isEmpty() || this in picked
+}

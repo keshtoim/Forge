@@ -270,6 +270,8 @@
     <string name="trait_force">Тип усилия</string>
     <string name="trait_other">Другое</string>
     <string name="trait_unset">Не указано</string>
+    <string name="filter_title">Фильтр</string>
+    <string name="filter_reset">Сбросить</string>
     <string name="mechanics_compound">Базовое</string>
     <string name="mechanics_isolation">Изолирующее</string>
     <string name="discipline_strength">Силовое</string>

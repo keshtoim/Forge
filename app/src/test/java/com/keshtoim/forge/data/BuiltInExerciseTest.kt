@@ -38,6 +38,21 @@ class BuiltInExerciseTest {
     }
 
     @Test
+    fun `trait filter ors within a characteristic and ands across them`() {
+        val bench = BuiltInExercise.BENCH_PRESS.traits
+        val curl = BuiltInExercise.DUMBBELL_CURL.traits
+        val pushdown = BuiltInExercise.TRICEPS_PUSHDOWN.traits
+
+        val freeWeights = TraitFilter(equipment = setOf(Equipment.BARBELL, Equipment.DUMBBELL))
+        assertEquals(listOf(true, true, false), listOf(bench, curl, pushdown).map(freeWeights::matches))
+
+        val freeWeightPresses = freeWeights.copy(force = setOf(Force.PUSH))
+        assertEquals(listOf(true, false, false), listOf(bench, curl, pushdown).map(freeWeightPresses::matches))
+        assertTrue(TraitFilter().matches(ExerciseTraits(null, null, null, null)))
+        assertEquals(3, freeWeightPresses.size)
+    }
+
+    @Test
     fun `built-in exercise takes secondary muscles from code, custom one from its column`() {
         val stored = Exercise(builtInKey = "BENCH_PRESS", muscleGroup = MuscleGroup.CHEST, type = ExerciseType.WEIGHT_REPS)
         assertEquals(listOf(MuscleGroup.TRICEPS, MuscleGroup.SHOULDERS), stored.secondary)

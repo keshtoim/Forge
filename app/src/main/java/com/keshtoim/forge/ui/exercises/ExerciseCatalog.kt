@@ -1,25 +1,39 @@
 package com.keshtoim.forge.ui.exercises
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,14 +44,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.keshtoim.forge.R
+import com.keshtoim.forge.data.TraitFilter
+import com.keshtoim.forge.data.db.Discipline
+import com.keshtoim.forge.data.db.Equipment
 import com.keshtoim.forge.data.db.Exercise
+import com.keshtoim.forge.data.db.Force
+import com.keshtoim.forge.data.db.Mechanics
 import com.keshtoim.forge.data.db.MuscleGroup
+import com.keshtoim.forge.data.traits
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ForgeChip
 import com.keshtoim.forge.ui.SearchField
@@ -55,22 +76,31 @@ fun ExerciseCatalog(
     val context = LocalContext.current
     var query by rememberSaveable { mutableStateOf("") }
     var group by rememberSaveable { mutableStateOf<MuscleGroup?>(null) }
+    var filter by rememberSaveable { mutableStateOf(TraitFilter()) }
+    var filtering by rememberSaveable { mutableStateOf(false) }
 
-    val grouped = remember(exercises, query, group, context) {
+    val grouped = remember(exercises, query, group, filter, context) {
         exercises
             .map { it to it.displayName(context) }
-            .filter { (e, name) -> (group == null || e.muscleGroup == group) && name.contains(query.trim(), ignoreCase = true) }
+            .filter { (e, name) -> (group == null || e.muscleGroup == group) && filter.matches(e.traits) && name.contains(query.trim(), ignoreCase = true) }
             .sortedWith(compareBy({ it.first.muscleGroup.ordinal }, { it.second.lowercase() }))
             .groupBy { it.first.muscleGroup }
     }
 
     Column(modifier) {
-        SearchField(
-            query = query,
-            onQueryChange = { query = it },
-            placeholder = stringResource(R.string.exercises_search),
-            modifier = Modifier.padding(start = 18.dp, end = 18.dp, bottom = 10.dp),
-        )
+        Row(Modifier.padding(start = 18.dp, end = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            SearchField(
+                query = query,
+                onQueryChange = { query = it },
+                placeholder = stringResource(R.string.exercises_search),
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = { filtering = true }, modifier = Modifier.padding(start = 4.dp)) {
+                BadgedBox(badge = { if (filter.size > 0) Badge { Text("${filter.size}") } }) {
+                    Icon(Icons.Filled.Tune, contentDescription = stringResource(R.string.filter_title))
+                }
+            }
+        }
         LazyRow(contentPadding = PaddingValues(horizontal = 18.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             item { ForgeChip(selected = group == null, label = stringResource(R.string.filter_all)) { group = null } }
             items(MuscleGroup.entries) { g ->
@@ -90,10 +120,14 @@ fun ExerciseCatalog(
                     )
                 }
                 items(items, key = { it.first.id }) { (exercise, name) ->
-                    ExerciseRow(name, stringResource(exercise.type.labelRes), selected?.let { exercise.id in it }) { onClick(exercise) }
+                    val details = listOfNotNull(exercise.traits.equipment?.let { stringResource(it.labelRes) }, stringResource(exercise.type.labelRes))
+                    ExerciseRow(name, details.joinToString(" · "), selected?.let { exercise.id in it }) { onClick(exercise) }
                 }
             }
         }
+    }
+    if (filtering) {
+        TraitFilterSheet(filter, matches = grouped.values.sumOf { it.size }, onChange = { filter = it }, onDismiss = { filtering = false })
     }
 }
 
@@ -123,6 +157,39 @@ private fun ExerciseRow(name: String, type: String, checked: Boolean?, onClick: 
                 ) {
                     if (checked) Icon(Icons.Filled.Check, contentDescription = null, tint = colors.onPrimary, modifier = Modifier.size(16.dp))
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun TraitFilterSheet(filter: TraitFilter, matches: Int, onChange: (TraitFilter) -> Unit, onDismiss: () -> Unit) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
+        Column(Modifier.verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, bottom = 20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.filter_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                if (filter.size > 0) TextButton(onClick = { onChange(TraitFilter()) }) { Text(stringResource(R.string.filter_reset)) }
+            }
+            ChipGroup(R.string.trait_mechanics, Mechanics.entries, filter.mechanics, { it.labelRes }) { onChange(filter.copy(mechanics = it)) }
+            ChipGroup(R.string.trait_discipline, Discipline.entries, filter.discipline, { it.labelRes }) { onChange(filter.copy(discipline = it)) }
+            ChipGroup(R.string.trait_equipment, Equipment.entries, filter.equipment, { it.labelRes }) { onChange(filter.copy(equipment = it)) }
+            ChipGroup(R.string.trait_force, Force.entries, filter.force, { it.labelRes }) { onChange(filter.copy(force = it)) }
+            Button(onClick = onDismiss, modifier = Modifier.padding(top = 20.dp).fillMaxWidth().height(52.dp)) {
+                Text(pluralStringResource(R.plurals.filter_show, matches, matches))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun <T> ChipGroup(@StringRes title: Int, options: List<T>, picked: Set<T>, labelRes: (T) -> Int, onChange: (Set<T>) -> Unit) {
+    Text(stringResource(title), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        options.forEach { option ->
+            ForgeChip(selected = option in picked, label = stringResource(labelRes(option))) {
+                onChange(if (option in picked) picked - option else picked + option)
             }
         }
     }

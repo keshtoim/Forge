@@ -27,4 +27,8 @@
         <item quantity="one">%d year</item>
         <item quantity="other">%d years</item>
     </plurals>
+    <plurals name="filter_show">
+        <item quantity="one">Show %d exercise</item>
+        <item quantity="other">Show %d exercises</item>
+    </plurals>
 </resources>
