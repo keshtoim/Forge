@@ -5,6 +5,12 @@
     <string name="tab_library">Справочники</string>
     <string name="tab_more">Ещё</string>
     <string name="more_progress">Прогресс по упражнениям</string>
+    <string name="more_star">Поставить звезду на GitHub</string>
+    <string name="more_star_hint">Звезда помогает проекту стать заметнее. Спасибо!</string>
+    <string name="more_share">Поделиться Forge</string>
+    <string name="more_share_hint">Пригласи друга тренироваться вместе</string>
+    <string name="more_share_text">Я веду тренировки в Forge: бесплатный дневник с открытым кодом, картой мышц, планами и графиками прогресса. Попробуй: %s</string>
+    <string name="more_version">Версия %s</string>
 
     <string name="save">Сохранить</string>
     <string name="cancel">Отмена</string>
