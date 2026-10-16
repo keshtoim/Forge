@@ -3,6 +3,7 @@ package com.keshtoim.forge.ui.workout
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.MuscleGroup
 import com.keshtoim.forge.data.db.WorkoutDetail
+import com.keshtoim.forge.data.db.isWorking
 import com.keshtoim.forge.ui.exercises.muscleHeat
 import com.keshtoim.forge.ui.volumeKg
 import java.time.DayOfWeek
@@ -18,10 +19,10 @@ private val WorkoutDetail.minutes get() = ((workout.finishedAt ?: workout.starte
 
 fun totals(finished: List<WorkoutDetail>, from: LocalDate, zone: ZoneId): Totals {
     val recent = finished.filter { it.workout.startedAt.toDate(zone) >= from }
-    val sets = recent.flatMap { w -> w.exercises.flatMap { e -> e.sets.filter { it.completed } } }
+    val sets = recent.flatMap { w -> w.exercises.flatMap { e -> e.sets.filter { it.isWorking } } }
     return Totals(
         workouts = recent.size,
-        exercises = recent.sumOf { w -> w.exercises.count { e -> e.sets.any { it.completed } } },
+        exercises = recent.sumOf { w -> w.exercises.count { e -> e.sets.any { it.isWorking } } },
         sets = sets.size,
         reps = sets.sumOf { it.reps ?: 0 },
     )
@@ -42,6 +43,6 @@ fun recentHeat(finished: List<WorkoutDetail>, exercises: Map<Long, Exercise>, fr
     muscleHeat(
         finished
             .filter { it.workout.startedAt.toDate(zone) >= from }
-            .flatMap { w -> w.exercises.filter { e -> e.sets.any { it.completed } } }
+            .flatMap { w -> w.exercises.filter { e -> e.sets.any { it.isWorking } } }
             .mapNotNull { exercises[it.workoutExercise.exerciseId] },
     )

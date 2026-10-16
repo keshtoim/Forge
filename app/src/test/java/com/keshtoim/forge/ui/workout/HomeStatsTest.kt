@@ -3,6 +3,7 @@ package com.keshtoim.forge.ui.workout
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.MuscleGroup
+import com.keshtoim.forge.data.db.SetEffort
 import com.keshtoim.forge.data.db.Workout
 import com.keshtoim.forge.data.db.WorkoutDetail
 import com.keshtoim.forge.data.db.WorkoutExercise
@@ -40,6 +41,14 @@ class HomeStatsTest {
         val totals = totals(finished, thursday.minusDays(29), zone)
 
         assertEquals(Totals(workouts = 2, exercises = 2, sets = 3, reps = 23), totals)
+    }
+
+    @Test
+    fun `warm-up sets are not counted as work`() {
+        val warmup = set(40.0, 10).copy(effort = SetEffort.WARMUP)
+        val finished = listOf(detail(thursday, 60, 1L to listOf(warmup, set(100.0, 5))), detail(thursday, 20, 2L to listOf(warmup)))
+
+        assertEquals(Totals(workouts = 2, exercises = 1, sets = 1, reps = 5), totals(finished, thursday, zone))
     }
 
     @Test

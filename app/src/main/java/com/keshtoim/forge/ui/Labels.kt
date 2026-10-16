@@ -10,8 +10,10 @@ import com.keshtoim.forge.data.builtIn
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.MuscleGroup
+import com.keshtoim.forge.data.db.SetEffort
 import com.keshtoim.forge.data.db.WorkoutDetail
 import com.keshtoim.forge.data.db.WorkoutSet
+import com.keshtoim.forge.data.db.isWorking
 import com.keshtoim.forge.data.time
 import com.keshtoim.forge.ui.workout.formatDuration
 import com.keshtoim.forge.ui.workout.formatNumber
@@ -41,7 +43,7 @@ fun WorkoutSet.summary(type: ExerciseType, context: Context): String {
 }
 
 val WorkoutDetail.volumeKg: Double
-    get() = exercises.sumOf { e -> e.sets.filter { it.completed }.sumOf { (it.weightKg ?: 0.0) * (it.reps ?: 0) } }
+    get() = exercises.sumOf { e -> e.sets.filter { it.isWorking }.sumOf { (it.weightKg ?: 0.0) * (it.reps ?: 0) } }
 
 @get:StringRes
 val MuscleGroup.labelRes: Int
@@ -130,3 +132,23 @@ val ThemeMode.labelRes: Int
 
 fun Upcoming.moment(): String =
     date.format(DateTimeFormatter.ofPattern("EEE, d MMM", Locale.getDefault())) + " · " + plan.time.format(DateTimeFormatter.ofPattern("HH:mm"))
+
+@get:StringRes
+val SetEffort.labelRes: Int
+    get() = when (this) {
+        SetEffort.WARMUP -> R.string.effort_warmup
+        SetEffort.LIGHT -> R.string.effort_light
+        SetEffort.MEDIUM -> R.string.effort_medium
+        SetEffort.HEAVY -> R.string.effort_heavy
+        SetEffort.MAX -> R.string.effort_max
+    }
+
+@get:StringRes
+val SetEffort.shortRes: Int
+    get() = when (this) {
+        SetEffort.WARMUP -> R.string.effort_warmup_short
+        SetEffort.LIGHT -> R.string.effort_light_short
+        SetEffort.MEDIUM -> R.string.effort_medium_short
+        SetEffort.HEAVY -> R.string.effort_heavy_short
+        SetEffort.MAX -> R.string.effort_max_short
+    }

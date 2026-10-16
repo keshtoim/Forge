@@ -106,6 +106,17 @@
     <string name="set_add_short">+ Подход</string>
     <string name="set_chip_hint">Подход %1$d: %2$s. Нажми, чтобы изменить</string>
     <string name="sets_progress">%1$d из %2$d</string>
+    <string name="effort_title">Сложность подхода</string>
+    <string name="effort_warmup">Разминка</string>
+    <string name="effort_light">Лёгкий</string>
+    <string name="effort_medium">Средний</string>
+    <string name="effort_heavy">Тяжёлый</string>
+    <string name="effort_max">Максимум</string>
+    <string name="effort_warmup_short">разм.</string>
+    <string name="effort_light_short">лёгк.</string>
+    <string name="effort_medium_short">средн.</string>
+    <string name="effort_heavy_short">тяж.</string>
+    <string name="effort_max_short">макс.</string>
 
     <string name="rest_title">Отдых</string>
     <string name="rest_add">+15 с</string>

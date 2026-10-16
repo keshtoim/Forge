@@ -45,6 +45,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -90,10 +92,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
+import com.keshtoim.forge.data.db.SetEffort
 import com.keshtoim.forge.data.db.WorkoutExerciseWithSets
 import com.keshtoim.forge.data.db.WorkoutSet
 import com.keshtoim.forge.rest.Rest
 import com.keshtoim.forge.ui.displayName
+import com.keshtoim.forge.ui.labelRes
+import com.keshtoim.forge.ui.shortRes
 import com.keshtoim.forge.ui.summary
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -341,7 +346,7 @@ private fun SetChips(sets: List<WorkoutSet>, current: WorkoutSet?, exercise: Exe
     if (done.isEmpty() && later == 0) return
     Row(Modifier.padding(top = 14.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         done.forEach { (index, set) ->
-            val summary = set.summary(exercise.type, context)
+            val summary = listOfNotNull(set.summary(exercise.type, context), set.effort?.let { stringResource(it.shortRes) }).joinToString(" · ")
             val hint = stringResource(R.string.set_chip_hint, index + 1, summary)
             Surface(
                 onClick = { onEdit(set) },
@@ -402,11 +407,34 @@ private fun SetCard(
             SetField.forType(exercise.type).forEach { field ->
                 key(set.id, field) { BigField(field, set, ghost, plates.takeIf { field == SetField.WEIGHT }, onEdit) }
             }
+            EffortPicker(set.effort) { effort -> onEdit { it.copy(effort = effort) } }
             if (exercise.type == ExerciseType.WEIGHT_REPS) BarSelector(exercise.barKg, onBarChange)
         }
     }
 }
 
+
+// Tapping the selected level again clears it: most sets need no label.
+@Composable
+private fun EffortPicker(effort: SetEffort?, onSelect: (SetEffort?) -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Column {
+        Text(stringResource(R.string.effort_title), style = MaterialTheme.typography.labelLarge, color = colors.onSurfaceVariant)
+        Row(Modifier.padding(top = 6.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            SetEffort.entries.forEach { level ->
+                FilterChip(
+                    selected = level == effort,
+                    onClick = { onSelect(if (level == effort) null else level) },
+                    label = { Text(stringResource(level.labelRes)) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = colors.primaryContainer,
+                        selectedLabelColor = colors.onPrimaryContainer,
+                    ),
+                )
+            }
+        }
+    }
+}
 @Composable
 private fun BarSelector(barKg: Double?, onSelect: (Double?) -> Unit) {
     var open by remember { mutableStateOf(false) }

@@ -107,6 +107,17 @@
     <string name="set_add_short">+ Set</string>
     <string name="set_chip_hint">Set %1$d: %2$s. Tap to edit</string>
     <string name="sets_progress">%1$d of %2$d</string>
+    <string name="effort_title">Set type</string>
+    <string name="effort_warmup">Warm-up</string>
+    <string name="effort_light">Light</string>
+    <string name="effort_medium">Medium</string>
+    <string name="effort_heavy">Heavy</string>
+    <string name="effort_max">Max</string>
+    <string name="effort_warmup_short">warm-up</string>
+    <string name="effort_light_short">light</string>
+    <string name="effort_medium_short">medium</string>
+    <string name="effort_heavy_short">heavy</string>
+    <string name="effort_max_short">max</string>
 
     <string name="rest_title">Rest</string>
     <string name="rest_add">+15 s</string>

@@ -50,6 +50,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
 import com.keshtoim.forge.data.db.WorkoutDetail
+import com.keshtoim.forge.data.db.isWorking
 import com.keshtoim.forge.data.repeats
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
@@ -58,6 +59,7 @@ import com.keshtoim.forge.ui.formatDateTime
 import com.keshtoim.forge.ui.formatMinutes
 import com.keshtoim.forge.ui.formatWeight
 import com.keshtoim.forge.ui.moment
+import com.keshtoim.forge.ui.shortRes
 import com.keshtoim.forge.ui.summary
 import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.ui.volumeKg
@@ -73,7 +75,7 @@ import java.util.Locale
 import kotlin.math.roundToLong
 
 private val WorkoutDetail.minutes get() = ((workout.finishedAt ?: workout.startedAt) - workout.startedAt) / 60_000
-private val WorkoutDetail.doneSets get() = exercises.sumOf { e -> e.sets.count { it.completed } }
+private val WorkoutDetail.doneSets get() = exercises.sumOf { e -> e.sets.count { it.isWorking } }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -248,6 +250,14 @@ fun WorkoutDetailScreen(onBack: () -> Unit, viewModel: WorkoutDetailViewModel = 
                                     Text("${index + 1}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Text(set.summary(exercise.type, context), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
+                                set.effort?.let {
+                                    Text(
+                                        stringResource(it.shortRes),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(start = 8.dp),
+                                    )
+                                }
                             }
                         }
                     }

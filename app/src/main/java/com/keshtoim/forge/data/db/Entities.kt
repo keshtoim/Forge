@@ -14,6 +14,9 @@ enum class MuscleGroup {
 
 enum class ExerciseType { WEIGHT_REPS, REPS, DURATION, DISTANCE }
 
+// Persisted by name: never rename entries.
+enum class SetEffort { WARMUP, LIGHT, MEDIUM, HEAVY, MAX }
+
 @Serializable
 @Entity(tableName = "exercises", indices = [Index(value = ["builtInKey"], unique = true)])
 data class Exercise(
@@ -100,6 +103,7 @@ data class WorkoutSet(
     val durationSec: Int? = null,
     val distanceM: Double? = null,
     val completed: Boolean = false,
+    val effort: SetEffort? = null,
 )
 
 @Serializable
@@ -127,3 +131,6 @@ data class BodyWeight(
     val epochDay: Long,
     val weightKg: Double,
 )
+
+// Warm-up sets are logged but left out of volume, records and statistics.
+val WorkoutSet.isWorking: Boolean get() = completed && effort != SetEffort.WARMUP

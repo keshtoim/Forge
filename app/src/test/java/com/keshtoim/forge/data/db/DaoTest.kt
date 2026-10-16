@@ -155,6 +155,17 @@ class DaoTest {
     }
 
     @Test
+    fun `warm-up sets stay out of progress points`() = runTest {
+        val id = workouts.start("Push", null, listOf(bench to 2), now = 1_000)
+        val (warmup, working) = detail(id).exercises.single().sets.sortedBy { it.position }
+        workouts.update(warmup.copy(weightKg = 40.0, reps = 10, completed = true, effort = SetEffort.WARMUP))
+        workouts.update(working.copy(weightKg = 100.0, reps = 5, completed = true, effort = SetEffort.HEAVY))
+        workouts.finish(id, now = 2_000)
+
+        assertEquals(listOf(100.0), workouts.observeSetPoints(bench).first().map { it.weightKg })
+    }
+
+    @Test
     fun `a second weigh-in the same day replaces the first`() = runTest {
         val weights = db.bodyWeightDao()
         weights.record(epochDay = 100, weightKg = 64.0)

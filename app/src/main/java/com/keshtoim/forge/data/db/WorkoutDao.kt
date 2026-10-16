@@ -51,7 +51,7 @@ interface WorkoutDao {
         FROM workout_sets s
         JOIN workout_exercises we ON we.id = s.workoutExerciseId
         JOIN workouts w ON w.id = we.workoutId
-        WHERE we.exerciseId = :exerciseId AND s.completed = 1 AND w.finishedAt IS NOT NULL
+        WHERE we.exerciseId = :exerciseId AND s.completed = 1 AND (s.effort IS NULL OR s.effort != 'WARMUP') AND w.finishedAt IS NOT NULL
         ORDER BY w.startedAt
         """
     )
