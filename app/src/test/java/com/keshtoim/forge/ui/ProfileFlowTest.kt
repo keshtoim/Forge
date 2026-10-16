@@ -29,7 +29,8 @@ class ProfileFlowTest {
         rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
         rule.waitUntilAtLeastOneExists(hasContentDescription("New workout"), timeoutMillis = 5_000)
         rule.onNodeWithText("More").performClick()
-        rule.onNodeWithText("Profile").performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Profile", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Profile", useUnmergedTree = true).performClick()
 
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Height", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithText("Height", useUnmergedTree = true).performClick()

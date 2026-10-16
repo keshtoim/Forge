@@ -4,6 +4,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -49,7 +50,8 @@ class BodyTypeFlowTest {
         rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
         rule.waitUntilAtLeastOneExists(hasContentDescription("New workout"), timeoutMillis = 5_000)
         rule.onNodeWithText("More").performClick()
-        rule.onNodeWithText("Settings").performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Settings", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Settings", useUnmergedTree = true).performClick()
 
         rule.onNodeWithText("Female").performScrollTo().performClick()
 

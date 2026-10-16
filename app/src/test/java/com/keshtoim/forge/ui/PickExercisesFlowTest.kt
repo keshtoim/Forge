@@ -48,7 +48,9 @@ class PickExercisesFlowTest {
     @Test
     fun pickedExerciseIsAddedToTemplate() {
         rule.onNodeWithText("Library").performClick()
-        rule.onNodeWithText("Templates").performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Templates", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Templates", useUnmergedTree = true).performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("New template", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithText("New template", useUnmergedTree = true).performClick()
         rule.onNode(hasSetTextAction() and hasText("Template name")).performTextInput("Push")
         rule.onNodeWithText("Add exercises").performClick()

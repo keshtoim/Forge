@@ -5,6 +5,7 @@ import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -30,7 +31,9 @@ class MeasureFlowTest {
         rule.onNodeWithText("Let's go", useUnmergedTree = true).performClick()
         rule.waitUntilAtLeastOneExists(hasContentDescription("New workout"), timeoutMillis = 5_000)
         rule.onNodeWithText("Diary").performClick()
-        rule.onNodeWithText("Body").performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Body", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Body", useUnmergedTree = true).performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Log measurements", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithText("Log measurements", useUnmergedTree = true).performClick()
 
         rule.waitUntilAtLeastOneExists(hasText("Girths"), timeoutMillis = 5_000)
