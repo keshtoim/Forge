@@ -1,6 +1,5 @@
 package com.keshtoim.forge.ui.profile
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -49,12 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -68,7 +62,6 @@ import com.keshtoim.forge.data.BmiCategory
 import com.keshtoim.forge.data.BmiFormula
 import com.keshtoim.forge.data.BodyFatCategory
 import com.keshtoim.forge.data.BodyType
-import com.keshtoim.forge.data.Reading
 import com.keshtoim.forge.data.WaistRisk
 import com.keshtoim.forge.data.age
 import com.keshtoim.forge.data.bodyFatCategory
@@ -82,6 +75,7 @@ import com.keshtoim.forge.data.waistToHipRisk
 import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
+import com.keshtoim.forge.ui.history.ReadingsChart
 import com.keshtoim.forge.ui.relativeDay
 import com.keshtoim.forge.ui.workout.formatNumber
 import java.time.Instant
@@ -89,7 +83,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToLong
@@ -387,52 +380,10 @@ private fun WeightCard(state: ProfileState, onRecord: () -> Unit) {
                     )
                 }
             }
-            if (recent.size >= 2) WeightChart(recent, Modifier.padding(top = 12.dp))
+            if (recent.size >= 2) ReadingsChart(recent, Modifier.padding(top = 12.dp))
             OutlinedButton(onClick = onRecord, modifier = Modifier.fillMaxWidth().padding(top = 12.dp).height(48.dp)) {
                 Icon(Icons.Filled.Add, contentDescription = null)
                 Text(stringResource(R.string.profile_record_weight), modifier = Modifier.padding(start = 8.dp))
-            }
-        }
-    }
-}
-
-@Composable
-private fun WeightChart(points: List<Reading>, modifier: Modifier) {
-    val colors = MaterialTheme.colorScheme
-    val locale = Locale.getDefault()
-    val min = points.minOf { it.value }
-    val max = points.maxOf { it.value }
-    val firstDay = points.first().epochDay
-    val span = (points.last().epochDay - firstDay).coerceAtLeast(1)
-    val months = points.map { LocalDate.ofEpochDay(it.epochDay).month }.distinct()
-    Column(modifier) {
-        Row {
-            Text(one(points.first().value), style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant, modifier = Modifier.weight(1f))
-            Text(one(points.last().value), style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant)
-        }
-        Canvas(Modifier.fillMaxWidth().height(110.dp).padding(vertical = 8.dp)) {
-            val inset = 6.dp.toPx()
-            fun at(p: Reading) = Offset(
-                inset + (size.width - 2 * inset) * (p.epochDay - firstDay) / span,
-                inset + (size.height - 2 * inset) * (if (max > min) ((max - p.value) / (max - min)).toFloat() else 0.5f),
-            )
-            drawLine(colors.outlineVariant, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
-            val path = Path().apply {
-                points.forEachIndexed { i, p -> at(p).let { if (i == 0) moveTo(it.x, it.y) else lineTo(it.x, it.y) } }
-            }
-            drawPath(path, colors.primary, style = Stroke(3.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
-            val last = at(points.last())
-            drawCircle(colors.surfaceContainer, 7.dp.toPx(), last)
-            drawCircle(colors.primary, 5.dp.toPx(), last)
-        }
-        Row {
-            months.forEach { month ->
-                Text(
-                    month.getDisplayName(TextStyle.FULL_STANDALONE, locale).lowercase(locale),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colors.onSurfaceVariant,
-                    modifier = Modifier.weight(1f),
-                )
             }
         }
     }

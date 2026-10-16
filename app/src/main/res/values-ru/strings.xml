@@ -96,6 +96,13 @@
     <string name="measure_add">Записать замеры</string>
     <string name="measure_girths">Обхваты</string>
     <string name="measure_girths_hint">Все поля необязательны. По шее, талии и, у женщин, бёдрам в профиле считается процент жира.</string>
+    <string name="trend_title">Динамика</string>
+    <string name="trend_change">%s за период</string>
+    <string name="trend_need_more">Для графика нужно хотя бы два замера за этот период.</string>
+    <string name="period_month">1 мес</string>
+    <string name="period_quarter">3 мес</string>
+    <string name="period_year">Год</string>
+    <string name="period_all">Всё</string>
     <string name="body_neck">Шея</string>
     <string name="body_chest">Грудь</string>
     <string name="body_waist">Талия</string>

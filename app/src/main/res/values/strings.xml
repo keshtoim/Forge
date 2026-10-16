@@ -97,6 +97,13 @@
     <string name="measure_add">Log measurements</string>
     <string name="measure_girths">Girths</string>
     <string name="measure_girths_hint">All optional. Neck, waist and, for women, hips give a body fat estimate in your profile.</string>
+    <string name="trend_title">Trend</string>
+    <string name="trend_change">%s over the period</string>
+    <string name="trend_need_more">A chart needs at least two measurements in this period.</string>
+    <string name="period_month">1 mo</string>
+    <string name="period_quarter">3 mo</string>
+    <string name="period_year">Year</string>
+    <string name="period_all">All</string>
     <string name="body_neck">Neck</string>
     <string name="body_chest">Chest</string>
     <string name="body_waist">Waist</string>
