@@ -82,4 +82,26 @@ class AiConnectionTest {
         connection.verify()
         awaitStatus(AiStatus.Failed(AiFailure.NO_CONNECTION))
     }
+
+    @Test
+    fun `a check loads the list, moves to an offered model and confirms it`() {
+        settings.setProvider(AiProvider.CLAUDE)
+        settings.setKey(AiProvider.CLAUDE, "key")
+        settings.setModel(AiProvider.CLAUDE, "claude-retired-1")
+        settings.setEnabled(true)
+        server.enqueue(
+            MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json").setBody(
+                """{"data":[{"type":"model","id":"claude-sonnet-5-5","display_name":"Claude Sonnet 5.5","created_at":"2026-01-01T00:00:00Z"},""" +
+                    """{"type":"model","id":"claude-opus-5-5","display_name":"Claude Opus 5.5","created_at":"2026-01-01T00:00:00Z"}],"has_more":false,"first_id":"a","last_id":"b"}""",
+            ),
+        )
+        server.enqueue(model(200))
+
+        assertEquals(2, runBlocking { connection.check() })
+        assertEquals("claude-opus-5-5", settings.state.value.model(AiProvider.CLAUDE))
+        assertEquals(listOf("claude-sonnet-5-5", "claude-opus-5-5"), settings.state.value.choices(AiProvider.CLAUDE).map { it.id })
+        awaitStatus(AiStatus.Ready)
+        server.takeRequest()
+        assertEquals("/v1/models/claude-opus-5-5", server.takeRequest().path)
+    }
 }

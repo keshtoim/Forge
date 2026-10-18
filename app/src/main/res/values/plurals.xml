@@ -35,4 +35,8 @@
         <item quantity="one">%d round</item>
         <item quantity="other">%d rounds</item>
     </plurals>
+    <plurals name="ai_models_found">
+        <item quantity="one">List loaded: %d model</item>
+        <item quantity="other">List loaded: %d models</item>
+    </plurals>
 </resources>

@@ -95,7 +95,13 @@ fun SettingsScreen(onBack: () -> Unit, onOpenAi: () -> Unit, viewModel: Settings
                     colors = itemColors,
                     headlineContent = { Text(stringResource(R.string.ai_title)) },
                     supportingContent = {
-                        Text(if (ai.config != null) stringResource(R.string.ai_summary_on, ai.provider.title) else stringResource(R.string.ai_summary_off))
+                        Text(
+                            when {
+                                ai.config != null -> stringResource(R.string.ai_summary_on, ai.provider.title)
+                                ai.enabled -> stringResource(R.string.ai_summary_no_key)
+                                else -> stringResource(R.string.ai_summary_off)
+                            },
+                        )
                     },
                     leadingContent = { Icon(Icons.Filled.AutoAwesome, contentDescription = null) },
                     trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },

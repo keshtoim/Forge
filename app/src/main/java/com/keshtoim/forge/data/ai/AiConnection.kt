@@ -72,6 +72,16 @@ class AiConnection(
         }
     }
 
+    // Loads the models the key can use, settles on one of them and confirms it; returns how many were found. Costs no tokens.
+    suspend fun check(): Int {
+        val config = settings.state.value.config ?: throw AiException(AiFailure.BAD_KEY)
+        val models = record(config) { AiAssistant.listModels(config, baseUrl) }
+        settings.setCatalog(config.provider, models)
+        val chosen = settings.state.value.config ?: return models.size
+        record(chosen) { AiAssistant.ping(chosen, baseUrl) }
+        return models.size
+    }
+
     suspend fun ask(system: String, turns: List<AiTurn>): String {
         val config = settings.state.value.config ?: throw AiException(AiFailure.BAD_KEY)
         return record(config) { AiAssistant.reply(config, system, turns, baseUrl) }

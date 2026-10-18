@@ -351,6 +351,7 @@
     <string name="ai_status_ready">AI is connected</string>
     <string name="ai_status_checking">Checking the AI connection</string>
     <string name="ai_summary_off">Off</string>
+    <string name="ai_summary_no_key">On, needs an API key</string>
     <string name="ai_summary_on">%1$s connected</string>
     <string name="ai_enable">Turn on the AI assistant</string>
     <string name="ai_enable_hint">A chat coach and weight tips during workouts. Needs your own API key; without it the app works as usual.</string>
@@ -363,7 +364,8 @@
     <string name="ai_model_hint">Empty means %1$s</string>
     <string name="ai_check">Test connection</string>
     <string name="ai_checking">Testing…</string>
-    <string name="ai_check_ok">Connected, the AI answers</string>
+    <string name="ai_check_ok">Connected, models available: %1$d</string>
+    <string name="ai_models_docs">%1$s models in the docs</string>
     <string name="ai_privacy">When you ask the AI, the current workout, the exercise history and your height and weight are sent to %1$s. The key is stored encrypted on the device and goes nowhere else.</string>
     <string name="ai_error_connection">No internet connection</string>
     <string name="ai_error_key">The key was rejected</string>

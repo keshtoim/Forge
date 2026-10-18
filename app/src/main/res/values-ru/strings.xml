@@ -350,6 +350,7 @@
     <string name="ai_status_ready">ИИ на связи</string>
     <string name="ai_status_checking">Проверяю связь с ИИ</string>
     <string name="ai_summary_off">Выключен</string>
+    <string name="ai_summary_no_key">Включён, нужен ключ API</string>
     <string name="ai_summary_on">%1$s подключён</string>
     <string name="ai_enable">Включить ИИ-помощника</string>
     <string name="ai_enable_hint">Чат-тренер и советы по весу во время тренировки. Нужен свой API-ключ, без него приложение работает как обычно.</string>
@@ -362,7 +363,8 @@
     <string name="ai_model_hint">Пусто — %1$s</string>
     <string name="ai_check">Проверить подключение</string>
     <string name="ai_checking">Проверяю…</string>
-    <string name="ai_check_ok">Подключено, ИИ отвечает</string>
+    <string name="ai_check_ok">Подключено, доступно моделей: %1$d</string>
+    <string name="ai_models_docs">Модели %1$s в документации</string>
     <string name="ai_privacy">Когда ты спрашиваешь ИИ, текущая тренировка, история упражнения и рост с весом отправляются в %1$s. Ключ хранится на устройстве в зашифрованном виде и уходит только туда.</string>
     <string name="ai_error_connection">Нет соединения с интернетом</string>
     <string name="ai_error_key">Ключ не подошёл</string>

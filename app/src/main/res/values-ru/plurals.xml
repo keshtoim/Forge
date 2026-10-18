@@ -53,4 +53,10 @@
         <item quantity="many">%d кругов</item>
         <item quantity="other">%d круга</item>
     </plurals>
+    <plurals name="ai_models_found">
+        <item quantity="one">Список загружен: %d модель</item>
+        <item quantity="few">Список загружен: %d модели</item>
+        <item quantity="many">Список загружен: %d моделей</item>
+        <item quantity="other">Список загружен: %d модели</item>
+    </plurals>
 </resources>
