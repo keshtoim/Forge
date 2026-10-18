@@ -74,23 +74,43 @@ class ActiveWorkoutViewModel(
 
     fun toggleCompleted(id: Long, ghost: WorkoutSet?) = editSet(id) { set ->
         if (set.completed) return@editSet set.copy(completed = false)
-        val filled = set.copy(
-            weightKg = set.weightKg ?: ghost?.weightKg,
-            reps = set.reps ?: ghost?.reps,
-            durationSec = set.durationSec ?: ghost?.durationSec,
-            distanceM = set.distanceM ?: ghost?.distanceM,
-        )
-        if (filled.reps == null && filled.durationSec == null && filled.distanceM == null) return@editSet null
-        restTimer.start()
-        filled.copy(completed = true)
+        set.completedWith(ghost)?.also { restTimer.start() }
     }
 
-    fun addSet(workoutExerciseId: Long) {
+    // Completes every set of a superset round; rest starts once, after the whole round.
+    fun completeRound(sets: List<Pair<Long, WorkoutSet?>>) {
         viewModelScope.launch {
             setWrites.withLock {
-                val last = workoutDao.lastSet(workoutExerciseId)
-                val base = last?.copy(id = 0, completed = false) ?: WorkoutSet(workoutExerciseId = workoutExerciseId, position = 0)
-                workoutDao.insert(base.copy(position = (last?.position ?: -1) + 1))
+                val done = sets.mapNotNull { (id, ghost) -> workoutDao.getSet(id)?.takeIf { !it.completed }?.completedWith(ghost) }
+                done.forEach { workoutDao.update(it) }
+                if (done.isNotEmpty()) restTimer.start()
+            }
+        }
+    }
+
+    // Missing values come from last time; a set with nothing to log stays open.
+    private fun WorkoutSet.completedWith(ghost: WorkoutSet?): WorkoutSet? {
+        val filled = copy(
+            weightKg = weightKg ?: ghost?.weightKg,
+            reps = reps ?: ghost?.reps,
+            durationSec = durationSec ?: ghost?.durationSec,
+            distanceM = distanceM ?: ghost?.distanceM,
+        )
+        if (filled.reps == null && filled.durationSec == null && filled.distanceM == null) return null
+        return filled.copy(completed = true)
+    }
+
+    fun addSet(workoutExerciseId: Long) = addSets(listOf(workoutExerciseId))
+
+    // A new set starts from the values of the exercise's last one, so another round repeats the previous.
+    fun addSets(workoutExerciseIds: List<Long>) {
+        viewModelScope.launch {
+            setWrites.withLock {
+                workoutExerciseIds.forEach { workoutExerciseId ->
+                    val last = workoutDao.lastSet(workoutExerciseId)
+                    val base = last?.copy(id = 0, completed = false) ?: WorkoutSet(workoutExerciseId = workoutExerciseId, position = 0)
+                    workoutDao.insert(base.copy(position = (last?.position ?: -1) + 1))
+                }
             }
         }
     }

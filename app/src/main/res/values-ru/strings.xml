@@ -24,6 +24,9 @@
     <string name="superset_unlink">Разъединить</string>
     <string name="round_add">Больше кругов</string>
     <string name="round_remove">Меньше кругов</string>
+    <string name="round_progress">Круг %1$d из %2$d</string>
+    <string name="round_done_cta">Круг %1$d готов</string>
+    <string name="round_add_one">Ещё один круг</string>
 
     <string name="templates">Шаблоны</string>
     <string name="templates_empty">Шаблонов пока нет. Создай шаблон, чтобы быстрее начинать тренировки.</string>

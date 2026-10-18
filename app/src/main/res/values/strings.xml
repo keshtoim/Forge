@@ -25,6 +25,9 @@
     <string name="superset_unlink">Split up</string>
     <string name="round_add">More rounds</string>
     <string name="round_remove">Fewer rounds</string>
+    <string name="round_progress">Round %1$d of %2$d</string>
+    <string name="round_done_cta">Finish round %1$d</string>
+    <string name="round_add_one">One more round</string>
 
     <string name="templates">Templates</string>
     <string name="templates_empty">No templates yet. Create one to start workouts faster.</string>

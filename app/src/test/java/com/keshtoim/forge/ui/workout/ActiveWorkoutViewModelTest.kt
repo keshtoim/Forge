@@ -107,6 +107,24 @@ class ActiveWorkoutViewModelTest {
     }
 
     @Test
+    fun `a round completes every set with last time values and one more round repeats it`() {
+        runBlocking {
+            val squat = db.exerciseDao().insert(Exercise(builtInKey = "SQUAT", muscleGroup = MuscleGroup.QUADS, type = ExerciseType.WEIGHT_REPS))
+            db.workoutDao().addExercises(workoutId, listOf(squat))
+        }
+        val sets = runBlocking { db.workoutDao().observeDetail(workoutId).first()!! }.exercises.map { it.sets.single() }
+        val ghost = WorkoutSet(workoutExerciseId = 0, position = 0, weightKg = 50.0, reps = 10)
+
+        viewModel.completeRound(sets.map { it.id to ghost })
+        val done = await({ db.workoutDao().observeDetail(workoutId).first() }) { d -> d.exercises.all { e -> e.sets.all { it.completed } } }
+        assertEquals(listOf(50.0, 50.0), done.exercises.map { it.sets.single().weightKg })
+
+        viewModel.addSets(done.exercises.map { it.workoutExercise.id })
+        val more = await({ db.workoutDao().observeDetail(workoutId).first() }) { d -> d.exercises.all { it.sets.size == 2 } }
+        assertEquals(listOf(10, 10), more.exercises.map { e -> e.sets.single { !it.completed }.reps })
+    }
+
+    @Test
     fun `new set copies values of the last one`() {
         viewModel.editSet(setId) { SetField.WEIGHT.write(it, "80") }
         viewModel.addSet(workoutExerciseId)
