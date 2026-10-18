@@ -24,17 +24,33 @@ import com.openai.errors.OpenAIServiceException
 import com.openai.models.chat.completions.ChatCompletionCreateParams
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import java.io.IOException
 import com.anthropic.models.beta.messages.MessageCreateParams as ClaudeParams
 
-enum class AiProvider(val title: String, val defaultModel: String, val keyUrl: String) {
-    GEMINI("Gemini", "gemini-2.5-flash", "https://aistudio.google.com/apikey"),
-    OPENAI("ChatGPT", "gpt-5", "https://platform.openai.com/api-keys"),
-    CLAUDE("Claude", "claude-opus-5-5", "https://platform.claude.com/settings/keys"),
+// [knownModels] are offered until the provider's own list is loaded; the first one is the default.
+enum class AiProvider(val title: String, val knownModels: List<String>, val keyUrl: String, val modelsUrl: String) {
+    GEMINI(
+        "Gemini",
+        listOf("gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-2.5-flash"),
+        "https://aistudio.google.com/apikey",
+        "https://ai.google.dev/gemini-api/docs/models",
+    ),
+    OPENAI("ChatGPT", listOf("gpt-5", "gpt-5-mini", "gpt-5-nano"), "https://platform.openai.com/api-keys", "https://platform.openai.com/docs/models"),
+    CLAUDE(
+        "Claude",
+        listOf("claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"),
+        "https://platform.claude.com/settings/keys",
+        "https://platform.claude.com/docs/en/about-claude/models/overview",
+    ),
+    ;
+
+    val defaultModel get() = knownModels.first()
 }
 
 data class AiTurn(val fromUser: Boolean, val text: String)
 
+@Serializable
 data class AiModel(val id: String, val name: String)
 
 // Keeps the chosen model while the provider still offers it, otherwise falls back to the default, then to the first one listed.

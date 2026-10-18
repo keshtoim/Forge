@@ -7,6 +7,8 @@ import android.util.Base64
 import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -18,8 +20,13 @@ data class AiState(
     val provider: AiProvider = AiProvider.GEMINI,
     val keys: Map<AiProvider, String> = emptyMap(),
     val models: Map<AiProvider, String> = emptyMap(),
+    // Models the provider listed for the current key; empty until the list has been loaded.
+    val catalogs: Map<AiProvider, List<AiModel>> = emptyMap(),
 ) {
     fun model(provider: AiProvider) = models[provider]?.takeIf { it.isNotBlank() } ?: provider.defaultModel
+
+    fun choices(provider: AiProvider): List<AiModel> =
+        catalogs[provider].orEmpty().ifEmpty { provider.knownModels.map { AiModel(it, it) } }
 
     // Null while the assistant is off or the chosen provider has no key: nothing may be sent then.
     val config: AiConfig?
@@ -76,6 +83,9 @@ class AiSettings(context: Context, private val cipher: SecretCipher = KeystoreCi
             provider = prefs.getString(KEY_PROVIDER, null)?.let { name -> AiProvider.entries.firstOrNull { it.name == name } } ?: AiProvider.GEMINI,
             keys = AiProvider.entries.mapNotNull { p -> prefs.getString(keyOf(p), null)?.let(cipher::decrypt)?.let { p to it } }.toMap(),
             models = AiProvider.entries.mapNotNull { p -> prefs.getString(modelOf(p), null)?.let { p to it } }.toMap(),
+            catalogs = AiProvider.entries.mapNotNull { p ->
+                prefs.getString(catalogOf(p), null)?.let { runCatching { json.decodeFromString(CATALOG, it) }.getOrNull() }?.let { p to it }
+            }.toMap(),
         ),
     )
     val state: StateFlow<AiState> = _state
@@ -92,8 +102,13 @@ class AiSettings(context: Context, private val cipher: SecretCipher = KeystoreCi
 
     fun setKey(provider: AiProvider, key: String) {
         val trimmed = key.trim()
-        prefs.edit { if (trimmed.isEmpty()) remove(keyOf(provider)) else putString(keyOf(provider), cipher.encrypt(trimmed)) }
-        _state.value = _state.value.copy(keys = _state.value.keys + (provider to trimmed))
+        if (trimmed == _state.value.keys[provider].orEmpty()) return
+        // Another key may reach other models, so the loaded list goes with the old one.
+        prefs.edit {
+            if (trimmed.isEmpty()) remove(keyOf(provider)) else putString(keyOf(provider), cipher.encrypt(trimmed))
+            remove(catalogOf(provider))
+        }
+        _state.value = _state.value.copy(keys = _state.value.keys + (provider to trimmed), catalogs = _state.value.catalogs - provider)
     }
 
     fun setModel(provider: AiProvider, model: String) {
@@ -101,12 +116,31 @@ class AiSettings(context: Context, private val cipher: SecretCipher = KeystoreCi
         _state.value = _state.value.copy(models = _state.value.models + (provider to model.trim()))
     }
 
+    // Stores the list and moves the selection to a model the provider still offers.
+    fun setCatalog(provider: AiProvider, models: List<AiModel>) {
+        val current = _state.value.model(provider)
+        val chosen = selectModel(current, models.map { it.id }, provider.defaultModel)
+        prefs.edit {
+            putString(catalogOf(provider), json.encodeToString(CATALOG, models))
+            if (chosen != current) putString(modelOf(provider), chosen)
+        }
+        val state = _state.value
+        _state.value = state.copy(
+            catalogs = state.catalogs + (provider to models),
+            models = if (chosen != current) state.models + (provider to chosen) else state.models,
+        )
+    }
+
     private fun keyOf(provider: AiProvider) = "key_${provider.name}"
 
     private fun modelOf(provider: AiProvider) = "model_${provider.name}"
 
+    private fun catalogOf(provider: AiProvider) = "catalog_${provider.name}"
+
     private companion object {
         const val KEY_ENABLED = "enabled"
         const val KEY_PROVIDER = "provider"
+        val CATALOG = ListSerializer(AiModel.serializer())
+        val json = Json { ignoreUnknownKeys = true }
     }
 }

@@ -49,4 +49,21 @@ class AiSettingsTest {
         val raw = context.getSharedPreferences("ai", Context.MODE_PRIVATE).all.values.map { it.toString() }
         assertFalse(raw.any { "sk-proj-abc" in it })
     }
+
+    @Test
+    fun `a loaded model list is kept per key and moves the selection to an offered model`() {
+        val settings = AiSettings(context, cipher)
+        settings.setKey(AiProvider.OPENAI, "sk-one")
+        settings.setModel(AiProvider.OPENAI, "gpt-4-turbo")
+        assertEquals(AiProvider.OPENAI.knownModels, settings.state.value.choices(AiProvider.OPENAI).map { it.id })
+
+        val listed = listOf(AiModel("gpt-5-mini", "gpt-5-mini"), AiModel("gpt-5", "gpt-5"))
+        settings.setCatalog(AiProvider.OPENAI, listed)
+        assertEquals("gpt-5", settings.state.value.model(AiProvider.OPENAI))
+        assertEquals(listed, AiSettings(context, cipher).state.value.choices(AiProvider.OPENAI))
+
+        settings.setKey(AiProvider.OPENAI, "sk-two")
+        assertEquals(AiProvider.OPENAI.knownModels, settings.state.value.choices(AiProvider.OPENAI).map { it.id })
+        assertEquals(AiProvider.OPENAI.knownModels, AiSettings(context, cipher).state.value.choices(AiProvider.OPENAI).map { it.id })
+    }
 }

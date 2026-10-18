@@ -58,7 +58,7 @@ class AiAssistantTest {
         server.enqueue(json(200, """{"candidates":[{"content":{"role":"model","parts":[{"text":"Полторы минуты"}]},"finishReason":"STOP"}]}"""))
         assertEquals("Полторы минуты", ask(AiProvider.GEMINI))
         val request = server.takeRequest()
-        assertTrue(request.path.orEmpty().contains("gemini-2.5-flash:generateContent"))
+        assertTrue(request.path.orEmpty().contains("${AiProvider.GEMINI.defaultModel}:generateContent"))
         assertTrue(request.body.readUtf8().contains("Ты тренер."))
     }
 
