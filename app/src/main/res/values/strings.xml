@@ -371,4 +371,15 @@
     <string name="ai_error_limit">Request limit reached, try again later</string>
     <string name="ai_error_refused">The model declined this request</string>
     <string name="ai_error_other">Something went wrong. Try again</string>
+    <string name="coach_title">AI coach</string>
+    <string name="coach_open">Open the AI coach</string>
+    <string name="coach_intro">Ask about weight, rest, form or a swap for an exercise. The coach sees this workout and your past results.</string>
+    <string name="coach_hint">Ask the coach</string>
+    <string name="coach_send">Send</string>
+    <string name="coach_thinking">Thinking…</string>
+    <string name="coach_retry">Retry</string>
+    <string name="coach_q_weight">What weight next?</string>
+    <string name="coach_q_rest">How long to rest?</string>
+    <string name="coach_q_swap">Machine is taken, what instead?</string>
+    <string name="coach_q_form">What to watch in my form?</string>
 </resources>

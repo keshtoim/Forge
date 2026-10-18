@@ -12,6 +12,9 @@ interface BodyMeasurementDao {
     @Query("SELECT * FROM body_measurements ORDER BY epochDay")
     fun observeAll(): Flow<List<BodyMeasurement>>
 
+    @Query("SELECT weightKg FROM body_measurements WHERE weightKg IS NOT NULL ORDER BY epochDay DESC LIMIT 1")
+    suspend fun latestWeight(): Double?
+
     @Query("SELECT * FROM body_measurements WHERE epochDay = :epochDay")
     suspend fun getDay(epochDay: Long): BodyMeasurement?
 

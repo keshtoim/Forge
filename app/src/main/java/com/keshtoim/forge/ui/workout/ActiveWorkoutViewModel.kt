@@ -1,6 +1,10 @@
 package com.keshtoim.forge.ui.workout
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -10,10 +14,20 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.toRoute
 import com.keshtoim.forge.ForgeApplication
+import com.keshtoim.forge.data.UserPreferences
 import com.keshtoim.forge.data.ai.AiConnection
+import com.keshtoim.forge.data.ai.AiException
+import com.keshtoim.forge.data.ai.AiFailure
+import com.keshtoim.forge.data.ai.AiTurn
+import com.keshtoim.forge.data.ai.Athlete
+import com.keshtoim.forge.data.ai.ExerciseLog
+import com.keshtoim.forge.data.ai.coachPrompt
+import com.keshtoim.forge.data.db.BodyMeasurementDao
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseDao
+import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.WorkoutDao
+import com.keshtoim.forge.data.db.WorkoutDetail
 import com.keshtoim.forge.data.db.WorkoutExerciseWithSets
 import com.keshtoim.forge.data.db.WorkoutSet
 import com.keshtoim.forge.rest.RestTimer
@@ -25,6 +39,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.time.LocalDate
+import java.time.Period
+import java.util.Locale
 
 class ActiveWorkoutViewModel(
     savedStateHandle: SavedStateHandle,
@@ -32,6 +49,8 @@ class ActiveWorkoutViewModel(
     private val exerciseDao: ExerciseDao,
     private val restTimer: RestTimer,
     private val ai: AiConnection,
+    private val preferences: UserPreferences,
+    private val measurements: BodyMeasurementDao,
 ) : ViewModel() {
     private val workoutId = savedStateHandle.toRoute<ActiveWorkoutRoute>().id
 
@@ -47,6 +66,61 @@ class ActiveWorkoutViewModel(
     val aiStatus = ai.status
 
     fun verifyAi() = ai.verify()
+
+    val chat = mutableStateListOf<AiTurn>()
+    var coachBusy by mutableStateOf(false)
+        private set
+    var coachFailure by mutableStateOf<AiFailure?>(null)
+        private set
+
+    // [names] are display names by exerciseId; the prompt is rebuilt on every question so the coach sees the latest sets.
+    fun askCoach(text: String, names: Map<Long, String>, focusId: Long?) {
+        val question = text.trim()
+        if (question.isEmpty() || coachBusy) return
+        // After a failed request the question is still unanswered: append to it so turns keep alternating.
+        val last = chat.lastOrNull()
+        if (last?.fromUser == true) chat[chat.lastIndex] = last.copy(text = last.text + "\n" + question) else chat += AiTurn(true, question)
+        sendCoach(names, focusId)
+    }
+
+    fun retryCoach(names: Map<Long, String>, focusId: Long?) {
+        if (chat.lastOrNull()?.fromUser == true && !coachBusy) sendCoach(names, focusId)
+    }
+
+    private fun sendCoach(names: Map<Long, String>, focusId: Long?) {
+        val workout = detail.value ?: return
+        coachBusy = true
+        coachFailure = null
+        viewModelScope.launch {
+            try {
+                chat += AiTurn(false, ai.ask(coachSystem(workout, names, focusId), chat.toList()))
+            } catch (e: AiException) {
+                coachFailure = e.failure
+            }
+            coachBusy = false
+        }
+    }
+
+    private suspend fun coachSystem(workout: WorkoutDetail, names: Map<Long, String>, focusId: Long?): String {
+        val logs = workout.exercises.ordered().map { e ->
+            val exerciseId = e.workoutExercise.exerciseId
+            ExerciseLog(
+                name = names[exerciseId].orEmpty(),
+                type = exercises.value[exerciseId]?.type ?: ExerciseType.WEIGHT_REPS,
+                superset = e.workoutExercise.superset,
+                sets = e.sets,
+                lastTime = previous[exerciseId].orEmpty(),
+                onScreen = e.workoutExercise.id == focusId,
+            )
+        }
+        val athlete = Athlete(
+            heightCm = preferences.heightCm.value,
+            age = preferences.birthDate.value?.let { Period.between(it, LocalDate.now()).years },
+            weightKg = measurements.latestWeight(),
+        )
+        val minutes = (System.currentTimeMillis() - workout.workout.startedAt) / 60_000
+        return coachPrompt(Locale.getDefault().getDisplayLanguage(Locale.ENGLISH), athlete, workout.workout.name, minutes, logs)
+    }
 
     // Sets of the last finished workout per exerciseId, shown as placeholders.
     val previous = mutableStateMapOf<Long, List<WorkoutSet>>()
@@ -164,7 +238,9 @@ class ActiveWorkoutViewModel(
             initializer {
                 val app = this[APPLICATION_KEY] as ForgeApplication
                 val db = app.database
-                ActiveWorkoutViewModel(createSavedStateHandle(), db.workoutDao(), db.exerciseDao(), app.restTimer, app.aiConnection)
+                ActiveWorkoutViewModel(
+                    createSavedStateHandle(), db.workoutDao(), db.exerciseDao(), app.restTimer, app.aiConnection, app.preferences, db.bodyMeasurementDao(),
+                )
             }
         }
     }

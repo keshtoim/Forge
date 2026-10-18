@@ -114,6 +114,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
+import com.keshtoim.forge.data.ai.AiStatus
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.SetEffort
@@ -147,6 +148,7 @@ fun ActiveWorkoutScreen(
     var focusedId by rememberSaveable { mutableStateOf<Long?>(null) }
     var listOpen by rememberSaveable { mutableStateOf(false) }
     var confirmDiscard by remember { mutableStateOf(false) }
+    var coachOpen by rememberSaveable { mutableStateOf(false) }
 
     val view = LocalView.current
     DisposableEffect(view) {
@@ -176,7 +178,8 @@ fun ActiveWorkoutScreen(
                 Icon(Icons.Filled.KeyboardArrowDown, contentDescription = stringResource(R.string.back))
             }
             Text(rememberElapsed(workout.workout.startedAt), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
-            AiIndicator(aiStatus, Modifier.padding(end = 10.dp))
+            val openCoach = stringResource(R.string.coach_open)
+            AiIndicator(aiStatus, Modifier.padding(end = 10.dp).clip(CircleShape).clickable(onClickLabel = openCoach) { coachOpen = true })
             OutlinedButton(
                 onClick = finish,
                 border = BorderStroke(2.dp, MaterialTheme.colorScheme.onSurface),
@@ -296,6 +299,19 @@ fun ActiveWorkoutScreen(
                 }
             }
         }
+    }
+
+    if (coachOpen && aiStatus != AiStatus.Off) {
+        val names = remember(exercises) { exercises.mapValues { it.value.displayName(context) } }
+        CoachSheet(
+            status = aiStatus,
+            chat = viewModel.chat,
+            busy = viewModel.coachBusy,
+            failure = viewModel.coachFailure,
+            onAsk = { viewModel.askCoach(it, names, focus?.workoutExercise?.id) },
+            onRetry = { viewModel.retryCoach(names, focus?.workoutExercise?.id) },
+            onDismiss = { coachOpen = false },
+        )
     }
 
     if (listOpen) {

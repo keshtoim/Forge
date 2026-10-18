@@ -45,7 +45,7 @@ class ActiveWorkoutViewModelTest {
         val exercise = db.workoutDao().observeDetail(workoutId).first()!!.exercises.single()
         workoutExerciseId = exercise.workoutExercise.id
         setId = exercise.sets.single().id
-        viewModel = ActiveWorkoutViewModel(SavedStateHandle(mapOf("id" to workoutId)), db.workoutDao(), db.exerciseDao(), app.restTimer, app.aiConnection)
+        viewModel = ActiveWorkoutViewModel(SavedStateHandle(mapOf("id" to workoutId)), db.workoutDao(), db.exerciseDao(), app.restTimer, app.aiConnection, app.preferences, db.bodyMeasurementDao())
     }
 
     @After
