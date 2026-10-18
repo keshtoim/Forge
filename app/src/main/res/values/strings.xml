@@ -382,4 +382,9 @@
     <string name="coach_q_rest">How long to rest?</string>
     <string name="coach_q_swap">Machine is taken, what instead?</string>
     <string name="coach_q_form">What to watch in my form?</string>
+    <string name="advice_ask">AI tip</string>
+    <string name="advice_loading">The AI is picking a target…</string>
+    <string name="advice_target">AI suggests: %1$s</string>
+    <string name="advice_apply">Apply</string>
+    <string name="advice_dismiss">Hide</string>
 </resources>

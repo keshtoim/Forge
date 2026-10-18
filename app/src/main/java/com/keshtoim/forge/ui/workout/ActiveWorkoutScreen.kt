@@ -168,6 +168,7 @@ fun ActiveWorkoutScreen(
     }
 
     val workout = detail ?: return
+    val names = remember(exercises) { exercises.mapValues { it.value.displayName(context) } }
     val ordered = workout.exercises.ordered()
     val focus = ordered.firstOrNull { it.workoutExercise.id == focusedId } ?: workout.exercises.defaultFocus()
     val finish = { if (workout.exercises.any { e -> e.sets.any { it.completed } }) viewModel.finish(onFinished) else confirmDiscard = true }
@@ -203,6 +204,19 @@ fun ActiveWorkoutScreen(
         val round = group.currentRound().takeIf { group.size > 1 }
         val next = workout.exercises.nextUnfinished(focus.workoutExercise.id)
         val nextName = next?.let { exercises[it.workoutExercise.exerciseId]?.displayName(context) }
+        val adviceFooter: @Composable (WorkoutSet) -> Unit = { set ->
+            val type = workout.exercises.firstOrNull { it.workoutExercise.id == set.workoutExerciseId }
+                ?.let { exercises[it.workoutExercise.exerciseId]?.type } ?: ExerciseType.WEIGHT_REPS
+            if (aiStatus != AiStatus.Off) {
+                AdviceRow(
+                    state = viewModel.advice[set.id],
+                    type = type,
+                    onAsk = { viewModel.adviseSet(set, names, focus.workoutExercise.id) },
+                    onApply = { viewModel.applyAdvice(set.id, it) },
+                    onDismiss = { viewModel.dismissAdvice(set.id) },
+                )
+            }
+        }
 
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = 18.dp, end = 18.dp, top = 16.dp),
@@ -219,6 +233,7 @@ fun ActiveWorkoutScreen(
                     onBarChange = viewModel::setBar,
                     onAddRound = { viewModel.addSets(group.map { it.workoutExercise.id }) },
                     onOpenExercise = onOpenExercise,
+                    footer = adviceFooter,
                 )
             } else {
                 Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -242,6 +257,7 @@ fun ActiveWorkoutScreen(
                     onEdit = { transform -> current?.let { viewModel.editSet(it.id, transform) } },
                     onBarChange = { viewModel.setBar(exercise, it) },
                     onAdd = { viewModel.addSet(focus.workoutExercise.id) },
+                    footer = adviceFooter,
                 )
                 if (current == null) {
                     Text(
@@ -302,7 +318,6 @@ fun ActiveWorkoutScreen(
     }
 
     if (coachOpen && aiStatus != AiStatus.Off) {
-        val names = remember(exercises) { exercises.mapValues { it.value.displayName(context) } }
         CoachSheet(
             status = aiStatus,
             chat = viewModel.chat,
@@ -434,6 +449,7 @@ private fun SetList(
     onEdit: ((WorkoutSet) -> WorkoutSet) -> Unit,
     onBarChange: (Double?) -> Unit,
     onAdd: () -> Unit,
+    footer: @Composable (WorkoutSet) -> Unit,
 ) {
     val fields = SetField.forType(exercise.type)
     // Rows present when the exercise is opened appear at once; only sets added afterwards animate in.
@@ -447,7 +463,7 @@ private fun SetList(
                     val ghost = previous.getOrNull(index)
                     when {
                         set.completed -> DoneRow(index + 1, set, ghost, fields) { onReopen(set) }
-                        set == current -> SetCard(index + 1, set, ghost, exercise, onEdit, onBarChange, onExplain = { explaining = true })
+                        set == current -> SetCard(index + 1, set, ghost, exercise, onEdit, onBarChange, onExplain = { explaining = true }, footer = { footer(set) })
                         else -> UpcomingRow(index + 1, set, ghost, fields)
                     }
                 }
@@ -477,6 +493,7 @@ private fun SupersetRound(
     onBarChange: (Exercise, Double?) -> Unit,
     onAddRound: () -> Unit,
     onOpenExercise: (Long) -> Unit,
+    footer: @Composable (WorkoutSet) -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
     val context = LocalContext.current
@@ -519,7 +536,7 @@ private fun SupersetRound(
                             if (done.completed) DoneChip(n + 1, done, exercise) { onReopen(done) }
                         }
                     }
-                    if (set != null && round != null) {
+                    if (set != null) {
                         SetCard(
                             number = round + 1,
                             set = set,
@@ -529,6 +546,7 @@ private fun SupersetRound(
                             onBarChange = { onBarChange(exercise, it) },
                             onExplain = { explaining = true },
                             compact = true,
+                            footer = { footer(set) },
                         )
                     }
                 }
@@ -681,6 +699,7 @@ private fun SetCard(
     onExplain: () -> Unit,
     // Superset rounds stack several cards, so the fields share a row and rarer controls stay out.
     compact: Boolean = false,
+    footer: @Composable () -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
     val context = LocalContext.current
@@ -733,6 +752,7 @@ private fun SetCard(
                 }
                 EffortPicker(set.effort, onExplain.takeUnless { compact }) { effort -> onEdit { it.copy(effort = effort) } }
                 if (exercise.type == ExerciseType.WEIGHT_REPS && !compact) BarSelector(exercise.barKg, onBarChange)
+                footer()
             }
         }
     }

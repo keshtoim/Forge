@@ -114,4 +114,20 @@ class CoachChatTest {
         val body = server.takeRequest().body.readUtf8()
         assertTrue(body.contains("Жим лёжа") && body.contains("Answer in "))
     }
+
+    @Test
+    fun `set advice is applied to the set on screen`() {
+        val set = runBlocking { viewModel.detail.first { it != null }!! }.exercises.single().sets.minBy { it.position }
+        server.enqueue(answer(200, """{\"weightKg\": 62.5, \"reps\": 6, \"durationSec\": null, \"distanceM\": null, \"reason\": \"Был запас\"}"""))
+        viewModel.adviseSet(set, mapOf(bench to "Жим лёжа"), focusId = set.workoutExerciseId)
+        val ready = runBlocking { withTimeout(10_000) { while (viewModel.advice[set.id] !is AdviceState.Ready) delay(20) }; viewModel.advice[set.id] as AdviceState.Ready }
+        assertEquals("Был запас", ready.advice.reason)
+        assertTrue(server.takeRequest().body.readUtf8().contains("set 1 of Жим лёжа"))
+
+        viewModel.applyAdvice(set.id, ready.advice)
+        val workoutId = viewModel.detail.value!!.workout.id
+        val applied = runBlocking { withTimeout(5_000) { db.workoutDao().observeDetail(workoutId).first { d -> d!!.exercises.single().sets.any { it.weightKg == 62.5 } } } }!!
+        assertEquals(6, applied.exercises.single().sets.first { it.id == set.id }.reps)
+        assertEquals(null, viewModel.advice[set.id])
+    }
 }

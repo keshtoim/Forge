@@ -21,7 +21,10 @@ import com.keshtoim.forge.data.ai.AiFailure
 import com.keshtoim.forge.data.ai.AiTurn
 import com.keshtoim.forge.data.ai.Athlete
 import com.keshtoim.forge.data.ai.ExerciseLog
+import com.keshtoim.forge.data.ai.SetAdvice
 import com.keshtoim.forge.data.ai.coachPrompt
+import com.keshtoim.forge.data.ai.parseSetAdvice
+import com.keshtoim.forge.data.ai.setAdviceRequest
 import com.keshtoim.forge.data.db.BodyMeasurementDao
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseDao
@@ -99,6 +102,35 @@ class ActiveWorkoutViewModel(
             }
             coachBusy = false
         }
+    }
+
+    // Advice per set id; it lives only while the screen does.
+    val advice = mutableStateMapOf<Long, AdviceState>()
+
+    fun adviseSet(set: WorkoutSet, names: Map<Long, String>, focusId: Long?) {
+        val workout = detail.value ?: return
+        val owner = workout.exercises.firstOrNull { it.workoutExercise.id == set.workoutExerciseId } ?: return
+        val exerciseId = owner.workoutExercise.exerciseId
+        val number = owner.sets.sortedBy { it.position }.indexOfFirst { it.id == set.id } + 1
+        advice[set.id] = AdviceState.Loading
+        viewModelScope.launch {
+            advice[set.id] = try {
+                val question = setAdviceRequest(names[exerciseId].orEmpty(), exercises.value[exerciseId]?.type ?: ExerciseType.WEIGHT_REPS, number)
+                parseSetAdvice(ai.ask(coachSystem(workout, names, focusId), listOf(AiTurn(true, question))))
+                    ?.let { AdviceState.Ready(it) } ?: AdviceState.Failed(AiFailure.OTHER)
+            } catch (e: AiException) {
+                AdviceState.Failed(e.failure)
+            }
+        }
+    }
+
+    fun applyAdvice(setId: Long, suggestion: SetAdvice) {
+        editSet(setId) { suggestion.applyTo(it) }
+        advice.remove(setId)
+    }
+
+    fun dismissAdvice(setId: Long) {
+        advice.remove(setId)
     }
 
     private suspend fun coachSystem(workout: WorkoutDetail, names: Map<Long, String>, focusId: Long?): String {
@@ -244,4 +276,10 @@ class ActiveWorkoutViewModel(
             }
         }
     }
+}
+
+sealed interface AdviceState {
+    data object Loading : AdviceState
+    data class Ready(val advice: SetAdvice) : AdviceState
+    data class Failed(val failure: AiFailure) : AdviceState
 }

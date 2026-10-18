@@ -381,4 +381,9 @@
     <string name="coach_q_rest">Сколько отдыхать?</string>
     <string name="coach_q_swap">Тренажёр занят, чем заменить?</string>
     <string name="coach_q_form">На что смотреть в технике?</string>
+    <string name="advice_ask">Совет ИИ</string>
+    <string name="advice_loading">ИИ подбирает подход…</string>
+    <string name="advice_target">ИИ советует: %1$s</string>
+    <string name="advice_apply">Применить</string>
+    <string name="advice_dismiss">Скрыть</string>
 </resources>
