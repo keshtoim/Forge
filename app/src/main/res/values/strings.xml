@@ -76,6 +76,11 @@
     <string name="plan_edit">Planned workout</string>
     <string name="plan_template">Workout</string>
     <string name="plan_no_templates">Create a template in Library first.</string>
+    <string name="plan_source_template">From template</string>
+    <string name="plan_source_own">Own exercises</string>
+    <string name="plan_own_name">Name</string>
+    <string name="plan_own_default">Custom workout</string>
+    <string name="plan_save_template">Also save as a template</string>
     <string name="plan_date">Date</string>
     <string name="plan_calendar">Calendar</string>
     <string name="plan_time">Time</string>

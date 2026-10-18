@@ -6,6 +6,7 @@ import android.os.Build
 import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,13 +26,17 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,11 +48,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
@@ -64,15 +75,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
+import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
+import com.keshtoim.forge.ui.displayName
+import com.keshtoim.forge.ui.templates.editableExercises
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
@@ -85,8 +101,13 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlanScreen(onBack: () -> Unit, viewModel: PlanViewModel = viewModel(factory = PlanViewModel.Factory)) {
+fun PlanScreen(
+    onBack: () -> Unit,
+    onAddExercises: () -> Unit,
+    viewModel: PlanViewModel = viewModel(factory = PlanViewModel.Factory),
+) {
     val templates by viewModel.templates.collectAsStateWithLifecycle()
+    val exercises by viewModel.exercises.collectAsStateWithLifecycle()
     val list = templates ?: return
     val isNew = viewModel.planId == 0L
     val locale = Locale.getDefault()
@@ -96,10 +117,14 @@ fun PlanScreen(onBack: () -> Unit, viewModel: PlanViewModel = viewModel(factory 
     val dateLabel = viewModel.date.format(DateTimeFormatter.ofPattern("EEE, d MMMM", locale))
     val context = LocalContext.current
     // The plan is saved whatever the answer; without the permission the reminder just stays silent.
-    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { viewModel.save(onBack) }
+    val fallbackName = stringResource(R.string.plan_own_default)
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { viewModel.save(fallbackName, onBack) }
 
     LaunchedEffect(list) {
-        if (isNew && viewModel.templateId == null) viewModel.templateId = list.firstOrNull()?.template?.id
+        if (isNew && viewModel.templateId == null) {
+            val first = list.firstOrNull()
+            if (first != null) viewModel.templateId = first.template.id else viewModel.own = true
+        }
     }
 
     Scaffold(
@@ -117,9 +142,9 @@ fun PlanScreen(onBack: () -> Unit, viewModel: PlanViewModel = viewModel(factory 
                 onClick = {
                     val askNotifications = viewModel.remindBefore != null && Build.VERSION.SDK_INT >= 33 &&
                         ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-                    if (askNotifications) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS) else viewModel.save(onBack)
+                    if (askNotifications) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS) else viewModel.save(fallbackName, onBack)
                 },
-                enabled = viewModel.templateId != null,
+                enabled = viewModel.canSave,
                 modifier = Modifier.navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp).fillMaxWidth().height(56.dp),
             ) {
                 Text(if (isNew) stringResource(R.string.plan_save_on, dateLabel) else stringResource(R.string.save))
@@ -133,6 +158,35 @@ fun PlanScreen(onBack: () -> Unit, viewModel: PlanViewModel = viewModel(factory 
         ) {
             item {
                 Section(stringResource(R.string.plan_template)) {
+                    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+                        listOf(false to R.string.plan_source_template, true to R.string.plan_source_own).forEachIndexed { index, (own, label) ->
+                            SegmentedButton(
+                                selected = viewModel.own == own,
+                                onClick = { viewModel.own = own },
+                                shape = SegmentedButtonDefaults.itemShape(index, 2),
+                                icon = {},
+                            ) { FitText(stringResource(label)) }
+                        }
+                    }
+                    if (viewModel.own) {
+                        TextField(
+                            value = viewModel.ownName,
+                            onValueChange = { viewModel.ownName = it },
+                            label = { Text(stringResource(R.string.plan_own_name)) },
+                            placeholder = { Text(fallbackName) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                            shape = MaterialTheme.shapes.medium,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = colors.surfaceContainerHigh,
+                                unfocusedContainerColor = colors.surfaceContainerHigh,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                            ),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        )
+                        return@Section
+                    }
                     if (list.isEmpty()) {
                         Text(
                             stringResource(R.string.plan_no_templates),
@@ -159,6 +213,29 @@ fun PlanScreen(onBack: () -> Unit, viewModel: PlanViewModel = viewModel(factory 
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                             modifier = Modifier.clickable { viewModel.templateId = t.template.id },
                         )
+                    }
+                }
+            }
+            if (viewModel.own) {
+                editableExercises(viewModel.items) { exercises[it.exerciseId]?.displayName(context).orEmpty() }
+                item {
+                    OutlinedButton(
+                        onClick = onAddExercises,
+                        shape = CircleShape,
+                        border = BorderStroke(1.5.dp, colors.surfaceVariant),
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = null)
+                        Text(stringResource(R.string.add_exercises), modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+                item {
+                    Row(
+                        Modifier.fillMaxWidth().clip(MaterialTheme.shapes.small).toggleable(viewModel.saveAsTemplate, role = Role.Checkbox) { viewModel.saveAsTemplate = it },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(checked = viewModel.saveAsTemplate, onCheckedChange = null, modifier = Modifier.padding(12.dp))
+                        Text(stringResource(R.string.plan_save_template), style = MaterialTheme.typography.bodyLarge)
                     }
                 }
             }

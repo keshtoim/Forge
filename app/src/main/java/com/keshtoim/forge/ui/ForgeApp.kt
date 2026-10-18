@@ -5,20 +5,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
@@ -41,16 +41,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -62,26 +62,27 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.keshtoim.forge.R
-import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.data.db.Workout
 import com.keshtoim.forge.rest.Rest
 import com.keshtoim.forge.ui.exercises.ExerciseDetailScreen
 import com.keshtoim.forge.ui.exercises.ExercisePickerScreen
 import com.keshtoim.forge.ui.exercises.LocalBodyType
-import com.keshtoim.forge.ui.library.LibraryScreen
-import com.keshtoim.forge.ui.more.MoreScreen
-import com.keshtoim.forge.ui.plan.PlanScreen
-import com.keshtoim.forge.ui.profile.ProfileScreen
 import com.keshtoim.forge.ui.exercises.PICKED_EXERCISES
 import com.keshtoim.forge.ui.history.HistoryScreen
 import com.keshtoim.forge.ui.history.MeasureScreen
 import com.keshtoim.forge.ui.history.WorkoutDetailScreen
+import com.keshtoim.forge.ui.library.LibraryScreen
+import com.keshtoim.forge.ui.more.MoreScreen
 import com.keshtoim.forge.ui.onboarding.BodyTypeScreen
+import com.keshtoim.forge.ui.plan.PlanScreen
+import com.keshtoim.forge.ui.plan.PlanViewModel
+import com.keshtoim.forge.ui.profile.ProfileScreen
 import com.keshtoim.forge.ui.progress.ExerciseProgressScreen
 import com.keshtoim.forge.ui.progress.ProgressScreen
 import com.keshtoim.forge.ui.settings.SettingsScreen
 import com.keshtoim.forge.ui.templates.TemplateEditorScreen
 import com.keshtoim.forge.ui.templates.TemplateEditorViewModel
+import com.keshtoim.forge.ui.theme.ForgeTheme
 import com.keshtoim.forge.ui.workout.ActiveWorkoutScreen
 import com.keshtoim.forge.ui.workout.ActiveWorkoutViewModel
 import com.keshtoim.forge.ui.workout.WorkoutHomeScreen
@@ -260,7 +261,13 @@ private fun MainScreen(viewModel: ForgeViewModel) {
                 )
             }
             composable<PlanRoute> { entry ->
-                PlanScreen(onBack = { entry.ifResumed { navController.popBackStack() } })
+                val plan: PlanViewModel = viewModel(factory = PlanViewModel.Factory)
+                PickedExercisesEffect(entry, plan::addExercises)
+                PlanScreen(
+                    onBack = { entry.ifResumed { navController.popBackStack() } },
+                    onAddExercises = { entry.ifResumed { navController.navigate(ExercisePickerRoute) } },
+                    viewModel = plan,
+                )
             }
             composable<SettingsRoute> { entry ->
                 SettingsScreen(onBack = { entry.ifResumed { navController.popBackStack() } })

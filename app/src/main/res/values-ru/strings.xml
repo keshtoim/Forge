@@ -75,6 +75,11 @@
     <string name="plan_edit">План тренировки</string>
     <string name="plan_template">Тренировка</string>
     <string name="plan_no_templates">Сначала создай шаблон в «Справочниках».</string>
+    <string name="plan_source_template">По шаблону</string>
+    <string name="plan_source_own">Свои упражнения</string>
+    <string name="plan_own_name">Название</string>
+    <string name="plan_own_default">Своя тренировка</string>
+    <string name="plan_save_template">Сохранить как шаблон</string>
     <string name="plan_date">Дата</string>
     <string name="plan_calendar">Календарь</string>
     <string name="plan_time">Время</string>
