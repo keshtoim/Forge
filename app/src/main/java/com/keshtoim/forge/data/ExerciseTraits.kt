@@ -2,6 +2,7 @@ package com.keshtoim.forge.data
 
 import com.keshtoim.forge.data.db.Discipline
 import com.keshtoim.forge.data.db.Discipline.CARDIO
+import com.keshtoim.forge.data.db.Discipline.PLYOMETRIC
 import com.keshtoim.forge.data.db.Discipline.POWERLIFTING
 import com.keshtoim.forge.data.db.Discipline.STRENGTH
 import com.keshtoim.forge.data.db.Discipline.WEIGHTLIFTING
@@ -9,6 +10,8 @@ import com.keshtoim.forge.data.db.Equipment
 import com.keshtoim.forge.data.db.Equipment.BARBELL
 import com.keshtoim.forge.data.db.Equipment.CABLE
 import com.keshtoim.forge.data.db.Equipment.DUMBBELL
+import com.keshtoim.forge.data.db.Equipment.FITBALL
+import com.keshtoim.forge.data.db.Equipment.KETTLEBELL
 import com.keshtoim.forge.data.db.Equipment.MACHINE
 import com.keshtoim.forge.data.db.Equipment.NONE
 import com.keshtoim.forge.data.db.Exercise
@@ -91,6 +94,57 @@ val BuiltInExercise.traits: ExerciseTraits
         BuiltInExercise.ELLIPTICAL -> ExerciseTraits(Mechanics.OTHER, CARDIO, MACHINE, Force.OTHER)
         BuiltInExercise.STAIR_CLIMBER -> ExerciseTraits(Mechanics.OTHER, CARDIO, MACHINE, Force.OTHER)
         BuiltInExercise.JUMP_ROPE -> ExerciseTraits(Mechanics.OTHER, CARDIO, Equipment.OTHER, Force.OTHER)
+        BuiltInExercise.PEC_DECK -> ExerciseTraits(ISOLATION, STRENGTH, MACHINE, PUSH)
+        BuiltInExercise.INCLINE_DUMBBELL_FLY -> ExerciseTraits(ISOLATION, STRENGTH, DUMBBELL, PUSH)
+        BuiltInExercise.SMITH_INCLINE_PRESS -> ExerciseTraits(COMPOUND, STRENGTH, MACHINE, PUSH)
+        BuiltInExercise.CHEST_DIP -> ExerciseTraits(COMPOUND, STRENGTH, NONE, PUSH)
+        BuiltInExercise.DUMBBELL_PULLOVER -> ExerciseTraits(ISOLATION, STRENGTH, DUMBBELL, PULL)
+        BuiltInExercise.CLOSE_GRIP_PULLDOWN -> ExerciseTraits(COMPOUND, STRENGTH, CABLE, PULL)
+        BuiltInExercise.STRAIGHT_ARM_PULLDOWN -> ExerciseTraits(ISOLATION, STRENGTH, CABLE, PULL)
+        BuiltInExercise.INVERTED_ROW -> ExerciseTraits(COMPOUND, STRENGTH, NONE, PULL)
+        BuiltInExercise.CHEST_SUPPORTED_ROW -> ExerciseTraits(COMPOUND, STRENGTH, DUMBBELL, PULL)
+        BuiltInExercise.MACHINE_ROW -> ExerciseTraits(COMPOUND, STRENGTH, MACHINE, PULL)
+        BuiltInExercise.MACHINE_SHOULDER_PRESS -> ExerciseTraits(COMPOUND, STRENGTH, MACHINE, PUSH)
+        BuiltInExercise.CABLE_LATERAL_RAISE -> ExerciseTraits(ISOLATION, STRENGTH, CABLE, PUSH)
+        BuiltInExercise.REVERSE_PEC_DECK -> ExerciseTraits(ISOLATION, STRENGTH, MACHINE, PULL)
+        BuiltInExercise.PIKE_PUSH_UP -> ExerciseTraits(COMPOUND, STRENGTH, NONE, PUSH)
+        BuiltInExercise.EZ_BAR_CURL -> ExerciseTraits(ISOLATION, STRENGTH, BARBELL, PULL)
+        BuiltInExercise.INCLINE_DUMBBELL_CURL -> ExerciseTraits(ISOLATION, STRENGTH, DUMBBELL, PULL)
+        BuiltInExercise.CONCENTRATION_CURL -> ExerciseTraits(ISOLATION, STRENGTH, DUMBBELL, PULL)
+        BuiltInExercise.MACHINE_CURL -> ExerciseTraits(ISOLATION, STRENGTH, MACHINE, PULL)
+        BuiltInExercise.ROPE_PUSHDOWN -> ExerciseTraits(ISOLATION, STRENGTH, CABLE, PUSH)
+        BuiltInExercise.DUMBBELL_KICKBACK -> ExerciseTraits(ISOLATION, STRENGTH, DUMBBELL, PUSH)
+        BuiltInExercise.BENCH_DIP -> ExerciseTraits(COMPOUND, STRENGTH, NONE, PUSH)
+        BuiltInExercise.DIAMOND_PUSH_UP -> ExerciseTraits(COMPOUND, STRENGTH, NONE, PUSH)
+        BuiltInExercise.CABLE_OVERHEAD_EXTENSION -> ExerciseTraits(ISOLATION, STRENGTH, CABLE, PUSH)
+        BuiltInExercise.REVERSE_WRIST_CURL -> ExerciseTraits(ISOLATION, STRENGTH, BARBELL, PULL)
+        BuiltInExercise.REVERSE_CURL -> ExerciseTraits(ISOLATION, STRENGTH, BARBELL, PULL)
+        BuiltInExercise.DEAD_HANG -> ExerciseTraits(Mechanics.OTHER, STRENGTH, NONE, STATIC)
+        BuiltInExercise.FARMERS_WALK -> ExerciseTraits(COMPOUND, STRENGTH, DUMBBELL, Force.OTHER)
+        BuiltInExercise.GOBLET_SQUAT -> ExerciseTraits(COMPOUND, STRENGTH, KETTLEBELL, PUSH)
+        BuiltInExercise.STEP_UP -> ExerciseTraits(COMPOUND, STRENGTH, DUMBBELL, PUSH)
+        BuiltInExercise.WALL_SIT -> ExerciseTraits(Mechanics.OTHER, STRENGTH, NONE, STATIC)
+        BuiltInExercise.SMITH_SQUAT -> ExerciseTraits(COMPOUND, STRENGTH, MACHINE, PUSH)
+        BuiltInExercise.BOX_JUMP -> ExerciseTraits(COMPOUND, PLYOMETRIC, Equipment.OTHER, PUSH)
+        BuiltInExercise.SEATED_LEG_CURL -> ExerciseTraits(ISOLATION, STRENGTH, MACHINE, PULL)
+        BuiltInExercise.NORDIC_CURL -> ExerciseTraits(ISOLATION, STRENGTH, NONE, PULL)
+        BuiltInExercise.DUMBBELL_ROMANIAN_DEADLIFT -> ExerciseTraits(COMPOUND, STRENGTH, DUMBBELL, PULL)
+        BuiltInExercise.STABILITY_BALL_LEG_CURL -> ExerciseTraits(ISOLATION, STRENGTH, FITBALL, PULL)
+        BuiltInExercise.KETTLEBELL_SWING -> ExerciseTraits(COMPOUND, STRENGTH, KETTLEBELL, PULL)
+        BuiltInExercise.HIP_ABDUCTION_MACHINE -> ExerciseTraits(ISOLATION, STRENGTH, MACHINE, PUSH)
+        BuiltInExercise.SUMO_DEADLIFT -> ExerciseTraits(COMPOUND, POWERLIFTING, BARBELL, PULL)
+        BuiltInExercise.CABLE_PULL_THROUGH -> ExerciseTraits(COMPOUND, STRENGTH, CABLE, PULL)
+        BuiltInExercise.LEG_PRESS_CALF_RAISE -> ExerciseTraits(ISOLATION, STRENGTH, MACHINE, PUSH)
+        BuiltInExercise.SINGLE_LEG_CALF_RAISE -> ExerciseTraits(ISOLATION, STRENGTH, DUMBBELL, PUSH)
+        BuiltInExercise.SIDE_PLANK -> ExerciseTraits(Mechanics.OTHER, STRENGTH, NONE, STATIC)
+        BuiltInExercise.BICYCLE_CRUNCH -> ExerciseTraits(ISOLATION, STRENGTH, NONE, PULL)
+        BuiltInExercise.LYING_LEG_RAISE -> ExerciseTraits(ISOLATION, STRENGTH, NONE, PULL)
+        BuiltInExercise.DEAD_BUG -> ExerciseTraits(Mechanics.OTHER, STRENGTH, NONE, STATIC)
+        BuiltInExercise.PALLOF_PRESS -> ExerciseTraits(Mechanics.OTHER, STRENGTH, CABLE, STATIC)
+        BuiltInExercise.SWIMMING -> ExerciseTraits(Mechanics.OTHER, CARDIO, NONE, Force.OTHER)
+        BuiltInExercise.WALKING -> ExerciseTraits(Mechanics.OTHER, CARDIO, NONE, Force.OTHER)
+        BuiltInExercise.BURPEE -> ExerciseTraits(COMPOUND, PLYOMETRIC, NONE, Force.OTHER)
+        BuiltInExercise.AIR_BIKE -> ExerciseTraits(Mechanics.OTHER, CARDIO, MACHINE, Force.OTHER)
     }
 
 // Built-ins come from code so existing installs pick up corrections; custom exercises use their own columns.

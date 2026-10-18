@@ -779,4 +779,616 @@
         <item>Вращение всей рукой</item>
         <item>Приземление на пятки</item>
     </string-array>
+
+    <string-array name="guide_pec_deck_steps">
+        <item>Сядь, прижми спину к спинке, рукоятки на уровне груди.</item>
+        <item>Слегка согни локти и зафиксируй этот угол.</item>
+        <item>На выдохе сведи руки перед грудью, на секунду напряги грудные.</item>
+        <item>Медленно разведи руки до лёгкого растяжения груди.</item>
+    </string-array>
+    <string-array name="guide_pec_deck_mistakes">
+        <item>Плечи уходят вперёд и вверх</item>
+        <item>Слишком широкое разведение с болью в плечах</item>
+        <item>Рывки и отбивание грузов</item>
+    </string-array>
+
+    <string-array name="guide_incline_dumbbell_fly_steps">
+        <item>Ляг на скамью с наклоном 30–45°, гантели над грудью, ладони друг к другу.</item>
+        <item>Слегка согни локти и сохраняй этот угол.</item>
+        <item>На вдохе разведи руки по дуге до растяжения груди.</item>
+        <item>На выдохе сведи гантели по той же дуге.</item>
+    </string-array>
+    <string-array name="guide_incline_dumbbell_fly_mistakes">
+        <item>Руки сгибаются и разводка превращается в жим</item>
+        <item>Гантели опускаются ниже уровня плеч</item>
+        <item>Слишком большой вес</item>
+    </string-array>
+
+    <string-array name="guide_smith_incline_press_steps">
+        <item>Поставь скамью с наклоном 30° так, чтобы гриф опускался к верху груди.</item>
+        <item>Сведи лопатки, стопы на полу, хват чуть шире плеч.</item>
+        <item>Сними гриф с упоров поворотом кистей и опусти к груди.</item>
+        <item>Выжми вверх, не выпрямляя локти до щелчка.</item>
+    </string-array>
+    <string-array name="guide_smith_incline_press_mistakes">
+        <item>Скамья стоит так, что гриф идёт к шее</item>
+        <item>Лопатки не сведены</item>
+        <item>Отбив от груди</item>
+    </string-array>
+
+    <string-array name="guide_chest_dip_steps">
+        <item>Встань в упор на брусьях, ноги согни и скрести.</item>
+        <item>Наклони корпус вперёд примерно на 30°, локти слегка в стороны.</item>
+        <item>Опускайся, пока плечо не станет параллельно полу.</item>
+        <item>Выжмись вверх, сохраняя наклон корпуса.</item>
+    </string-array>
+    <string-array name="guide_chest_dip_mistakes">
+        <item>Слишком глубокое опускание с болью в плечах</item>
+        <item>Корпус вертикальный, нагрузка уходит в трицепс</item>
+        <item>Раскачка ногами</item>
+    </string-array>
+
+    <string-array name="guide_dumbbell_pullover_steps">
+        <item>Ляг поперёк или вдоль скамьи, держи гантель обеими руками над грудью.</item>
+        <item>Слегка согни локти и зафиксируй их.</item>
+        <item>На вдохе опусти гантель за голову до растяжения груди и широчайших.</item>
+        <item>На выдохе верни гантель над грудью.</item>
+    </string-array>
+    <string-array name="guide_dumbbell_pullover_mistakes">
+        <item>Локти сгибаются и разгибаются, работает трицепс</item>
+        <item>Гантель опускается слишком низко</item>
+        <item>Поясница сильно прогибается</item>
+    </string-array>
+
+    <string-array name="guide_close_grip_pulldown_steps">
+        <item>Возьми V-образную рукоять, сядь и зафиксируй бёдра под валиками.</item>
+        <item>Слегка отклонись назад, грудь вперёд.</item>
+        <item>Тяни рукоять к верху груди, сводя лопатки и опуская локти вниз.</item>
+        <item>Медленно верни рукоять, давая широчайшим растянуться.</item>
+    </string-array>
+    <string-array name="guide_close_grip_pulldown_mistakes">
+        <item>Тяга за счёт раскачки корпуса</item>
+        <item>Плечи поднимаются к ушам</item>
+        <item>Неполная амплитуда вверху</item>
+    </string-array>
+
+    <string-array name="guide_straight_arm_pulldown_steps">
+        <item>Встань лицом к верхнему блоку, возьми прямую рукоять или канат, наклонись чуть вперёд.</item>
+        <item>Руки почти прямые, локти слегка согнуты.</item>
+        <item>Опусти рукоять по дуге к бёдрам за счёт широчайших.</item>
+        <item>Медленно верни руки до уровня головы.</item>
+    </string-array>
+    <string-array name="guide_straight_arm_pulldown_mistakes">
+        <item>Сгибание локтей, работает трицепс</item>
+        <item>Раскачка корпусом</item>
+        <item>Плечи поднимаются вверх</item>
+    </string-array>
+
+    <string-array name="guide_inverted_row_steps">
+        <item>Установи гриф в стойках на уровне пояса, ляг под него и возьмись хватом чуть шире плеч.</item>
+        <item>Тело прямое от пяток до головы, ягодицы напряжены.</item>
+        <item>Подтяни грудь к грифу, сводя лопатки.</item>
+        <item>Плавно опустись на прямые руки.</item>
+    </string-array>
+    <string-array name="guide_inverted_row_mistakes">
+        <item>Таз провисает</item>
+        <item>Тяга подбородком вперёд</item>
+        <item>Рывки вместо подтягивания</item>
+    </string-array>
+
+    <string-array name="guide_chest_supported_row_steps">
+        <item>Ляг грудью на скамью с наклоном 30–45°, гантели в опущенных руках.</item>
+        <item>Шея нейтрально, грудь прижата к скамье.</item>
+        <item>Тяни гантели к поясу, сводя лопатки.</item>
+        <item>Медленно опусти гантели до полного выпрямления рук.</item>
+    </string-array>
+    <string-array name="guide_chest_supported_row_mistakes">
+        <item>Грудь отрывается от скамьи</item>
+        <item>Тяга к плечам вместо пояса</item>
+        <item>Короткая амплитуда</item>
+    </string-array>
+
+    <string-array name="guide_machine_row_steps">
+        <item>Сядь, прижми грудь к упору, возьмись за рукояти.</item>
+        <item>Спина ровная, плечи опущены.</item>
+        <item>Тяни рукояти к себе, сводя лопатки и ведя локти назад.</item>
+        <item>Медленно верни рукояти, позволяя лопаткам разойтись.</item>
+    </string-array>
+    <string-array name="guide_machine_row_mistakes">
+        <item>Грудь отрывается от упора</item>
+        <item>Тяга одними руками без лопаток</item>
+        <item>Бросание веса назад</item>
+    </string-array>
+
+    <string-array name="guide_machine_shoulder_press_steps">
+        <item>Настрой сиденье так, чтобы рукояти были на уровне плеч.</item>
+        <item>Прижми спину к спинке, стопы на полу.</item>
+        <item>Выжми рукояти вверх до почти прямых рук.</item>
+        <item>Медленно опусти до уровня плеч.</item>
+    </string-array>
+    <string-array name="guide_machine_shoulder_press_mistakes">
+        <item>Поясница отрывается от спинки</item>
+        <item>Локти выпрямляются до щелчка</item>
+        <item>Неполная амплитуда внизу</item>
+    </string-array>
+
+    <string-array name="guide_cable_lateral_raise_steps">
+        <item>Встань боком к нижнему блоку, возьми рукоять дальней рукой.</item>
+        <item>Слегка согни локоть, корпус чуть наклони от блока.</item>
+        <item>Подними руку в сторону до уровня плеча.</item>
+        <item>Медленно опусти, не давая весу упасть.</item>
+    </string-array>
+    <string-array name="guide_cable_lateral_raise_mistakes">
+        <item>Подъём выше плеча с подключением трапеции</item>
+        <item>Раскачка корпусом</item>
+        <item>Рука сгибается сильнее по ходу движения</item>
+    </string-array>
+
+    <string-array name="guide_reverse_pec_deck_steps">
+        <item>Сядь лицом к спинке тренажёра, рукояти на уровне плеч.</item>
+        <item>Руки почти прямые, локти слегка согнуты.</item>
+        <item>Разведи руки назад, работая задними дельтами.</item>
+        <item>Медленно верни руки вперёд.</item>
+    </string-array>
+    <string-array name="guide_reverse_pec_deck_mistakes">
+        <item>Сведение лопаток вместо работы плеч</item>
+        <item>Рывки</item>
+        <item>Слишком большой вес и короткая амплитуда</item>
+    </string-array>
+
+    <string-array name="guide_pike_push_up_steps">
+        <item>Встань в упор лёжа и подними таз вверх, чтобы тело образовало перевёрнутую букву V.</item>
+        <item>Руки чуть шире плеч, голова между руками.</item>
+        <item>Сгибая локти, опусти макушку к полу.</item>
+        <item>Выжмись обратно в исходное положение.</item>
+    </string-array>
+    <string-array name="guide_pike_push_up_mistakes">
+        <item>Таз опускается и отжимание становится обычным</item>
+        <item>Локти широко в стороны</item>
+        <item>Удар головой о пол</item>
+    </string-array>
+
+    <string-array name="guide_ez_bar_curl_steps">
+        <item>Возьми EZ-гриф за изогнутые участки, встань прямо.</item>
+        <item>Прижми локти к корпусу.</item>
+        <item>Согни руки, поднимая гриф к груди.</item>
+        <item>Медленно опусти до почти прямых рук.</item>
+    </string-array>
+    <string-array name="guide_ez_bar_curl_mistakes">
+        <item>Локти уходят вперёд</item>
+        <item>Раскачка корпусом</item>
+        <item>Опускание без контроля</item>
+    </string-array>
+
+    <string-array name="guide_incline_dumbbell_curl_steps">
+        <item>Сядь на скамью с наклоном 45–60°, руки с гантелями свободно висят.</item>
+        <item>Плечи неподвижны, ладони вперёд.</item>
+        <item>Согни руки, поднимая гантели к плечам.</item>
+        <item>Медленно опусти до полного растяжения бицепса.</item>
+    </string-array>
+    <string-array name="guide_incline_dumbbell_curl_mistakes">
+        <item>Плечи уходят вперёд</item>
+        <item>Голова и корпус отрываются от скамьи</item>
+        <item>Слишком большой вес</item>
+    </string-array>
+
+    <string-array name="guide_concentration_curl_steps">
+        <item>Сядь на скамью, упри локоть рабочей руки во внутреннюю часть бедра.</item>
+        <item>Гантель в опущенной руке, ладонь от бедра.</item>
+        <item>Согни руку, поднимая гантель к плечу.</item>
+        <item>Медленно опусти до почти прямой руки.</item>
+    </string-array>
+    <string-array name="guide_concentration_curl_mistakes">
+        <item>Локоть отрывается от бедра</item>
+        <item>Помощь корпусом</item>
+        <item>Неполное опускание</item>
+    </string-array>
+
+    <string-array name="guide_machine_curl_steps">
+        <item>Настрой сиденье так, чтобы локти лежали на подушке на уровне оси тренажёра.</item>
+        <item>Возьми рукояти, спина прямая.</item>
+        <item>Согни руки до полного сокращения бицепса.</item>
+        <item>Медленно разогни до почти прямых рук.</item>
+    </string-array>
+    <string-array name="guide_machine_curl_mistakes">
+        <item>Плечи поднимаются с подушки</item>
+        <item>Рывки</item>
+        <item>Короткая амплитуда</item>
+    </string-array>
+
+    <string-array name="guide_rope_pushdown_steps">
+        <item>Встань к верхнему блоку, возьми канат, локти прижми к корпусу.</item>
+        <item>Слегка наклонись вперёд, корпус неподвижен.</item>
+        <item>Разогни руки вниз и в конце разведи концы каната в стороны.</item>
+        <item>Медленно верни канат до прямого угла в локтях.</item>
+    </string-array>
+    <string-array name="guide_rope_pushdown_mistakes">
+        <item>Локти уходят вперёд и назад</item>
+        <item>Наваливание корпусом</item>
+        <item>Неполное разгибание</item>
+    </string-array>
+
+    <string-array name="guide_dumbbell_kickback_steps">
+        <item>Упрись рукой и коленом в скамью, спина параллельна полу.</item>
+        <item>Прижми плечо рабочей руки к корпусу, локоть согнут под 90°.</item>
+        <item>Разогни руку назад до прямой.</item>
+        <item>Медленно верни гантель вниз.</item>
+    </string-array>
+    <string-array name="guide_dumbbell_kickback_mistakes">
+        <item>Плечо опускается, движение превращается в мах</item>
+        <item>Слишком большой вес</item>
+        <item>Скругление спины</item>
+    </string-array>
+
+    <string-array name="guide_bench_dip_steps">
+        <item>Сядь на край скамьи, упрись в неё руками у бёдер и сдвинь таз вперёд.</item>
+        <item>Ноги согнуты или выпрямлены, спина близко к скамье.</item>
+        <item>Сгибая локти назад, опустись до прямого угла в локтях.</item>
+        <item>Разогни руки и поднимись.</item>
+    </string-array>
+    <string-array name="guide_bench_dip_mistakes">
+        <item>Слишком глубокое опускание с болью в плечах</item>
+        <item>Локти разводятся в стороны</item>
+        <item>Спина далеко от скамьи</item>
+    </string-array>
+
+    <string-array name="guide_diamond_push_up_steps">
+        <item>Встань в упор лёжа, сложи ладони треугольником под грудью.</item>
+        <item>Тело прямое, пресс и ягодицы напряжены.</item>
+        <item>Опустись грудью к рукам, локти идут вдоль корпуса.</item>
+        <item>Выжмись вверх.</item>
+    </string-array>
+    <string-array name="guide_diamond_push_up_mistakes">
+        <item>Таз провисает</item>
+        <item>Локти разводятся в стороны</item>
+        <item>Неполное опускание</item>
+    </string-array>
+
+    <string-array name="guide_cable_overhead_extension_steps">
+        <item>Встань спиной к блоку, возьми канат над головой, сделай шаг вперёд.</item>
+        <item>Локти у головы и направлены вперёд.</item>
+        <item>Разогни руки вперёд и вверх до прямых.</item>
+        <item>Медленно верни канат за голову.</item>
+    </string-array>
+    <string-array name="guide_cable_overhead_extension_mistakes">
+        <item>Локти расходятся в стороны</item>
+        <item>Прогиб в пояснице</item>
+        <item>Движение плечами вместо локтей</item>
+    </string-array>
+
+    <string-array name="guide_reverse_wrist_curl_steps">
+        <item>Сядь, положи предплечья на бёдра или скамью, ладони вниз.</item>
+        <item>Кисти свисают за край, хват на ширине плеч.</item>
+        <item>Подними кисти вверх, разгибая запястья.</item>
+        <item>Медленно опусти.</item>
+    </string-array>
+    <string-array name="guide_reverse_wrist_curl_mistakes">
+        <item>Слишком большой вес и рывки</item>
+        <item>Предплечья отрываются от опоры</item>
+        <item>Короткая амплитуда</item>
+    </string-array>
+
+    <string-array name="guide_reverse_curl_steps">
+        <item>Возьми гриф хватом сверху на ширине плеч, встань прямо.</item>
+        <item>Локти прижми к корпусу, запястья прямые.</item>
+        <item>Согни руки, поднимая гриф к груди.</item>
+        <item>Медленно опусти.</item>
+    </string-array>
+    <string-array name="guide_reverse_curl_mistakes">
+        <item>Запястья прогибаются</item>
+        <item>Раскачка корпусом</item>
+        <item>Локти уходят вперёд</item>
+    </string-array>
+
+    <string-array name="guide_dead_hang_steps">
+        <item>Возьмись за турник хватом сверху на ширине плеч.</item>
+        <item>Повисни на прямых руках, ноги не касаются пола.</item>
+        <item>Держи плечи слегка активными, не проваливаясь в суставы.</item>
+        <item>Виси заданное время, дыши ровно.</item>
+    </string-array>
+    <string-array name="guide_dead_hang_mistakes">
+        <item>Раскачка</item>
+        <item>Полное расслабление плеч</item>
+        <item>Задержка дыхания</item>
+    </string-array>
+
+    <string-array name="guide_farmers_walk_steps">
+        <item>Возьми тяжёлые гантели или гири в обе руки, встань прямо.</item>
+        <item>Плечи опущены и отведены назад, пресс напряжён.</item>
+        <item>Иди короткими быстрыми шагами, не раскачиваясь.</item>
+        <item>Поставь вес, не скругляя спину.</item>
+    </string-array>
+    <string-array name="guide_farmers_walk_mistakes">
+        <item>Наклон корпуса в сторону</item>
+        <item>Плечи поднимаются к ушам</item>
+        <item>Подъём и опускание веса со скруглённой спиной</item>
+    </string-array>
+
+    <string-array name="guide_goblet_squat_steps">
+        <item>Держи гантель или гирю вертикально у груди, стопы чуть шире плеч.</item>
+        <item>Грудь вверх, локти направлены вниз.</item>
+        <item>Присядь, разводя колени по направлению носков.</item>
+        <item>Встань, упираясь всей стопой.</item>
+    </string-array>
+    <string-array name="guide_goblet_squat_mistakes">
+        <item>Колени заваливаются внутрь</item>
+        <item>Пятки отрываются от пола</item>
+        <item>Корпус сильно наклоняется вперёд</item>
+    </string-array>
+
+    <string-array name="guide_step_up_steps">
+        <item>Встань перед тумбой высотой по колено, гантели в опущенных руках.</item>
+        <item>Поставь одну ногу на тумбу всей стопой.</item>
+        <item>Поднимись, выпрямляя ногу на тумбе, не отталкиваясь нижней.</item>
+        <item>Медленно опустись и повтори.</item>
+    </string-array>
+    <string-array name="guide_step_up_mistakes">
+        <item>Толчок нижней ногой</item>
+        <item>Колено заваливается внутрь</item>
+        <item>Слишком высокая тумба</item>
+    </string-array>
+
+    <string-array name="guide_wall_sit_steps">
+        <item>Прижмись спиной к стене, стопы на ширине плеч чуть впереди.</item>
+        <item>Опустись, пока бёдра не станут параллельны полу.</item>
+        <item>Колени над стопами, спина прижата к стене.</item>
+        <item>Держи положение заданное время.</item>
+    </string-array>
+    <string-array name="guide_wall_sit_mistakes">
+        <item>Колени выходят далеко за носки</item>
+        <item>Руки упираются в бёдра</item>
+        <item>Задержка дыхания</item>
+    </string-array>
+
+    <string-array name="guide_smith_squat_steps">
+        <item>Встань под гриф, положи его на трапеции, стопы чуть впереди линии грифа.</item>
+        <item>Сними гриф с упоров поворотом кистей.</item>
+        <item>Присядь до параллели бёдер с полом, спина ровная.</item>
+        <item>Встань, не выпрямляя колени до щелчка.</item>
+    </string-array>
+    <string-array name="guide_smith_squat_mistakes">
+        <item>Стопы прямо под грифом, колени перегружены</item>
+        <item>Скругление поясницы внизу</item>
+        <item>Колени заваливаются внутрь</item>
+    </string-array>
+
+    <string-array name="guide_box_jump_steps">
+        <item>Встань перед устойчивой тумбой на расстоянии полушага.</item>
+        <item>Слегка присядь и отведи руки назад.</item>
+        <item>Выпрыгни вверх, махнув руками, и мягко приземлись на тумбу всей стопой.</item>
+        <item>Выпрямись наверху и сойди вниз шагом.</item>
+    </string-array>
+    <string-array name="guide_box_jump_mistakes">
+        <item>Жёсткое приземление на прямые ноги</item>
+        <item>Спрыгивание назад вместо спуска шагом</item>
+        <item>Слишком высокая тумба</item>
+    </string-array>
+
+    <string-array name="guide_seated_leg_curl_steps">
+        <item>Сядь, совмести колени с осью тренажёра, валик над лодыжками.</item>
+        <item>Зафиксируй бёдра верхним валиком.</item>
+        <item>Согни ноги, подтягивая пятки под сиденье.</item>
+        <item>Медленно разогни ноги.</item>
+    </string-array>
+    <string-array name="guide_seated_leg_curl_mistakes">
+        <item>Таз отрывается от сиденья</item>
+        <item>Рывки</item>
+        <item>Неполное разгибание</item>
+    </string-array>
+
+    <string-array name="guide_nordic_curl_steps">
+        <item>Встань на колени на мягкую опору, зафиксируй пятки под упором или попроси партнёра.</item>
+        <item>Корпус прямой от колен до головы.</item>
+        <item>Медленно наклоняйся вперёд, сопротивляясь бицепсом бедра.</item>
+        <item>Поймай себя руками внизу и вернись, помогая руками.</item>
+    </string-array>
+    <string-array name="guide_nordic_curl_mistakes">
+        <item>Сгибание в тазобедренном суставе</item>
+        <item>Падение без контроля</item>
+        <item>Слишком быстрый темп</item>
+    </string-array>
+
+    <string-array name="guide_dumbbell_romanian_deadlift_steps">
+        <item>Встань прямо, гантели перед бёдрами, колени слегка согнуты.</item>
+        <item>Отводи таз назад, опуская гантели вдоль ног.</item>
+        <item>Опускайся до сильного растяжения задней поверхности бедра со спиной прямой.</item>
+        <item>Вернись, подавая таз вперёд.</item>
+    </string-array>
+    <string-array name="guide_dumbbell_romanian_deadlift_mistakes">
+        <item>Скругление спины</item>
+        <item>Приседание вместо наклона</item>
+        <item>Гантели уходят далеко от ног</item>
+    </string-array>
+
+    <string-array name="guide_stability_ball_leg_curl_steps">
+        <item>Ляг на спину, пятки на фитболе, руки вдоль корпуса.</item>
+        <item>Подними таз так, чтобы тело стало прямым.</item>
+        <item>Подкати мяч к себе, сгибая колени и удерживая таз.</item>
+        <item>Медленно откати мяч обратно.</item>
+    </string-array>
+    <string-array name="guide_stability_ball_leg_curl_mistakes">
+        <item>Таз опускается во время движения</item>
+        <item>Рывки</item>
+        <item>Мяч уходит в сторону</item>
+    </string-array>
+
+    <string-array name="guide_kettlebell_swing_steps">
+        <item>Встань чуть шире плеч, гиря на полу впереди.</item>
+        <item>Наклонись, отводя таз назад, и закинь гирю между ног.</item>
+        <item>Резко выпрями таз, чтобы гиря поднялась до уровня груди.</item>
+        <item>Пропусти гирю обратно между ног тем же наклоном.</item>
+    </string-array>
+    <string-array name="guide_kettlebell_swing_mistakes">
+        <item>Подъём гири руками</item>
+        <item>Приседание вместо наклона</item>
+        <item>Скругление спины</item>
+    </string-array>
+
+    <string-array name="guide_hip_abduction_machine_steps">
+        <item>Сядь, прижми спину, валики снаружи коленей.</item>
+        <item>Держись за рукояти, корпус неподвижен.</item>
+        <item>Разведи ноги в стороны до упора.</item>
+        <item>Медленно сведи ноги, не давая грузу удариться.</item>
+    </string-array>
+    <string-array name="guide_hip_abduction_machine_mistakes">
+        <item>Рывки и инерция</item>
+        <item>Наклон корпуса вперёд и назад</item>
+        <item>Короткая амплитуда</item>
+    </string-array>
+
+    <string-array name="guide_sumo_deadlift_steps">
+        <item>Поставь стопы широко, носки развернуты наружу, гриф над серединой стопы.</item>
+        <item>Возьми гриф узким хватом между ног, спина прямая, грудь вверх.</item>
+        <item>Встань, разводя колени и выпрямляя таз.</item>
+        <item>Опусти штангу, отводя таз назад.</item>
+    </string-array>
+    <string-array name="guide_sumo_deadlift_mistakes">
+        <item>Колени заваливаются внутрь</item>
+        <item>Скругление спины</item>
+        <item>Гриф уходит от ног</item>
+    </string-array>
+
+    <string-array name="guide_cable_pull_through_steps">
+        <item>Встань спиной к нижнему блоку, канат между ног, отойди на пару шагов.</item>
+        <item>Наклонись, отводя таз назад, руки тянутся между ног.</item>
+        <item>Выпрямись за счёт ягодиц, подавая таз вперёд.</item>
+        <item>Сожми ягодицы наверху и вернись в наклон.</item>
+    </string-array>
+    <string-array name="guide_cable_pull_through_mistakes">
+        <item>Тяга руками</item>
+        <item>Прогиб в пояснице наверху</item>
+        <item>Приседание вместо наклона</item>
+    </string-array>
+
+    <string-array name="guide_leg_press_calf_raise_steps">
+        <item>Сядь в тренажёр для жима ногами, поставь носки на нижний край платформы.</item>
+        <item>Выпрями ноги, не блокируя колени.</item>
+        <item>Опусти пятки вниз до растяжения икр.</item>
+        <item>Вытолкни платформу носками как можно выше.</item>
+    </string-array>
+    <string-array name="guide_leg_press_calf_raise_mistakes">
+        <item>Колени сгибаются по ходу движения</item>
+        <item>Пружинящая короткая амплитуда</item>
+        <item>Стопы соскальзывают с платформы</item>
+    </string-array>
+
+    <string-array name="guide_single_leg_calf_raise_steps">
+        <item>Встань носком одной ноги на край ступеньки, гантель в одноимённой руке, другой держись за опору.</item>
+        <item>Опусти пятку ниже уровня ступени.</item>
+        <item>Поднимись на носок как можно выше.</item>
+        <item>Задержись на секунду и медленно опустись.</item>
+    </string-array>
+    <string-array name="guide_single_leg_calf_raise_mistakes">
+        <item>Пружинистые повторы без паузы</item>
+        <item>Сгибание колена</item>
+        <item>Неполная амплитуда</item>
+    </string-array>
+
+    <string-array name="guide_side_plank_steps">
+        <item>Ляг на бок, упрись предплечьем в пол, локоть под плечом.</item>
+        <item>Поставь стопы одна на другую или одну перед другой.</item>
+        <item>Подними таз, чтобы тело стало прямой линией.</item>
+        <item>Держи положение заданное время, затем смени сторону.</item>
+    </string-array>
+    <string-array name="guide_side_plank_mistakes">
+        <item>Таз провисает</item>
+        <item>Таз уходит назад</item>
+        <item>Плечо поднимается к уху</item>
+    </string-array>
+
+    <string-array name="guide_bicycle_crunch_steps">
+        <item>Ляг на спину, руки за головой, ноги подняты и согнуты.</item>
+        <item>Поверни корпус, направляя локоть к противоположному колену.</item>
+        <item>Одновременно выпрями другую ногу.</item>
+        <item>Смени сторону, работая медленно и под контролем.</item>
+    </string-array>
+    <string-array name="guide_bicycle_crunch_mistakes">
+        <item>Тянешь голову руками</item>
+        <item>Слишком быстрый темп</item>
+        <item>Поясница отрывается от пола</item>
+    </string-array>
+
+    <string-array name="guide_lying_leg_raise_steps">
+        <item>Ляг на спину, руки вдоль корпуса или под ягодицами.</item>
+        <item>Прижми поясницу к полу.</item>
+        <item>Подними прямые ноги до вертикали.</item>
+        <item>Медленно опусти, не касаясь пола и не отрывая поясницу.</item>
+    </string-array>
+    <string-array name="guide_lying_leg_raise_mistakes">
+        <item>Поясница прогибается</item>
+        <item>Рывки ногами</item>
+        <item>Ноги бросаются вниз</item>
+    </string-array>
+
+    <string-array name="guide_dead_bug_steps">
+        <item>Ляг на спину, руки вверх, ноги согнуты под 90° в коленях и бёдрах.</item>
+        <item>Прижми поясницу к полу.</item>
+        <item>Медленно опусти противоположные руку и ногу почти до пола.</item>
+        <item>Верни их и смени сторону.</item>
+    </string-array>
+    <string-array name="guide_dead_bug_mistakes">
+        <item>Поясница отрывается от пола</item>
+        <item>Слишком быстрый темп</item>
+        <item>Задержка дыхания</item>
+    </string-array>
+
+    <string-array name="guide_pallof_press_steps">
+        <item>Встань боком к блоку на уровне груди, рукоять у груди обеими руками.</item>
+        <item>Отойди, чтобы трос натянулся, стопы на ширине плеч.</item>
+        <item>Выжми рукоять вперёд, не давая корпусу повернуться к блоку.</item>
+        <item>Задержись и верни рукоять к груди.</item>
+    </string-array>
+    <string-array name="guide_pallof_press_mistakes">
+        <item>Корпус поворачивается к блоку</item>
+        <item>Плечи поднимаются</item>
+        <item>Слишком большой вес</item>
+    </string-array>
+
+    <string-array name="guide_swimming_steps">
+        <item>Разомнись на суше и проплыви первый отрезок спокойно.</item>
+        <item>Держи тело горизонтально, голова по линии позвоночника.</item>
+        <item>Выдыхай в воду, вдыхай на повороте головы.</item>
+        <item>Держи ровный темп на всей дистанции.</item>
+    </string-array>
+    <string-array name="guide_swimming_mistakes">
+        <item>Задержка дыхания</item>
+        <item>Голова слишком высоко, ноги тонут</item>
+        <item>Слишком быстрый старт</item>
+    </string-array>
+
+    <string-array name="guide_walking_steps">
+        <item>Иди в быстром темпе, при котором можно говорить, но не петь.</item>
+        <item>Держи спину прямой, руки работают в такт шагам.</item>
+        <item>Ставь стопу с пятки и перекатывайся на носок.</item>
+        <item>Для нагрузки добавь подъём на дорожке.</item>
+    </string-array>
+    <string-array name="guide_walking_mistakes">
+        <item>Держаться за поручни дорожки</item>
+        <item>Сутулость</item>
+        <item>Слишком короткие тренировки</item>
+    </string-array>
+
+    <string-array name="guide_burpee_steps">
+        <item>Из положения стоя присядь и поставь руки на пол.</item>
+        <item>Отпрыгни ногами назад в упор лёжа и отожмись.</item>
+        <item>Подтяни ноги к рукам прыжком.</item>
+        <item>Выпрыгни вверх с хлопком над головой.</item>
+    </string-array>
+    <string-array name="guide_burpee_mistakes">
+        <item>Таз провисает в упоре лёжа</item>
+        <item>Жёсткое приземление</item>
+        <item>Скругление спины при приседе</item>
+    </string-array>
+
+    <string-array name="guide_air_bike_steps">
+        <item>Настрой сиденье так, чтобы нога внизу была почти прямой.</item>
+        <item>Работай одновременно руками и ногами.</item>
+        <item>Держи спину прямой, не наваливайся на рукояти.</item>
+        <item>Чередуй интервалы с отдыхом или держи ровный темп.</item>
+    </string-array>
+    <string-array name="guide_air_bike_mistakes">
+        <item>Слишком низкое сиденье</item>
+        <item>Работа только ногами</item>
+        <item>Слишком быстрый старт и спад в конце</item>
+    </string-array>
 </resources>
