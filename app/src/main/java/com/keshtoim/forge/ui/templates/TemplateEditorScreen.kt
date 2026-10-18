@@ -1,9 +1,7 @@
 package com.keshtoim.forge.ui.templates
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,16 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -126,43 +118,7 @@ fun TemplateEditorScreen(
                     }
                 }
             }
-            itemsIndexed(viewModel.items) { index, item ->
-                ForgeCard(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(start = 16.dp, end = 6.dp, top = 8.dp, bottom = 8.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(26.dp).clip(CircleShape).background(colors.surfaceContainerHigh), contentAlignment = Alignment.Center) {
-                                Text("${index + 1}", style = MaterialTheme.typography.labelMedium, color = colors.onSurfaceVariant)
-                            }
-                            Text(
-                                exercises[item.exerciseId]?.displayName(context).orEmpty(),
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.weight(1f).padding(start = 12.dp),
-                            )
-                            IconButton(onClick = { viewModel.remove(index) }) {
-                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.remove), tint = colors.onSurfaceVariant)
-                            }
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Row(Modifier.clip(CircleShape).background(colors.surfaceContainerHigh), verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(onClick = { viewModel.setSets(index, item.targetSets - 1) }) {
-                                    Icon(Icons.Filled.Remove, contentDescription = stringResource(R.string.set_remove))
-                                }
-                                Text(pluralStringResource(R.plurals.sets_total, item.targetSets, item.targetSets), style = MaterialTheme.typography.titleSmall)
-                                IconButton(onClick = { viewModel.setSets(index, item.targetSets + 1) }) {
-                                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.set_add))
-                                }
-                            }
-                            Box(Modifier.weight(1f))
-                            IconButton(onClick = { viewModel.move(index, -1) }, enabled = index > 0) {
-                                Icon(Icons.Filled.KeyboardArrowUp, contentDescription = stringResource(R.string.move_up))
-                            }
-                            IconButton(onClick = { viewModel.move(index, 1) }, enabled = index < viewModel.items.lastIndex) {
-                                Icon(Icons.Filled.KeyboardArrowDown, contentDescription = stringResource(R.string.move_down))
-                            }
-                        }
-                    }
-                }
-            }
+            editableExercises(viewModel.items) { exercises[it.exerciseId]?.displayName(context).orEmpty() }
             item {
                 OutlinedButton(
                     onClick = onAddExercises,

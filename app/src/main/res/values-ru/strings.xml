@@ -19,6 +19,11 @@
     <string name="remove">Убрать</string>
     <string name="move_up">Выше</string>
     <string name="move_down">Ниже</string>
+    <string name="superset">Суперсет</string>
+    <string name="superset_link">Объединить в суперсет</string>
+    <string name="superset_unlink">Разъединить</string>
+    <string name="round_add">Больше кругов</string>
+    <string name="round_remove">Меньше кругов</string>
 
     <string name="templates">Шаблоны</string>
     <string name="templates_empty">Шаблонов пока нет. Создай шаблон, чтобы быстрее начинать тренировки.</string>

@@ -47,4 +47,10 @@
         <item quantity="many">Показать %d упражнений</item>
         <item quantity="other">Показать %d упражнения</item>
     </plurals>
+    <plurals name="rounds">
+        <item quantity="one">%d круг</item>
+        <item quantity="few">%d круга</item>
+        <item quantity="many">%d кругов</item>
+        <item quantity="other">%d круга</item>
+    </plurals>
 </resources>

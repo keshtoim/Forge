@@ -20,6 +20,11 @@
     <string name="remove">Remove</string>
     <string name="move_up">Move up</string>
     <string name="move_down">Move down</string>
+    <string name="superset">Superset</string>
+    <string name="superset_link">Make a superset</string>
+    <string name="superset_unlink">Split up</string>
+    <string name="round_add">More rounds</string>
+    <string name="round_remove">Fewer rounds</string>
 
     <string name="templates">Templates</string>
     <string name="templates_empty">No templates yet. Create one to start workouts faster.</string>

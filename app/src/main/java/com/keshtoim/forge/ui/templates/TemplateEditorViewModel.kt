@@ -53,19 +53,6 @@ class TemplateEditorViewModel(
         ids.forEach { items += TemplateExercise(templateId = templateId, exerciseId = it, position = 0, targetSets = 3) }
     }
 
-    fun setSets(index: Int, sets: Int) {
-        items[index] = items[index].copy(targetSets = sets.coerceIn(1, 20))
-    }
-
-    fun move(index: Int, delta: Int) {
-        val target = index + delta
-        if (target in items.indices) items.add(target, items.removeAt(index))
-    }
-
-    fun remove(index: Int) {
-        items.removeAt(index)
-    }
-
     // The screen stays clickable while the write runs; a second tap would insert a duplicate template.
     private var busy = false
 
