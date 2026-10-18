@@ -51,6 +51,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // The Gemini SDK pulls Google auth libraries that each ship the same JAR metadata files.
+    packaging {
+        resources.excludes += setOf("META-INF/INDEX.LIST", "META-INF/DEPENDENCIES")
+    }
+
     // MigrationTestHelper reads exported schemas from assets; Robolectric only sees the tested variant's assets, not test ones.
     sourceSets["debug"].assets.srcDir("$projectDir/schemas")
     testOptions {
@@ -79,6 +84,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.anthropic.java)
+    implementation(libs.openai.java)
+    implementation(libs.google.genai)
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
 
