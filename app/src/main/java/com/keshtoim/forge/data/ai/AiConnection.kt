@@ -39,11 +39,14 @@ class AiConnection(
     init {
         connectivity.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
+                // A service that was unreachable gets another check on the new network.
+                if (outcome.value?.second == AiFailure.NO_CONNECTION) outcome.value = null
                 online.value = true
             }
 
+            // Lost here means the default network went away; a replacement arrives through onAvailable.
             override fun onLost(network: Network) {
-                online.value = isOnline()
+                online.value = false
             }
         })
     }
@@ -77,8 +80,8 @@ class AiConnection(
     private suspend fun <T> record(config: AiConfig, block: suspend () -> T): T = try {
         block().also { outcome.value = config to null }
     } catch (e: AiException) {
-        // A dropped connection says nothing about the key; the network callback reports it instead.
-        if (e.failure != AiFailure.NO_CONNECTION) outcome.value = config to e.failure
+        // The device may be online while the service is not reachable from it (VPN, regional blocks, DNS).
+        outcome.value = config to e.failure
         throw e
     }
 

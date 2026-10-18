@@ -57,4 +57,4 @@ private val SetEffort.label get() = when (this) {
     SetEffort.MAX -> "max"
 }
 
-private fun number(value: Double) = if (value % 1.0 == 0.0) value.toLong().toString() else "%.2f".format(java.util.Locale.ROOT, value).trimEnd('0')
+private fun number(value: Double) = "%.2f".format(java.util.Locale.ROOT, value).trimEnd('0').trimEnd('.')

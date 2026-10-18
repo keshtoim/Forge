@@ -72,4 +72,14 @@ class AiConnectionTest {
         awaitStatus(AiStatus.Ready)
         assertEquals("/v1/models/claude-opus-5-5", run { server.takeRequest(); server.takeRequest().path })
     }
+
+    @Test
+    fun `an unreachable service is reported even while the device is online`() {
+        settings.setProvider(AiProvider.CLAUDE)
+        settings.setKey(AiProvider.CLAUDE, "key")
+        settings.setEnabled(true)
+        server.shutdown()
+        connection.verify()
+        awaitStatus(AiStatus.Failed(AiFailure.NO_CONNECTION))
+    }
 }

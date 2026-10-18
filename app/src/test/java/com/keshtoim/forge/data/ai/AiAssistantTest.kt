@@ -79,4 +79,16 @@ class AiAssistantTest {
         server.shutdown()
         assertEquals(AiFailure.NO_CONNECTION, failure(AiProvider.OPENAI))
     }
+
+    @Test
+    fun `a chatgpt refusal is told apart from an empty answer`() {
+        server.enqueue(
+            json(
+                200,
+                """{"id":"c1","object":"chat.completion","created":1,"model":"gpt-5","choices":[{"index":0,""" +
+                    """"message":{"role":"assistant","content":null,"refusal":"I can't help with that."},"finish_reason":"stop","logprobs":null}]}""",
+            ),
+        )
+        assertEquals(AiFailure.REFUSED, failure(AiProvider.OPENAI))
+    }
 }

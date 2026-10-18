@@ -19,7 +19,7 @@ class CoachPromptTest {
             workoutName = "Ноги",
             minutesIn = 24,
             exercises = listOf(
-                ExerciseLog("Присед", ExerciseType.WEIGHT_REPS, null, listOf(set(1, 100.0, 5, false), set(0, 97.5, 6, true, SetEffort.HEAVY)), listOf(set(0, 95.0, 6, true)), onScreen = true),
+                ExerciseLog("Присед", ExerciseType.WEIGHT_REPS, null, listOf(set(1, 100.0, 5, false), set(0, 97.5, 6, true, SetEffort.HEAVY)), listOf(set(0, 94.999, 6, true)), onScreen = true),
                 ExerciseLog("Планка", ExerciseType.DURATION, 1, emptyList(), emptyList(), onScreen = false),
             ),
         )

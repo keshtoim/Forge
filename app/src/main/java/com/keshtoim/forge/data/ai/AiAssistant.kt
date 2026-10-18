@@ -96,7 +96,9 @@ object AiAssistant {
             .addSystemMessage(system)
             .apply { turns.forEach { if (it.fromUser) addUserMessage(it.text) else addAssistantMessage(it.text) } }
             .build()
-        client.chat().completions().create(params).choices().firstOrNull()?.message()?.content()?.orElse("").orEmpty()
+        val message = client.chat().completions().create(params).choices().firstOrNull()?.message() ?: return@withOpenAi ""
+        if (message.refusal().isPresent) throw AiException(AiFailure.REFUSED)
+        message.content().orElse("")
     }
 
     private fun gemini(config: AiConfig, system: String, turns: List<AiTurn>, baseUrl: String?): String = withGemini(config, baseUrl) { client ->

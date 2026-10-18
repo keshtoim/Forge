@@ -73,7 +73,9 @@ fun CoachSheet(
     val colors = MaterialTheme.colorScheme
     var draft by rememberSaveable { mutableStateOf("") }
     val list = rememberLazyListState()
-    LaunchedEffect(chat.size, busy, failure) { list.animateScrollToItem((list.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)) }
+    // Counted from the data, not from layoutInfo, which still describes the previous frame.
+    val itemCount = (if (chat.isEmpty()) 1 else 0) + chat.size + (if (busy) 1 else 0) + (if (failure != null) 1 else 0)
+    LaunchedEffect(itemCount) { list.animateScrollToItem((itemCount - 1).coerceAtLeast(0)) }
     val send = { text: String ->
         onAsk(text)
         draft = ""

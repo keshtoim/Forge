@@ -17,8 +17,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -45,12 +46,11 @@ fun AiIndicator(status: AiStatus, modifier: Modifier = Modifier) {
         is AiStatus.Failed -> stringResource(status.failure.labelRes)
         AiStatus.Off -> ""
     }
-    val pulse by rememberInfiniteTransition(label = "ai").animateFloat(1f, 0.3f, infiniteRepeatable(tween(700), RepeatMode.Reverse), label = "pulse")
     Row(
         modifier.clip(CircleShape).background(colors.surfaceContainerHigh).padding(horizontal = 10.dp, vertical = 6.dp).semantics { contentDescription = description },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(8.dp).alpha(if (status == AiStatus.Checking) pulse else 1f).clip(CircleShape).background(dot))
+        if (status == AiStatus.Checking) PulsingDot(dot) else Dot(dot, Modifier)
         Text(
             stringResource(R.string.ai_short),
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
@@ -58,4 +58,16 @@ fun AiIndicator(status: AiStatus, modifier: Modifier = Modifier) {
             modifier = Modifier.padding(start = 6.dp),
         )
     }
+}
+
+@Composable
+private fun Dot(color: Color, modifier: Modifier) {
+    Box(modifier.size(8.dp).clip(CircleShape).background(color))
+}
+
+// The pulse runs only while checking: the workout screen stays on for an hour and a constant animation would cost battery.
+@Composable
+private fun PulsingDot(color: Color) {
+    val pulse by rememberInfiniteTransition(label = "ai").animateFloat(1f, 0.3f, infiniteRepeatable(tween(700), RepeatMode.Reverse), label = "pulse")
+    Dot(color, Modifier.graphicsLayer { alpha = pulse })
 }
