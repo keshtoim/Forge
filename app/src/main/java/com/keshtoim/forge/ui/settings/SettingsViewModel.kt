@@ -11,6 +11,7 @@ import com.keshtoim.forge.ForgeApplication
 import com.keshtoim.forge.data.BodyType
 import com.keshtoim.forge.data.ThemeMode
 import com.keshtoim.forge.data.UserPreferences
+import com.keshtoim.forge.data.ai.AiSettings
 import com.keshtoim.forge.data.db.Backup
 import com.keshtoim.forge.data.db.BackupDao
 import com.keshtoim.forge.data.db.ExerciseDao
@@ -28,7 +29,10 @@ class SettingsViewModel(
     private val restTimer: RestTimer,
     private val preferences: UserPreferences,
     private val reminders: PlanReminders,
+    aiSettings: AiSettings,
 ) : ViewModel() {
+    val ai = aiSettings.state
+
     val bodyType = preferences.bodyType
 
     fun setBodyType(type: BodyType) = preferences.setBodyType(type)
@@ -73,7 +77,7 @@ class SettingsViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as ForgeApplication
-                SettingsViewModel(app.database.backupDao(), app.database.exerciseDao(), app.contentResolver, app.restTimer, app.preferences, app.planReminders)
+                SettingsViewModel(app.database.backupDao(), app.database.exerciseDao(), app.contentResolver, app.restTimer, app.preferences, app.planReminders, app.aiSettings)
             }
         }
     }

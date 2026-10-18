@@ -345,4 +345,26 @@
     <string name="type_reps">Только повторы</string>
     <string name="type_duration">Время</string>
     <string name="type_distance">Дистанция и время</string>
+    <string name="ai_title">ИИ-помощник</string>
+    <string name="ai_summary_off">Выключен</string>
+    <string name="ai_summary_on">%1$s подключён</string>
+    <string name="ai_enable">Включить ИИ-помощника</string>
+    <string name="ai_enable_hint">Чат-тренер и советы по весу во время тренировки. Нужен свой API-ключ, без него приложение работает как обычно.</string>
+    <string name="ai_provider">Сервис</string>
+    <string name="ai_key">Ключ API %1$s</string>
+    <string name="ai_key_show">Показать ключ</string>
+    <string name="ai_key_hide">Скрыть ключ</string>
+    <string name="ai_key_get">Где взять ключ %1$s</string>
+    <string name="ai_model">Модель</string>
+    <string name="ai_model_hint">Пусто — %1$s</string>
+    <string name="ai_check">Проверить подключение</string>
+    <string name="ai_checking">Проверяю…</string>
+    <string name="ai_check_ok">Подключено, ИИ отвечает</string>
+    <string name="ai_privacy">Когда ты спрашиваешь ИИ, текущая тренировка, история упражнения и рост с весом отправляются в %1$s. Ключ хранится на устройстве в зашифрованном виде и уходит только туда.</string>
+    <string name="ai_error_connection">Нет соединения с интернетом</string>
+    <string name="ai_error_key">Ключ не подошёл</string>
+    <string name="ai_error_model">Такой модели нет. Проверь название</string>
+    <string name="ai_error_limit">Лимит запросов исчерпан, попробуй позже</string>
+    <string name="ai_error_refused">Модель отказалась отвечать на этот запрос</string>
+    <string name="ai_error_other">Не получилось. Попробуй ещё раз</string>
 </resources>

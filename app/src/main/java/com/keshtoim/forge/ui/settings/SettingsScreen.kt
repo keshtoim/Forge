@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Accessibility
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Upload
@@ -54,13 +56,14 @@ import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)) {
+fun SettingsScreen(onBack: () -> Unit, onOpenAi: () -> Unit, viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)) {
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var confirmImport by remember { mutableStateOf(false) }
     val bodyType by viewModel.bodyType.collectAsStateWithLifecycle()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val ai by viewModel.ai.collectAsStateWithLifecycle()
 
     fun report(ok: Boolean, @StringRes success: Int) {
         scope.launch { snackbar.showSnackbar(context.getString(if (ok) success else R.string.backup_failed)) }
@@ -87,6 +90,18 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = viewModel(
                 activeContentColor = MaterialTheme.colorScheme.onPrimary,
                 activeBorderColor = MaterialTheme.colorScheme.primary,
             )
+            ForgeCard(Modifier.fillMaxWidth()) {
+                ListItem(
+                    colors = itemColors,
+                    headlineContent = { Text(stringResource(R.string.ai_title)) },
+                    supportingContent = {
+                        Text(if (ai.config != null) stringResource(R.string.ai_summary_on, ai.provider.title) else stringResource(R.string.ai_summary_off))
+                    },
+                    leadingContent = { Icon(Icons.Filled.AutoAwesome, contentDescription = null) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+                    modifier = Modifier.clickable(onClick = onOpenAi),
+                )
+            }
             ForgeCard(Modifier.fillMaxWidth()) {
                 Column {
                     ListItem(

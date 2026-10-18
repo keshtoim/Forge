@@ -6,6 +6,7 @@ import com.keshtoim.forge.R
 import com.keshtoim.forge.data.BodyType
 import com.keshtoim.forge.data.ThemeMode
 import com.keshtoim.forge.data.Upcoming
+import com.keshtoim.forge.data.ai.AiFailure
 import com.keshtoim.forge.data.builtIn
 import com.keshtoim.forge.data.db.Discipline
 import com.keshtoim.forge.data.db.Equipment
@@ -207,4 +208,15 @@ val Force.labelRes: Int
         Force.PULL -> R.string.force_pull
         Force.STATIC -> R.string.force_static
         Force.OTHER -> R.string.trait_other
+    }
+
+@get:StringRes
+val AiFailure.labelRes: Int
+    get() = when (this) {
+        AiFailure.NO_CONNECTION -> R.string.ai_error_connection
+        AiFailure.BAD_KEY -> R.string.ai_error_key
+        AiFailure.BAD_MODEL -> R.string.ai_error_model
+        AiFailure.RATE_LIMIT -> R.string.ai_error_limit
+        AiFailure.REFUSED -> R.string.ai_error_refused
+        AiFailure.OTHER -> R.string.ai_error_other
     }

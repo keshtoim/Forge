@@ -13,6 +13,7 @@ import com.google.genai.Client
 import com.google.genai.errors.ApiException
 import com.google.genai.types.Content
 import com.google.genai.types.GenerateContentConfig
+import com.google.genai.types.HttpOptions
 import com.google.genai.types.Part
 import com.openai.client.okhttp.OpenAIOkHttpClient
 import com.openai.errors.OpenAIIoException
@@ -23,10 +24,10 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 import com.anthropic.models.beta.messages.MessageCreateParams as ClaudeParams
 
-enum class AiProvider(val defaultModel: String, val keyUrl: String) {
-    GEMINI("gemini-2.5-flash", "https://aistudio.google.com/apikey"),
-    OPENAI("gpt-5", "https://platform.openai.com/api-keys"),
-    CLAUDE("claude-opus-5-5", "https://platform.claude.com/settings/keys"),
+enum class AiProvider(val title: String, val defaultModel: String, val keyUrl: String) {
+    GEMINI("Gemini", "gemini-2.5-flash", "https://aistudio.google.com/apikey"),
+    OPENAI("ChatGPT", "gpt-5", "https://platform.openai.com/api-keys"),
+    CLAUDE("Claude", "claude-opus-5-5", "https://platform.claude.com/settings/keys"),
 }
 
 data class AiTurn(val fromUser: Boolean, val text: String)
@@ -39,22 +40,23 @@ data class AiConfig(val provider: AiProvider, val apiKey: String, val model: Str
 
 // One request-response exchange with whichever provider the user picked; every call is a fresh conversation.
 object AiAssistant {
-    suspend fun reply(config: AiConfig, system: String, turns: List<AiTurn>): String = withContext(Dispatchers.IO) {
+    // [baseUrl] points the SDK at another server; only tests use it.
+    suspend fun reply(config: AiConfig, system: String, turns: List<AiTurn>, baseUrl: String? = null): String = withContext(Dispatchers.IO) {
         try {
             when (config.provider) {
-                AiProvider.GEMINI -> gemini(config, system, turns)
-                AiProvider.OPENAI -> openAi(config, system, turns)
-                AiProvider.CLAUDE -> claude(config, system, turns)
+                AiProvider.GEMINI -> gemini(config, system, turns, baseUrl)
+                AiProvider.OPENAI -> openAi(config, system, turns, baseUrl)
+                AiProvider.CLAUDE -> claude(config, system, turns, baseUrl)
             }.trim().ifEmpty { throw AiException(AiFailure.OTHER) }
         } catch (e: AiException) {
             throw e
         } catch (e: Exception) {
-            throw AiException(classify(e), e)
+            throw AiException(classify(e, config.provider), e)
         }
     }
 
-    private fun claude(config: AiConfig, system: String, turns: List<AiTurn>): String {
-        val client = AnthropicOkHttpClient.builder().apiKey(config.apiKey).build()
+    private fun claude(config: AiConfig, system: String, turns: List<AiTurn>, baseUrl: String?): String {
+        val client = AnthropicOkHttpClient.builder().apiKey(config.apiKey).apply { baseUrl?.let(::baseUrl) }.build()
         try {
             val params = ClaudeParams.builder()
                 .model(config.model)
@@ -77,8 +79,8 @@ object AiAssistant {
         }
     }
 
-    private fun openAi(config: AiConfig, system: String, turns: List<AiTurn>): String {
-        val client = OpenAIOkHttpClient.builder().apiKey(config.apiKey).build()
+    private fun openAi(config: AiConfig, system: String, turns: List<AiTurn>, baseUrl: String?): String {
+        val client = OpenAIOkHttpClient.builder().apiKey(config.apiKey).apply { baseUrl?.let(::baseUrl) }.build()
         try {
             val params = ChatCompletionCreateParams.builder()
                 .model(config.model)
@@ -92,8 +94,8 @@ object AiAssistant {
         }
     }
 
-    private fun gemini(config: AiConfig, system: String, turns: List<AiTurn>): String {
-        val client = Client.builder().apiKey(config.apiKey).build()
+    private fun gemini(config: AiConfig, system: String, turns: List<AiTurn>, baseUrl: String?): String {
+        val client = Client.builder().apiKey(config.apiKey).apply { baseUrl?.let { httpOptions(HttpOptions.builder().baseUrl(it).build()) } }.build()
         try {
             val contents = turns.map { Content.builder().role(if (it.fromUser) "user" else "model").parts(Part.fromText(it.text)).build() }
             val settings = GenerateContentConfig.builder().systemInstruction(Content.fromParts(Part.fromText(system))).build()
@@ -103,22 +105,22 @@ object AiAssistant {
         }
     }
 
-    private fun classify(e: Exception): AiFailure = when (e) {
+    private fun classify(e: Exception, provider: AiProvider): AiFailure = when (e) {
         is UnauthorizedException, is PermissionDeniedException -> AiFailure.BAD_KEY
         is NotFoundException -> AiFailure.BAD_MODEL
         is RateLimitException -> AiFailure.RATE_LIMIT
-        is AnthropicServiceException -> status(e.statusCode())
-        is OpenAIServiceException -> status(e.statusCode())
-        is ApiException -> status(e.code())
+        is AnthropicServiceException -> status(e.statusCode(), provider)
+        is OpenAIServiceException -> status(e.statusCode(), provider)
+        is ApiException -> status(e.code(), provider)
         is AnthropicIoException, is OpenAIIoException, is IOException -> AiFailure.NO_CONNECTION
         else -> if (e.cause is IOException) AiFailure.NO_CONNECTION else AiFailure.OTHER
     }
 
-    // Gemini answers a bad key with 400 and the others with 401/403.
-    private fun status(code: Int) = when (code) {
-        400, 401, 403 -> AiFailure.BAD_KEY
-        404 -> AiFailure.BAD_MODEL
-        429 -> AiFailure.RATE_LIMIT
+    // Gemini answers a bad key with 400, the others with 401 or 403.
+    private fun status(code: Int, provider: AiProvider) = when {
+        code == 401 || code == 403 || (code == 400 && provider == AiProvider.GEMINI) -> AiFailure.BAD_KEY
+        code == 404 -> AiFailure.BAD_MODEL
+        code == 429 -> AiFailure.RATE_LIMIT
         else -> AiFailure.OTHER
     }
 

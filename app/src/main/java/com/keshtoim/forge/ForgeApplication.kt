@@ -2,6 +2,7 @@ package com.keshtoim.forge
 
 import android.app.Application
 import com.keshtoim.forge.data.UserPreferences
+import com.keshtoim.forge.data.ai.AiSettings
 import com.keshtoim.forge.data.db.ForgeDatabase
 import com.keshtoim.forge.reminder.PlanReminders
 import com.keshtoim.forge.rest.RestTimer
@@ -17,6 +18,7 @@ class ForgeApplication : Application() {
     val restTimer by lazy { RestTimer(this) }
     val preferences by lazy { UserPreferences(this) }
     val planReminders by lazy { PlanReminders(this) }
+    val aiSettings by lazy { AiSettings(this) }
 
     override fun onCreate() {
         super.onCreate()

@@ -79,6 +79,7 @@ import com.keshtoim.forge.ui.plan.PlanViewModel
 import com.keshtoim.forge.ui.profile.ProfileScreen
 import com.keshtoim.forge.ui.progress.ExerciseProgressScreen
 import com.keshtoim.forge.ui.progress.ProgressScreen
+import com.keshtoim.forge.ui.settings.AiSettingsScreen
 import com.keshtoim.forge.ui.settings.SettingsScreen
 import com.keshtoim.forge.ui.templates.TemplateEditorScreen
 import com.keshtoim.forge.ui.templates.TemplateEditorViewModel
@@ -101,6 +102,7 @@ import java.time.LocalDate
 @Serializable data class WorkoutDetailRoute(val id: Long)
 @Serializable data class ExerciseProgressRoute(val exerciseId: Long)
 @Serializable object SettingsRoute
+@Serializable object AiSettingsRoute
 @Serializable object MoreRoute
 @Serializable object ProfileRoute
 @Serializable data class MeasureRoute(val epochDay: Long)
@@ -270,7 +272,13 @@ private fun MainScreen(viewModel: ForgeViewModel) {
                 )
             }
             composable<SettingsRoute> { entry ->
-                SettingsScreen(onBack = { entry.ifResumed { navController.popBackStack() } })
+                SettingsScreen(
+                    onBack = { entry.ifResumed { navController.popBackStack() } },
+                    onOpenAi = { entry.ifResumed { navController.navigate(AiSettingsRoute) } },
+                )
+            }
+            composable<AiSettingsRoute> { entry ->
+                AiSettingsScreen(onBack = { entry.ifResumed { navController.popBackStack() } })
             }
             composable<ExercisePickerRoute> { entry ->
                 ExercisePickerScreen(

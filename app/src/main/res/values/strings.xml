@@ -346,4 +346,26 @@
     <string name="type_reps">Reps only</string>
     <string name="type_duration">Time</string>
     <string name="type_distance">Distance and time</string>
+    <string name="ai_title">AI assistant</string>
+    <string name="ai_summary_off">Off</string>
+    <string name="ai_summary_on">%1$s connected</string>
+    <string name="ai_enable">Turn on the AI assistant</string>
+    <string name="ai_enable_hint">A chat coach and weight tips during workouts. Needs your own API key; without it the app works as usual.</string>
+    <string name="ai_provider">Service</string>
+    <string name="ai_key">%1$s API key</string>
+    <string name="ai_key_show">Show key</string>
+    <string name="ai_key_hide">Hide key</string>
+    <string name="ai_key_get">Get a %1$s key</string>
+    <string name="ai_model">Model</string>
+    <string name="ai_model_hint">Empty means %1$s</string>
+    <string name="ai_check">Test connection</string>
+    <string name="ai_checking">Testing…</string>
+    <string name="ai_check_ok">Connected, the AI answers</string>
+    <string name="ai_privacy">When you ask the AI, the current workout, the exercise history and your height and weight are sent to %1$s. The key is stored encrypted on the device and goes nowhere else.</string>
+    <string name="ai_error_connection">No internet connection</string>
+    <string name="ai_error_key">The key was rejected</string>
+    <string name="ai_error_model">No such model. Check the name</string>
+    <string name="ai_error_limit">Request limit reached, try again later</string>
+    <string name="ai_error_refused">The model declined this request</string>
+    <string name="ai_error_other">Something went wrong. Try again</string>
 </resources>
