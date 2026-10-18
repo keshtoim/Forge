@@ -346,6 +346,9 @@
     <string name="type_duration">Время</string>
     <string name="type_distance">Дистанция и время</string>
     <string name="ai_title">ИИ-помощник</string>
+    <string name="ai_short">ИИ</string>
+    <string name="ai_status_ready">ИИ на связи</string>
+    <string name="ai_status_checking">Проверяю связь с ИИ</string>
     <string name="ai_summary_off">Выключен</string>
     <string name="ai_summary_on">%1$s подключён</string>
     <string name="ai_enable">Включить ИИ-помощника</string>

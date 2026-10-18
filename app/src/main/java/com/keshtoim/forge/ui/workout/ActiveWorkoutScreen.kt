@@ -120,6 +120,7 @@ import com.keshtoim.forge.data.db.SetEffort
 import com.keshtoim.forge.data.db.WorkoutExerciseWithSets
 import com.keshtoim.forge.data.db.WorkoutSet
 import com.keshtoim.forge.rest.Rest
+import com.keshtoim.forge.ui.AiIndicator
 import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.displayName
 import com.keshtoim.forge.ui.hintRes
@@ -141,6 +142,7 @@ fun ActiveWorkoutScreen(
     val detail by viewModel.detail.collectAsStateWithLifecycle()
     val exercises by viewModel.exercises.collectAsStateWithLifecycle()
     val rest by viewModel.rest.collectAsStateWithLifecycle()
+    val aiStatus by viewModel.aiStatus.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var focusedId by rememberSaveable { mutableStateOf<Long?>(null) }
     var listOpen by rememberSaveable { mutableStateOf(false) }
@@ -151,6 +153,8 @@ fun ActiveWorkoutScreen(
         view.keepScreenOn = true
         onDispose { view.keepScreenOn = false }
     }
+
+    LaunchedEffect(aiStatus) { viewModel.verifyAi() }
 
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
     LaunchedEffect(Unit) {
@@ -172,6 +176,7 @@ fun ActiveWorkoutScreen(
                 Icon(Icons.Filled.KeyboardArrowDown, contentDescription = stringResource(R.string.back))
             }
             Text(rememberElapsed(workout.workout.startedAt), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
+            AiIndicator(aiStatus, Modifier.padding(end = 10.dp))
             OutlinedButton(
                 onClick = finish,
                 border = BorderStroke(2.dp, MaterialTheme.colorScheme.onSurface),

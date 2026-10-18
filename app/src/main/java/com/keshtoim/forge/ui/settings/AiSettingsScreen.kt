@@ -51,7 +51,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.keshtoim.forge.ForgeApplication
 import com.keshtoim.forge.R
-import com.keshtoim.forge.data.ai.AiAssistant
+import com.keshtoim.forge.data.ai.AiConnection
 import com.keshtoim.forge.data.ai.AiException
 import com.keshtoim.forge.data.ai.AiFailure
 import com.keshtoim.forge.data.ai.AiProvider
@@ -69,7 +69,7 @@ sealed interface AiCheck {
     data class Failed(val failure: AiFailure) : AiCheck
 }
 
-class AiSettingsViewModel(private val settings: AiSettings) : ViewModel() {
+class AiSettingsViewModel(private val settings: AiSettings, private val connection: AiConnection) : ViewModel() {
     val state = settings.state
 
     var check by mutableStateOf<AiCheck?>(null)
@@ -93,11 +93,11 @@ class AiSettingsViewModel(private val settings: AiSettings) : ViewModel() {
     }
 
     fun check() {
-        val config = state.value.config ?: return
+        if (state.value.config == null) return
         check = AiCheck.Running
         viewModelScope.launch {
             check = try {
-                AiAssistant.reply(config, "Reply with the single word OK.", listOf(AiTurn(fromUser = true, text = "ping")))
+                connection.ask("Reply with the single word OK.", listOf(AiTurn(fromUser = true, text = "ping")))
                 AiCheck.Passed
             } catch (e: AiException) {
                 AiCheck.Failed(e.failure)
@@ -107,7 +107,10 @@ class AiSettingsViewModel(private val settings: AiSettings) : ViewModel() {
 
     companion object {
         val Factory = viewModelFactory {
-            initializer { AiSettingsViewModel((this[APPLICATION_KEY] as ForgeApplication).aiSettings) }
+            initializer {
+                val app = this[APPLICATION_KEY] as ForgeApplication
+                AiSettingsViewModel(app.aiSettings, app.aiConnection)
+            }
         }
     }
 }

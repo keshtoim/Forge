@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.toRoute
 import com.keshtoim.forge.ForgeApplication
+import com.keshtoim.forge.data.ai.AiConnection
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseDao
 import com.keshtoim.forge.data.db.WorkoutDao
@@ -30,6 +31,7 @@ class ActiveWorkoutViewModel(
     private val workoutDao: WorkoutDao,
     private val exerciseDao: ExerciseDao,
     private val restTimer: RestTimer,
+    private val ai: AiConnection,
 ) : ViewModel() {
     private val workoutId = savedStateHandle.toRoute<ActiveWorkoutRoute>().id
 
@@ -41,6 +43,10 @@ class ActiveWorkoutViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
 
     val rest = restTimer.state
+
+    val aiStatus = ai.status
+
+    fun verifyAi() = ai.verify()
 
     // Sets of the last finished workout per exerciseId, shown as placeholders.
     val previous = mutableStateMapOf<Long, List<WorkoutSet>>()
@@ -158,7 +164,7 @@ class ActiveWorkoutViewModel(
             initializer {
                 val app = this[APPLICATION_KEY] as ForgeApplication
                 val db = app.database
-                ActiveWorkoutViewModel(createSavedStateHandle(), db.workoutDao(), db.exerciseDao(), app.restTimer)
+                ActiveWorkoutViewModel(createSavedStateHandle(), db.workoutDao(), db.exerciseDao(), app.restTimer, app.aiConnection)
             }
         }
     }

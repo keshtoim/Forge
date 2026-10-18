@@ -1,5 +1,6 @@
 package com.keshtoim.forge.data.ai
 
+import com.anthropic.client.AnthropicClient
 import com.anthropic.client.okhttp.AnthropicOkHttpClient
 import com.anthropic.core.JsonValue
 import com.anthropic.errors.AnthropicIoException
@@ -15,6 +16,7 @@ import com.google.genai.types.Content
 import com.google.genai.types.GenerateContentConfig
 import com.google.genai.types.HttpOptions
 import com.google.genai.types.Part
+import com.openai.client.OpenAIClient
 import com.openai.client.okhttp.OpenAIOkHttpClient
 import com.openai.errors.OpenAIIoException
 import com.openai.errors.OpenAIServiceException
@@ -41,13 +43,27 @@ data class AiConfig(val provider: AiProvider, val apiKey: String, val model: Str
 // One request-response exchange with whichever provider the user picked; every call is a fresh conversation.
 object AiAssistant {
     // [baseUrl] points the SDK at another server; only tests use it.
-    suspend fun reply(config: AiConfig, system: String, turns: List<AiTurn>, baseUrl: String? = null): String = withContext(Dispatchers.IO) {
+    suspend fun reply(config: AiConfig, system: String, turns: List<AiTurn>, baseUrl: String? = null): String = call(config) {
+        when (config.provider) {
+            AiProvider.GEMINI -> gemini(config, system, turns, baseUrl)
+            AiProvider.OPENAI -> openAi(config, system, turns, baseUrl)
+            AiProvider.CLAUDE -> claude(config, system, turns, baseUrl)
+        }.trim().ifEmpty { throw AiException(AiFailure.OTHER) }
+    }
+
+    // Looks the configured model up: costs no tokens, yet fails like a real request on a wrong key or model name.
+    suspend fun ping(config: AiConfig, baseUrl: String? = null) = call(config) {
+        when (config.provider) {
+            AiProvider.GEMINI -> withGemini(config, baseUrl) { it.models.get(config.model, null) }
+            AiProvider.OPENAI -> withOpenAi(config, baseUrl) { it.models().retrieve(config.model) }
+            AiProvider.CLAUDE -> withClaude(config, baseUrl) { it.models().retrieve(config.model) }
+        }
+        Unit
+    }
+
+    private suspend fun <T> call(config: AiConfig, block: () -> T): T = withContext(Dispatchers.IO) {
         try {
-            when (config.provider) {
-                AiProvider.GEMINI -> gemini(config, system, turns, baseUrl)
-                AiProvider.OPENAI -> openAi(config, system, turns, baseUrl)
-                AiProvider.CLAUDE -> claude(config, system, turns, baseUrl)
-            }.trim().ifEmpty { throw AiException(AiFailure.OTHER) }
+            block()
         } catch (e: AiException) {
             throw e
         } catch (e: Exception) {
@@ -55,51 +71,62 @@ object AiAssistant {
         }
     }
 
-    private fun claude(config: AiConfig, system: String, turns: List<AiTurn>, baseUrl: String?): String {
+    private fun claude(config: AiConfig, system: String, turns: List<AiTurn>, baseUrl: String?): String = withClaude(config, baseUrl) { client ->
+        val params = ClaudeParams.builder()
+            .model(config.model)
+            .maxTokens(16_000L)
+            .system(system)
+            .apply {
+                turns.forEach { if (it.fromUser) addUserMessage(it.text) else addAssistantMessage(it.text) }
+                // A declined request is retried server-side on the model Anthropic picks for that refusal category.
+                if (config.model in CLAUDE_FALLBACK_MODELS) {
+                    addBeta("server-side-fallback-2026-07-01")
+                    putAdditionalBodyProperty("fallbacks", JsonValue.from("default"))
+                }
+            }
+            .build()
+        val message = client.beta().messages().create(params)
+        if (message.stopReason().orElse(null) == BetaStopReason.REFUSAL) throw AiException(AiFailure.REFUSED)
+        message.content().joinToString("") { block -> block.text().map { it.text() }.orElse("") }
+    }
+
+    private fun openAi(config: AiConfig, system: String, turns: List<AiTurn>, baseUrl: String?): String = withOpenAi(config, baseUrl) { client ->
+        val params = ChatCompletionCreateParams.builder()
+            .model(config.model)
+            .addSystemMessage(system)
+            .apply { turns.forEach { if (it.fromUser) addUserMessage(it.text) else addAssistantMessage(it.text) } }
+            .build()
+        client.chat().completions().create(params).choices().firstOrNull()?.message()?.content()?.orElse("").orEmpty()
+    }
+
+    private fun gemini(config: AiConfig, system: String, turns: List<AiTurn>, baseUrl: String?): String = withGemini(config, baseUrl) { client ->
+        val contents = turns.map { Content.builder().role(if (it.fromUser) "user" else "model").parts(Part.fromText(it.text)).build() }
+        val settings = GenerateContentConfig.builder().systemInstruction(Content.fromParts(Part.fromText(system))).build()
+        client.models.generateContent(config.model, contents, settings).text().orEmpty()
+    }
+
+    private fun <T> withClaude(config: AiConfig, baseUrl: String?, block: (AnthropicClient) -> T): T {
         val client = AnthropicOkHttpClient.builder().apiKey(config.apiKey).apply { baseUrl?.let(::baseUrl) }.build()
         try {
-            val params = ClaudeParams.builder()
-                .model(config.model)
-                .maxTokens(16_000L)
-                .system(system)
-                .apply {
-                    turns.forEach { if (it.fromUser) addUserMessage(it.text) else addAssistantMessage(it.text) }
-                    // A declined request is retried server-side on the model Anthropic picks for that refusal category.
-                    if (config.model in CLAUDE_FALLBACK_MODELS) {
-                        addBeta("server-side-fallback-2026-07-01")
-                        putAdditionalBodyProperty("fallbacks", JsonValue.from("default"))
-                    }
-                }
-                .build()
-            val message = client.beta().messages().create(params)
-            if (message.stopReason().orElse(null) == BetaStopReason.REFUSAL) throw AiException(AiFailure.REFUSED)
-            return message.content().joinToString("") { block -> block.text().map { it.text() }.orElse("") }
+            return block(client)
         } finally {
             client.close()
         }
     }
 
-    private fun openAi(config: AiConfig, system: String, turns: List<AiTurn>, baseUrl: String?): String {
+    private fun <T> withOpenAi(config: AiConfig, baseUrl: String?, block: (OpenAIClient) -> T): T {
         val client = OpenAIOkHttpClient.builder().apiKey(config.apiKey).apply { baseUrl?.let(::baseUrl) }.build()
         try {
-            val params = ChatCompletionCreateParams.builder()
-                .model(config.model)
-                .addSystemMessage(system)
-                .apply { turns.forEach { if (it.fromUser) addUserMessage(it.text) else addAssistantMessage(it.text) } }
-                .build()
-            val choice = client.chat().completions().create(params).choices().firstOrNull() ?: return ""
-            return choice.message().content().orElse("")
+            return block(client)
         } finally {
             client.close()
         }
     }
 
-    private fun gemini(config: AiConfig, system: String, turns: List<AiTurn>, baseUrl: String?): String {
+    private fun <T> withGemini(config: AiConfig, baseUrl: String?, block: (Client) -> T): T {
         val client = Client.builder().apiKey(config.apiKey).apply { baseUrl?.let { httpOptions(HttpOptions.builder().baseUrl(it).build()) } }.build()
         try {
-            val contents = turns.map { Content.builder().role(if (it.fromUser) "user" else "model").parts(Part.fromText(it.text)).build() }
-            val settings = GenerateContentConfig.builder().systemInstruction(Content.fromParts(Part.fromText(system))).build()
-            return client.models.generateContent(config.model, contents, settings).text().orEmpty()
+            return block(client)
         } finally {
             client.close()
         }
