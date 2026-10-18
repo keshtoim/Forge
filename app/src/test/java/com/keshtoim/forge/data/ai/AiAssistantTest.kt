@@ -91,4 +91,48 @@ class AiAssistantTest {
         )
         assertEquals(AiFailure.REFUSED, failure(AiProvider.OPENAI))
     }
+
+    private fun list(provider: AiProvider) =
+        runBlocking { AiAssistant.listModels(AiConfig(provider, "key-123", provider.defaultModel), server.url("/").toString()) }
+
+    @Test
+    fun `model lists keep chat models only, with readable names`() {
+        server.enqueue(
+            json(
+                200,
+                """{"models":[{"name":"models/gemini-2.5-flash","displayName":"Gemini 2.5 Flash","supportedGenerationMethods":["generateContent","countTokens"]},""" +
+                    """{"name":"models/text-embedding-004","displayName":"Embedding","supportedGenerationMethods":["embedContent"]}]}""",
+            ),
+        )
+        assertEquals(listOf(AiModel("gemini-2.5-flash", "Gemini 2.5 Flash")), list(AiProvider.GEMINI))
+
+        server.enqueue(
+            json(
+                200,
+                """{"object":"list","data":[{"id":"gpt-5","object":"model","created":2,"owned_by":"openai"},""" +
+                    """{"id":"text-embedding-3-small","object":"model","created":5,"owned_by":"openai"},{"id":"gpt-5-mini","object":"model","created":3,"owned_by":"openai"}]}""",
+            ),
+        )
+        assertEquals(listOf("gpt-5-mini", "gpt-5"), list(AiProvider.OPENAI).map { it.id })
+
+        server.enqueue(
+            json(
+                200,
+                """{"data":[{"type":"model","id":"claude-opus-5-5","display_name":"Claude Opus 5.5","created_at":"2026-01-01T00:00:00Z"}],""" +
+                    """"has_more":false,"first_id":"claude-opus-5-5","last_id":"claude-opus-5-5"}""",
+            ),
+        )
+        assertEquals(listOf(AiModel("claude-opus-5-5", "Claude Opus 5.5")), list(AiProvider.CLAUDE))
+    }
+
+    @Test
+    fun `the chosen model survives a refresh while it is still offered`() {
+        val offered = listOf("gpt-5", "gpt-5-mini")
+        assertEquals("gpt-5-mini", selectModel("gpt-5-mini", offered, "gpt-5"))
+        assertEquals("gpt-5", selectModel("gpt-4", offered, "gpt-5"))
+        assertEquals("gpt-5-nano", selectModel("gpt-4", listOf("gpt-5-nano", "gpt-5"), "gpt-9"))
+        assertEquals("gpt-4", selectModel("gpt-4", emptyList(), "gpt-5"))
+        assertTrue(isOpenAiChatModel("o4-mini") && isOpenAiChatModel("chatgpt-4o-latest"))
+        assertTrue(listOf("gpt-4o-realtime-preview", "gpt-image-1", "omni-moderation-latest", "gpt-5-codex", "whisper-1").none(::isOpenAiChatModel))
+    }
 }

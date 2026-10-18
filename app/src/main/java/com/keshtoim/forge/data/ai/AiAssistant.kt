@@ -15,6 +15,7 @@ import com.google.genai.errors.ApiException
 import com.google.genai.types.Content
 import com.google.genai.types.GenerateContentConfig
 import com.google.genai.types.HttpOptions
+import com.google.genai.types.ListModelsConfig
 import com.google.genai.types.Part
 import com.openai.client.OpenAIClient
 import com.openai.client.okhttp.OpenAIOkHttpClient
@@ -33,6 +34,22 @@ enum class AiProvider(val title: String, val defaultModel: String, val keyUrl: S
 }
 
 data class AiTurn(val fromUser: Boolean, val text: String)
+
+data class AiModel(val id: String, val name: String)
+
+// Keeps the chosen model while the provider still offers it, otherwise falls back to the default, then to the first one listed.
+fun selectModel(current: String, available: List<String>, preferred: String): String = when {
+    available.isEmpty() || current in available -> current
+    preferred in available -> preferred
+    else -> available.first()
+}
+
+// OpenAI lists every model the key can reach; only the ones that answer chat completions are useful here.
+fun isOpenAiChatModel(id: String): Boolean {
+    val chatFamily = id.startsWith("gpt-") || id.startsWith("chatgpt-") || Regex("^o\\d").containsMatchIn(id)
+    val otherUse = listOf("embedding", "tts", "whisper", "dall-e", "moderation", "image", "realtime", "audio", "transcribe", "search", "instruct", "codex", "computer-use")
+    return chatFamily && otherUse.none { it in id }
+}
 
 enum class AiFailure { NO_CONNECTION, BAD_KEY, BAD_MODEL, RATE_LIMIT, REFUSED, OTHER }
 
@@ -59,6 +76,28 @@ object AiAssistant {
             AiProvider.CLAUDE -> withClaude(config, baseUrl) { it.models().retrieve(config.model) }
         }
         Unit
+    }
+
+    // The models the key can use, as the provider lists them; listing is free on all three services.
+    suspend fun listModels(config: AiConfig, baseUrl: String? = null): List<AiModel> = call(config) {
+        when (config.provider) {
+            AiProvider.GEMINI -> withGemini(config, baseUrl) { client ->
+                client.models.list(ListModelsConfig.builder().pageSize(100).build())
+                    .filter { "generateContent" in it.supportedActions().orElse(emptyList()) }
+                    .map { model ->
+                        val id = model.name().orElse("").removePrefix("models/")
+                        AiModel(id, model.displayName().orElse(id))
+                    }
+            }
+            AiProvider.OPENAI -> withOpenAi(config, baseUrl) { client ->
+                client.models().list().autoPager().filter { isOpenAiChatModel(it.id()) }
+                    .sortedByDescending { it.created() }
+                    .map { AiModel(it.id(), it.id()) }
+            }
+            AiProvider.CLAUDE -> withClaude(config, baseUrl) { client ->
+                client.models().list().autoPager().map { AiModel(it.id(), it.displayName()) }
+            }
+        }.filter { it.id.isNotBlank() }.distinctBy { it.id }
     }
 
     private suspend fun <T> call(config: AiConfig, block: () -> T): T = withContext(Dispatchers.IO) {
