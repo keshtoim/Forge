@@ -13,7 +13,7 @@
 
 </div>
 
-Forge logs your gym sessions: which exercises, how many sets, what weight and how hard it felt. Everything stays on your phone. There's no account, no ads, no subscription, and the app has no internet permission at all.
+Forge logs your gym sessions: which exercises, how many sets, what weight and how hard it felt. Everything stays on your phone. There's no account, no ads and no subscription. The app goes online only for the AI assistant, and only if you turn it on.
 
 ## How a workout goes
 
@@ -23,6 +23,8 @@ Forge logs your gym sessions: which exercises, how many sets, what weight and ho
 4. **Rest.** The rest timer lives in a notification and vibrates when it's time, even with the screen off.
 
 Close the app mid-workout and it picks up right where you left off.
+
+**Supersets.** Neighbouring exercises in a template can be joined into a superset. The workout screen then shows the whole round, "Finish round" logs every exercise in it, and rest starts only after the round. "One more round" adds a round with the same weights.
 
 ### Set levels
 
@@ -40,11 +42,21 @@ Close the app mid-workout and it picks up right where you left off.
 
 **Progress.** Per-exercise charts (weight, volume, reps, duration, distance), personal records, 30-day stats and a muscle load map on the home screen.
 
-**Plans.** Schedule a workout from a template for a date. It shows up in the calendar, on the home screen and under "Upcoming", and you get a reminder on the day.
+**Plans.** Schedule a workout for a date, from a template or with your own list of exercises. It shows up in the calendar, on the home screen and under "Upcoming", and you get a reminder on the day.
 
 **Body measurements.** Daily weight and measurements with a trend chart. From these Forge calculates BMI, body fat by the US Navy method, lean mass, FFMI, and waist-to-height and waist-to-hip ratios.
 
 **Your data.** Export everything to JSON and import it back, for example when you move to a new phone.
+
+## AI assistant (optional)
+
+It's off by default, and Forge works as usual without it. To turn it on you need your own API key for one of the services: Gemini (Google AI Studio), ChatGPT (OpenAI) or Claude (Anthropic). The model can be changed in settings.
+
+- **Chat coach.** The "AI" tag in the workout header opens a chat. The coach sees the current workout, your past results for each exercise, and your height, age and weight, so its answers are specific: what weight to take, how long to rest, what to do instead of a busy machine.
+- **Set tip.** The "AI tip" button on a set card suggests weight and reps with a short reason; "Apply" fills them into the set.
+- **Connection indicator.** The dot on the "AI" tag: green when connected, grey while checking, red when offline or the key was rejected.
+
+Workout data goes only to the service you picked and only when you ask. The key is stored on the device, encrypted with a key from the Android Keystore.
 
 ## Install
 
@@ -63,11 +75,12 @@ You'll need JDK 17+ and Android SDK 36.
 
 ## For developers
 
-Kotlin, Jetpack Compose with Material 3, Room, Navigation Compose with type-safe routes, and kotlinx.serialization. There's no DI framework: screen → ViewModel → DAO.
+Kotlin, Jetpack Compose with Material 3, Room, Navigation Compose with type-safe routes, and kotlinx.serialization. The AI assistant uses the official SDKs: google-genai, openai-java and anthropic-java. There's no DI framework: screen → ViewModel → DAO.
 
 ```
 data/        Room, built-in exercises, body formulas, preferences
 rest/        rest timer (foreground service)
+data/ai/     AI assistant: provider SDKs, settings, coach prompt
 reminder/    plan reminders (AlarmManager)
 ui/          screens by section: workout, history, exercises, plan, …
 ```
@@ -86,3 +99,4 @@ Tests run on Robolectric, Compose UI flows included, so they don't need an emula
 - **Foreground service**: keeps the timer running while the app is in the background.
 - **Exact alarms and boot completed**: reminders arrive on time, including after a reboot.
 - **Vibration and wake lock**: the rest-over signal with the screen off.
+- **Internet and network state**: only for the AI assistant and its connection indicator.
