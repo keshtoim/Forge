@@ -9,6 +9,7 @@ import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.ForgeDatabase
 import com.keshtoim.forge.data.db.MuscleGroup
+import com.keshtoim.forge.data.db.StartItem
 import com.keshtoim.forge.data.db.WorkoutSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -40,7 +41,7 @@ class ActiveWorkoutViewModelTest {
         Dispatchers.setMain(Dispatchers.Unconfined)
         db = Room.inMemoryDatabaseBuilder(app, ForgeDatabase::class.java).build()
         val bench = db.exerciseDao().insert(Exercise(builtInKey = "BENCH_PRESS", muscleGroup = MuscleGroup.CHEST, type = ExerciseType.WEIGHT_REPS))
-        workoutId = db.workoutDao().start("Push", null, listOf(bench to 1), now = 0)
+        workoutId = db.workoutDao().start("Push", null, listOf(StartItem(bench, 1)), now = 0)
         val exercise = db.workoutDao().observeDetail(workoutId).first()!!.exercises.single()
         workoutExerciseId = exercise.workoutExercise.id
         setId = exercise.sets.single().id

@@ -111,7 +111,7 @@ fun WorkoutHomeScreen(
     var confirmFinish by rememberSaveable { mutableStateOf(false) }
     var selectedDay by rememberSaveable { mutableStateOf<Long?>(null) }
     val active = home.active
-    val templates = (listOfNotNull(home.next) + home.others).associateBy { it.template.id }
+    val templates = home.templates
 
     Box(Modifier.fillMaxSize()) {
         Column {

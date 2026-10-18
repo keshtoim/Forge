@@ -50,7 +50,7 @@ class DaoTest {
 
     @Test
     fun `start creates exercises with the requested number of empty sets`() = runTest {
-        val id = workouts.start("Push", null, listOf(bench to 3, squat to 2), now = 1_000)
+        val id = workouts.start("Push", null, listOf(StartItem(bench, 3), StartItem(squat, 2)), now = 1_000)
 
         val d = detail(id)
         assertEquals(id, workouts.getActive()?.id)
@@ -60,9 +60,16 @@ class DaoTest {
     }
 
     @Test
+    fun `start keeps exercises of a superset grouped`() = runTest {
+        val id = workouts.start("Legs", null, listOf(StartItem(squat, 3), StartItem(bench, 3, superset = 1), StartItem(squat, 3, superset = 1)), now = 1_000)
+
+        assertEquals(listOf(null, 1, 1), detail(id).exercises.sortedBy { it.workoutExercise.position }.map { it.workoutExercise.superset })
+    }
+
+    @Test
     fun `startOrResume returns the active workout instead of creating another`() = runTest {
-        val first = workouts.startOrResume("A", null, listOf(bench to 1), now = 1_000)
-        val second = workouts.startOrResume("B", null, listOf(squat to 1), now = 2_000)
+        val first = workouts.startOrResume("A", null, listOf(StartItem(bench, 1)), now = 1_000)
+        val second = workouts.startOrResume("B", null, listOf(StartItem(squat, 1)), now = 2_000)
 
         assertEquals(first, second)
         assertEquals(1, db.backupDao().workouts().size)
@@ -70,7 +77,7 @@ class DaoTest {
 
     @Test
     fun `addExercises appends after existing ones with one set each`() = runTest {
-        val id = workouts.start("Push", null, listOf(bench to 1), now = 1_000)
+        val id = workouts.start("Push", null, listOf(StartItem(bench, 1)), now = 1_000)
         workouts.addExercises(id, listOf(squat))
 
         val added = detail(id).exercises.single { it.workoutExercise.exerciseId == squat }
@@ -80,7 +87,7 @@ class DaoTest {
 
     @Test
     fun `finish drops incomplete sets and empty exercises`() = runTest {
-        val id = workouts.start("Push", null, listOf(bench to 2, squat to 1), now = 1_000)
+        val id = workouts.start("Push", null, listOf(StartItem(bench, 2), StartItem(squat, 1)), now = 1_000)
         val benchSet = detail(id).exercises.single { it.workoutExercise.exerciseId == bench }.sets.first()
         workouts.update(benchSet.copy(weightKg = 100.0, reps = 5, completed = true))
 
@@ -95,7 +102,7 @@ class DaoTest {
 
     @Test
     fun `finish without completed sets deletes the workout`() = runTest {
-        val id = workouts.start("Push", null, listOf(bench to 2), now = 1_000)
+        val id = workouts.start("Push", null, listOf(StartItem(bench, 2)), now = 1_000)
 
         assertFalse(workouts.finish(id, now = 2_000))
         assertNull(workouts.observeDetail(id).first())
@@ -103,15 +110,15 @@ class DaoTest {
 
     @Test
     fun `previousSets returns the latest finished workout and ignores the active one`() = runTest {
-        val old = workouts.start("A", null, listOf(bench to 1), now = 1_000)
+        val old = workouts.start("A", null, listOf(StartItem(bench, 1)), now = 1_000)
         completeAll(old, weight = 80.0, reps = 5)
         workouts.finish(old, now = 1_500)
 
-        val recent = workouts.start("B", null, listOf(bench to 2), now = 2_000)
+        val recent = workouts.start("B", null, listOf(StartItem(bench, 2)), now = 2_000)
         completeAll(recent, weight = 90.0, reps = 5)
         workouts.finish(recent, now = 2_500)
 
-        val active = workouts.start("C", null, listOf(bench to 1), now = 3_000)
+        val active = workouts.start("C", null, listOf(StartItem(bench, 1)), now = 3_000)
         completeAll(active, weight = 200.0, reps = 1)
 
         val previous = workouts.previousSets(bench)
@@ -121,7 +128,7 @@ class DaoTest {
 
     @Test
     fun `deleting a workout cascades to its exercises and sets`() = runTest {
-        val id = workouts.start("Push", null, listOf(bench to 3), now = 1_000)
+        val id = workouts.start("Push", null, listOf(StartItem(bench, 3)), now = 1_000)
         workouts.deleteWorkout(id)
 
         assertTrue(db.backupDao().workoutExercises().isEmpty())
@@ -146,7 +153,7 @@ class DaoTest {
     @Test
     fun `deleting a template keeps workouts started from it`() = runTest {
         val templateId = templates.save(Template(name = "Push"), listOf(item(bench, 1)))
-        val workoutId = workouts.start("Push", templateId, listOf(bench to 1), now = 1_000)
+        val workoutId = workouts.start("Push", templateId, listOf(StartItem(bench, 1)), now = 1_000)
 
         templates.delete(templates.get(templateId)!!.template)
 
@@ -156,7 +163,7 @@ class DaoTest {
 
     @Test
     fun `warm-up sets stay out of progress points`() = runTest {
-        val id = workouts.start("Push", null, listOf(bench to 2), now = 1_000)
+        val id = workouts.start("Push", null, listOf(StartItem(bench, 2)), now = 1_000)
         val (warmup, working) = detail(id).exercises.single().sets.sortedBy { it.position }
         workouts.update(warmup.copy(weightKg = 40.0, reps = 10, completed = true, effort = SetEffort.WARMUP))
         workouts.update(working.copy(weightKg = 100.0, reps = 5, completed = true, effort = SetEffort.HEAVY))
@@ -204,7 +211,7 @@ class DaoTest {
         val templateId = templates.save(Template(name = "Push"), listOf(item(bench, 3)))
         db.planDao().save(PlannedWorkout(templateId = templateId, epochDay = 20_000, minuteOfDay = 18 * 60 + 30, repeatDays = 0b100000, remindBefore = 30))
         db.bodyMeasurementDao().record(20_000) { it.copy(weightKg = 80.5, waistCm = 84.0) }
-        val id = workouts.start("Push", null, listOf(bench to 2), now = 1_000)
+        val id = workouts.start("Push", null, listOf(StartItem(bench, 2)), now = 1_000)
         completeAll(id, weight = 100.0, reps = 5)
         workouts.finish(id, now = 2_000)
 
@@ -235,7 +242,7 @@ class DaoTest {
 
     @Test
     fun `exercise counts as used once it is in any workout`() = runTest {
-        workouts.start("Push", null, listOf(bench to 1), now = 1_000)
+        workouts.start("Push", null, listOf(StartItem(bench, 1)), now = 1_000)
 
         assertTrue(db.exerciseDao().isUsedInWorkouts(bench))
         assertFalse(db.exerciseDao().isUsedInWorkouts(squat))
@@ -244,7 +251,7 @@ class DaoTest {
     @Test
     fun `import replaces existing data`() = runTest {
         val backup = db.backupDao().export()
-        workouts.start("Will be gone", null, listOf(bench to 1), now = 1_000)
+        workouts.start("Will be gone", null, listOf(StartItem(bench, 1)), now = 1_000)
 
         db.backupDao().replaceAll(backup)
 

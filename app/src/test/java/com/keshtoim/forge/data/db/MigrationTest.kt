@@ -79,6 +79,22 @@ class MigrationTest {
     }
 
     @Test
+    fun `migration 8 to 9 keeps templates visible and exercises outside supersets`() = runBlocking {
+        helper.createDatabase(8).use {
+            it.execSQL("INSERT INTO exercises (id, builtInKey, name, muscleGroup, secondaryMuscles, type, archived) VALUES (1, NULL, 'Dip', 'CHEST', '', 'REPS', 0)")
+            it.execSQL("INSERT INTO templates (id, name) VALUES (1, 'Push')")
+            it.execSQL("INSERT INTO template_exercises (id, templateId, exerciseId, position, targetSets) VALUES (1, 1, 1, 0, 3)")
+        }
+        helper.runMigrationsAndValidate(9).close()
+
+        val db = Room.databaseBuilder(context, ForgeDatabase::class.java, DB).build()
+        val template = db.templateDao().get(1)!!
+        assertEquals(false, template.template.hidden)
+        assertEquals(null, template.items.single().superset)
+        db.close()
+    }
+
+    @Test
     fun `secondary muscles survive a round trip`() = runBlocking {
         val db = Room.inMemoryDatabaseBuilder(context, ForgeDatabase::class.java).build()
         val muscles = listOf(MuscleGroup.TRICEPS, MuscleGroup.SHOULDERS)

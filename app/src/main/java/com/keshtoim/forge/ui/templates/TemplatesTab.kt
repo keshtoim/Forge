@@ -40,6 +40,7 @@ import com.keshtoim.forge.R
 import com.keshtoim.forge.data.db.ExerciseDao
 import com.keshtoim.forge.data.db.TemplateDao
 import com.keshtoim.forge.data.db.WorkoutDao
+import com.keshtoim.forge.data.db.toStartItem
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.displayName
 import com.keshtoim.forge.ui.relativeDay
@@ -61,7 +62,7 @@ class TemplatesViewModel(templateDao: TemplateDao, exerciseDao: ExerciseDao, pri
     ) { templates, exercises, finished, active ->
         val byId = exercises.associateBy { it.id }
         val lastDone = lastDoneByTemplate(finished)
-        val summaries = templates.map { t ->
+        val summaries = templates.filter { !it.template.hidden }.map { t ->
             val items = t.items.sortedBy { it.position }
             TemplateSummary(t.template, items, items.mapNotNull { byId[it.exerciseId] }, lastDone[t.template.id])
         }
@@ -74,7 +75,7 @@ class TemplatesViewModel(templateDao: TemplateDao, exerciseDao: ExerciseDao, pri
         if (starting) return
         starting = true
         viewModelScope.launch {
-            val items = summary.items.map { it.exerciseId to it.targetSets }
+            val items = summary.items.map { it.toStartItem() }
             val id = workoutDao.startOrResume(summary.template.name, summary.template.id, items, System.currentTimeMillis())
             starting = false
             onStarted(id)

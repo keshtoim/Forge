@@ -52,6 +52,9 @@ data class Exercise(
 data class Template(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
+    // A plan's own exercise list: kept out of the template list, removed together with its plan.
+    @ColumnInfo(defaultValue = "0")
+    val hidden: Boolean = false,
 )
 
 @Serializable
@@ -69,6 +72,8 @@ data class TemplateExercise(
     val exerciseId: Long,
     val position: Int,
     val targetSets: Int,
+    // Neighbouring exercises with the same value form a superset and share targetSets as rounds.
+    val superset: Int? = null,
 )
 
 @Serializable
@@ -100,6 +105,7 @@ data class WorkoutExercise(
     val workoutId: Long,
     val exerciseId: Long,
     val position: Int,
+    val superset: Int? = null,
 )
 
 @Serializable

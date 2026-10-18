@@ -22,6 +22,10 @@ data class WorkoutDetail(
     val exercises: List<WorkoutExerciseWithSets>,
 )
 
+data class StartItem(val exerciseId: Long, val sets: Int, val superset: Int? = null)
+
+fun TemplateExercise.toStartItem() = StartItem(exerciseId, targetSets, superset)
+
 data class ExerciseHistory(val exerciseId: Long, val lastAt: Long, val sessions: Int)
 
 data class SetPoint(
@@ -132,18 +136,18 @@ interface WorkoutDao {
     suspend fun setFinished(workoutId: Long, finishedAt: Long)
 
     @Transaction
-    suspend fun start(name: String, templateId: Long?, items: List<Pair<Long, Int>>, now: Long): Long {
+    suspend fun start(name: String, templateId: Long?, items: List<StartItem>, now: Long): Long {
         val workoutId = insert(Workout(templateId = templateId, name = name, startedAt = now))
-        items.forEachIndexed { i, (exerciseId, sets) ->
-            val weId = insert(WorkoutExercise(workoutId = workoutId, exerciseId = exerciseId, position = i))
-            insertSets(List(sets) { WorkoutSet(workoutExerciseId = weId, position = it) })
+        items.forEachIndexed { i, item ->
+            val weId = insert(WorkoutExercise(workoutId = workoutId, exerciseId = item.exerciseId, position = i, superset = item.superset))
+            insertSets(List(item.sets) { WorkoutSet(workoutExerciseId = weId, position = it) })
         }
         return workoutId
     }
 
     // Only one workout may be in progress; checking and inserting in one transaction prevents two from racing in.
     @Transaction
-    suspend fun startOrResume(name: String, templateId: Long?, items: List<Pair<Long, Int>>, now: Long): Long =
+    suspend fun startOrResume(name: String, templateId: Long?, items: List<StartItem>, now: Long): Long =
         getActive()?.id ?: start(name, templateId, items, now)
 
     @Transaction
@@ -157,7 +161,7 @@ interface WorkoutDao {
 
     @Transaction
     suspend fun addToActiveOrStart(name: String, exerciseId: Long, now: Long): Long {
-        val active = getActive() ?: return start(name, null, listOf(exerciseId to 1), now)
+        val active = getActive() ?: return start(name, null, listOf(StartItem(exerciseId, 1)), now)
         addExercises(active.id, listOf(exerciseId))
         return active.id
     }
