@@ -60,31 +60,25 @@ import com.keshtoim.forge.ForgeApplication
 import com.keshtoim.forge.R
 import com.keshtoim.forge.data.ai.AiConnection
 import com.keshtoim.forge.data.ai.AiException
-import com.keshtoim.forge.data.ai.AiFailure
 import com.keshtoim.forge.data.ai.AiModel
 import com.keshtoim.forge.data.ai.AiProvider
 import com.keshtoim.forge.data.ai.AiSettings
+import com.keshtoim.forge.data.ai.AiStatus
+import com.keshtoim.forge.ui.AiErrorText
 import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
-import com.keshtoim.forge.ui.labelRes
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-sealed interface AiCheck {
-    data object Running : AiCheck
-    data class Passed(val models: Int) : AiCheck
-    data class Failed(val failure: AiFailure) : AiCheck
-}
-
 class AiSettingsViewModel(private val settings: AiSettings, private val connection: AiConnection) : ViewModel() {
     val state = settings.state
 
-    var check by mutableStateOf<AiCheck?>(null)
-        private set
+    // The same status the workout indicator shows, with the last error and its details.
+    val status = connection.status
 
-    private var checking: Job? = null
+    private var pending: Job? = null
 
     fun setEnabled(enabled: Boolean) {
         settings.setEnabled(enabled)
@@ -93,45 +87,40 @@ class AiSettingsViewModel(private val settings: AiSettings, private val connecti
 
     fun setProvider(provider: AiProvider) {
         settings.setProvider(provider)
-        check = null
         loadIfMissing()
     }
 
-    // The list loads by itself once typing pauses, so pasting a key is enough to get the models.
+    // Checks start by themselves once typing pauses, so pasting a key or picking a model is enough.
     fun setKey(key: String) {
         val before = state.value.keys[state.value.provider].orEmpty()
         settings.setKey(state.value.provider, key)
-        if (state.value.keys[state.value.provider].orEmpty() == before) return
-        check = null
-        run(delayMs = 800)
+        if (state.value.keys[state.value.provider].orEmpty() != before) check(delayMs = 800)
     }
 
     fun setModel(model: String) {
         settings.setModel(state.value.provider, model)
-        check = null
-    }
-
-    fun check() = run(delayMs = 0)
-
-    private fun loadIfMissing() {
-        if (state.value.catalogs[state.value.provider].isNullOrEmpty()) run(delayMs = 0)
-    }
-
-    private fun run(delayMs: Long) {
-        checking?.cancel()
-        if (state.value.config == null) {
-            check = null
-            return
+        pending?.cancel()
+        pending = viewModelScope.launch {
+            delay(800)
+            connection.verify()
         }
-        checking = viewModelScope.launch {
+    }
+
+    fun check(delayMs: Long = 0) {
+        pending?.cancel()
+        if (state.value.config == null) return
+        pending = viewModelScope.launch {
             delay(delayMs)
-            check = AiCheck.Running
-            check = try {
-                AiCheck.Passed(connection.check())
-            } catch (e: AiException) {
-                AiCheck.Failed(e.failure)
+            // A failure lands in [status]; there is nothing more to do with it here.
+            try {
+                connection.check()
+            } catch (_: AiException) {
             }
         }
+    }
+
+    private fun loadIfMissing() {
+        if (state.value.catalogs[state.value.provider].isNullOrEmpty()) check() else connection.verify()
     }
 
     companion object {
@@ -147,6 +136,7 @@ class AiSettingsViewModel(private val settings: AiSettings, private val connecti
 @Composable
 fun AiSettingsScreen(onBack: () -> Unit, viewModel: AiSettingsViewModel = viewModel(factory = AiSettingsViewModel.Factory)) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val status by viewModel.status.collectAsStateWithLifecycle()
     val colors = MaterialTheme.colorScheme
     val uriHandler = LocalUriHandler.current
     var showKey by rememberSaveable { mutableStateOf(false) }
@@ -206,11 +196,11 @@ fun AiSettingsScreen(onBack: () -> Unit, viewModel: AiSettingsViewModel = viewMo
                     )
                     TextButton(onClick = { uriHandler.openUri(provider.modelsUrl) }) { Text(stringResource(R.string.ai_models_docs, provider.title)) }
                     Button(
-                        onClick = viewModel::check,
-                        enabled = state.config != null && viewModel.check != AiCheck.Running,
+                        onClick = { viewModel.check() },
+                        enabled = state.config != null && status != AiStatus.Checking,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                     ) { Text(stringResource(R.string.ai_check)) }
-                    viewModel.check?.let { CheckResult(it) }
+                    StatusRow(status, state.model(provider))
                 }
             }
             Text(
@@ -224,16 +214,18 @@ fun AiSettingsScreen(onBack: () -> Unit, viewModel: AiSettingsViewModel = viewMo
 }
 
 @Composable
-private fun CheckResult(check: AiCheck) {
+private fun StatusRow(status: AiStatus, model: String) {
     val colors = MaterialTheme.colorScheme
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        when (check) {
-            AiCheck.Running -> {
+        when (status) {
+            AiStatus.Off -> Text(stringResource(R.string.ai_status_no_key), style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+            AiStatus.Offline -> Text(stringResource(R.string.ai_error_connection), style = MaterialTheme.typography.bodyMedium, color = colors.error)
+            AiStatus.Checking -> {
                 CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                 Text(stringResource(R.string.ai_checking), style = MaterialTheme.typography.bodyMedium)
             }
-            is AiCheck.Passed -> Text(stringResource(R.string.ai_check_ok, check.models), style = MaterialTheme.typography.bodyMedium, color = colors.primary)
-            is AiCheck.Failed -> Text(stringResource(check.failure.labelRes), style = MaterialTheme.typography.bodyMedium, color = colors.error)
+            AiStatus.Ready -> Text(stringResource(R.string.ai_check_ok, model), style = MaterialTheme.typography.bodyMedium, color = colors.primary)
+            is AiStatus.Failed -> AiErrorText(status.error)
         }
     }
 }

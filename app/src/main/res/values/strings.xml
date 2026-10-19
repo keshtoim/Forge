@@ -364,7 +364,8 @@
     <string name="ai_model_hint">Empty means %1$s</string>
     <string name="ai_check">Test connection</string>
     <string name="ai_checking">Testing…</string>
-    <string name="ai_check_ok">Connected, models available: %1$d</string>
+    <string name="ai_check_ok">Connected, %1$s answers</string>
+    <string name="ai_status_no_key">Enter an API key to connect</string>
     <string name="ai_models_docs">%1$s models in the docs</string>
     <string name="ai_privacy">When you ask the AI, the current workout, the exercise history and your height and weight are sent to %1$s. The key is stored encrypted on the device and goes nowhere else.</string>
     <string name="ai_error_connection">No internet connection</string>

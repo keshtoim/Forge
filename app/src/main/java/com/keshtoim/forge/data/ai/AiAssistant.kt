@@ -88,14 +88,10 @@ object AiAssistant {
         }.trim().ifEmpty { throw AiException(AiFailure.OTHER) }
     }
 
-    // Looks the configured model up: costs no tokens, yet fails like a real request on a wrong key or model name.
-    suspend fun ping(config: AiConfig, baseUrl: String? = null) = call(config) {
-        when (config.provider) {
-            AiProvider.GEMINI -> withGemini(config, baseUrl) { it.models.get(config.model, null) }
-            AiProvider.OPENAI -> withOpenAi(config, baseUrl) { it.models().retrieve(config.model) }
-            AiProvider.CLAUDE -> withClaude(config, baseUrl) { it.models().retrieve(config.model) }
-        }
-        Unit
+    // A one-word answer along the same path as the chat. Looking a model up is free but passes for models that cannot chat,
+    // and for regions and accounts the service refuses to answer, so only a real reply proves the assistant works.
+    suspend fun probe(config: AiConfig, baseUrl: String? = null) {
+        reply(config, "Reply with the single word OK.", listOf(AiTurn(fromUser = true, text = "Are you there?")), baseUrl)
     }
 
     // The models the key can use, as the provider lists them; listing is free on all three services.

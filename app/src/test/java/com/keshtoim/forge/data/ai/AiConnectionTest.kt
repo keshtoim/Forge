@@ -48,9 +48,17 @@ class AiConnectionTest {
 
     private fun awaitStatus(expected: AiStatus) = runBlocking { withTimeout(10_000) { connection.status.first { it == expected } } }
 
-    private fun model(code: Int) = MockResponse().setResponseCode(code).setHeader("Content-Type", "application/json").setBody(
-        if (code == 200) """{"id":"claude-opus-5-5","type":"model","display_name":"Claude Opus 5.5","created_at":"2026-01-01T00:00:00Z"}"""
-        else """{"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"}}""",
+    private fun awaitFailure(failure: AiFailure) =
+        runBlocking { withTimeout(10_000) { connection.status.first { it is AiStatus.Failed && it.error.failure == failure } } }
+
+    // The check asks the model for a real one-word answer.
+    private fun answer(code: Int) = MockResponse().setResponseCode(code).setHeader("Content-Type", "application/json").setBody(
+        if (code == 200) {
+            """{"id":"msg_1","type":"message","role":"assistant","model":"claude-opus-5-5","content":[{"type":"text","text":"OK"}],""" +
+                """"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":10,"output_tokens":1}}"""
+        } else {
+            """{"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"}}"""
+        },
     )
 
     @Test
@@ -61,16 +69,16 @@ class AiConnectionTest {
         settings.setEnabled(true)
         awaitStatus(AiStatus.Checking)
 
-        server.enqueue(model(401))
+        server.enqueue(answer(401))
         connection.verify()
-        awaitStatus(AiStatus.Failed(AiFailure.BAD_KEY))
+        awaitFailure(AiFailure.BAD_KEY)
 
         settings.setKey(AiProvider.CLAUDE, "good")
         awaitStatus(AiStatus.Checking)
-        server.enqueue(model(200))
+        server.enqueue(answer(200))
         connection.verify()
         awaitStatus(AiStatus.Ready)
-        assertEquals("/v1/models/claude-opus-5-5", run { server.takeRequest(); server.takeRequest().path })
+        assertEquals("/v1/messages?beta=true", run { server.takeRequest(); server.takeRequest().path })
     }
 
     @Test
@@ -80,7 +88,7 @@ class AiConnectionTest {
         settings.setEnabled(true)
         server.shutdown()
         connection.verify()
-        awaitStatus(AiStatus.Failed(AiFailure.NO_CONNECTION))
+        awaitFailure(AiFailure.NO_CONNECTION)
     }
 
     @Test
@@ -95,13 +103,13 @@ class AiConnectionTest {
                     """{"type":"model","id":"claude-opus-5-5","display_name":"Claude Opus 5.5","created_at":"2026-01-01T00:00:00Z"}],"has_more":false,"first_id":"a","last_id":"b"}""",
             ),
         )
-        server.enqueue(model(200))
+        server.enqueue(answer(200))
 
         assertEquals(2, runBlocking { connection.check() })
         assertEquals("claude-opus-5-5", settings.state.value.model(AiProvider.CLAUDE))
         assertEquals(listOf("claude-sonnet-5-5", "claude-opus-5-5"), settings.state.value.choices(AiProvider.CLAUDE).map { it.id })
         awaitStatus(AiStatus.Ready)
         server.takeRequest()
-        assertEquals("/v1/models/claude-opus-5-5", server.takeRequest().path)
+        assertEquals("/v1/messages?beta=true", server.takeRequest().path)
     }
 }

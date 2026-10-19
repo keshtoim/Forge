@@ -46,7 +46,7 @@ fun AiIndicator(status: AiStatus, modifier: Modifier = Modifier) {
         AiStatus.Ready -> stringResource(R.string.ai_status_ready)
         AiStatus.Checking -> stringResource(R.string.ai_status_checking)
         AiStatus.Offline -> stringResource(R.string.ai_error_connection)
-        is AiStatus.Failed -> stringResource(status.failure.labelRes)
+        is AiStatus.Failed -> stringResource(status.error.failure.labelRes)
         AiStatus.Off -> ""
     }
     Row(

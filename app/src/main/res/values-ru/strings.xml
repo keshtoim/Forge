@@ -363,7 +363,8 @@
     <string name="ai_model_hint">Пусто — %1$s</string>
     <string name="ai_check">Проверить подключение</string>
     <string name="ai_checking">Проверяю…</string>
-    <string name="ai_check_ok">Подключено, доступно моделей: %1$d</string>
+    <string name="ai_check_ok">Подключено, %1$s отвечает</string>
+    <string name="ai_status_no_key">Введи ключ API, чтобы подключиться</string>
     <string name="ai_models_docs">Модели %1$s в документации</string>
     <string name="ai_privacy">Когда ты спрашиваешь ИИ, текущая тренировка, история упражнения и рост с весом отправляются в %1$s. Ключ хранится на устройстве в зашифрованном виде и уходит только туда.</string>
     <string name="ai_error_connection">Нет соединения с интернетом</string>
