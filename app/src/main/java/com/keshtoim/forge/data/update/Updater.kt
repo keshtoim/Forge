@@ -3,6 +3,7 @@ package com.keshtoim.forge.data.update
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -42,6 +43,8 @@ class Updater(
     private val context: Context,
     private val scope: CoroutineScope,
     private val checker: UpdateChecker = UpdateChecker(),
+    // A debug build can't be updated by a release signed with another key, and its UI tests must not reach GitHub.
+    private val automatic: Boolean = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) == 0,
 ) {
     private val prefs = context.getSharedPreferences("updates", Context.MODE_PRIVATE)
     private val downloads = context.getSystemService(DownloadManager::class.java)
@@ -63,7 +66,7 @@ class Updater(
 
     // Called on every start; reaches GitHub at most once a day and only when the user left automatic checks on.
     fun checkIfDue(now: Long = System.currentTimeMillis()) {
-        if (!_autoCheckEnabled.value || now - prefs.getLong(KEY_LAST_CHECK, 0) < DAY_MS) return
+        if (!automatic || !_autoCheckEnabled.value || now - prefs.getLong(KEY_LAST_CHECK, 0) < DAY_MS) return
         check(quiet = true)
     }
 

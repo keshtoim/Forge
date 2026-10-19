@@ -32,12 +32,16 @@ data class AppUpdate(val version: String, val notes: String, val apkUrl: String,
 class UpdateCheckException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 // Releases are published by CI from vX.Y.Z tags, each with the signed APK attached.
-class UpdateChecker(private val baseUrl: String = "https://api.github.com", private val repository: String = "keshtoim/Forge") {
+class UpdateChecker(
+    private val apiUrl: String = "https://api.github.com",
+    private val webUrl: String = "https://github.com",
+    private val repository: String = "keshtoim/Forge",
+) {
     private val json = Json { ignoreUnknownKeys = true }
 
     // The newest published release when it is newer than [current] and carries an APK; null when the app is up to date.
     suspend fun check(current: String): AppUpdate? = withContext(Dispatchers.IO) {
-        val connection = URL("$baseUrl/repos/$repository/releases/latest").openConnection() as HttpURLConnection
+        val connection = URL("$apiUrl/repos/$repository/releases/latest").openConnection() as HttpURLConnection
         try {
             connection.connectTimeout = 15_000
             connection.readTimeout = 15_000
@@ -46,6 +50,8 @@ class UpdateChecker(private val baseUrl: String = "https://api.github.com", priv
             when (val code = connection.responseCode) {
                 // No release has been published yet.
                 HttpURLConnection.HTTP_NOT_FOUND -> return@withContext null
+                // 60 calls an hour per IP without a token, shared by everyone behind the same VPN or carrier NAT.
+                HttpURLConnection.HTTP_FORBIDDEN, 429 -> return@withContext fromReleasePage(current)
                 HttpURLConnection.HTTP_OK -> Unit
                 else -> throw UpdateCheckException("GitHub answered $code")
             }
@@ -68,6 +74,47 @@ class UpdateChecker(private val baseUrl: String = "https://api.github.com", priv
         } finally {
             connection.disconnect()
         }
+    }
+
+    // The web pages of a release have no rate limit: the latest one redirects to its tag, and its asset list links the APK.
+    // Notes, size and checksum are only in the API, so such an update is still verified by its signature before installing.
+    private fun fromReleasePage(current: String): AppUpdate? {
+        // Without releases the page redirects to the release list instead of a tag.
+        val tag = get("$webUrl/$repository/releases/latest") { page ->
+            if (page.responseCode !in 300..399) throw UpdateCheckException("GitHub answered ${page.responseCode}")
+            page.getHeaderField("Location")?.substringAfter("/releases/tag/", "")?.takeIf { it.isNotEmpty() }
+        } ?: return null
+        val version = tag.removePrefix("v")
+        if (!isNewer(version, current)) return null
+        val apkPath = get("$webUrl/$repository/releases/expanded_assets/$tag") { page ->
+            if (page.responseCode != HttpURLConnection.HTTP_OK) throw UpdateCheckException("GitHub answered ${page.responseCode}")
+            APK_LINK.find(page.inputStream.bufferedReader().use { it.readText() })?.groupValues?.get(1)
+        } ?: return null
+        return AppUpdate(
+            version = version,
+            notes = "",
+            apkUrl = URL(URL(webUrl), apkPath).toString(),
+            size = 0,
+            sha256 = null,
+            page = "$webUrl/$repository/releases/tag/$tag",
+        )
+    }
+
+    private fun <T> get(url: String, read: (HttpURLConnection) -> T): T {
+        val connection = URL(url).openConnection() as HttpURLConnection
+        try {
+            connection.instanceFollowRedirects = false
+            connection.connectTimeout = 15_000
+            connection.readTimeout = 15_000
+            connection.setRequestProperty("User-Agent", "Forge")
+            return read(connection)
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    private companion object {
+        val APK_LINK = Regex("""href="([^"]*/releases/download/[^"]*\.apk)"""")
     }
 }
 

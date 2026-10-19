@@ -12,7 +12,7 @@ import org.junit.Test
 
 class UpdateCheckerTest {
     private val server = MockWebServer().apply { start() }
-    private val checker = UpdateChecker(server.url("/").toString().trimEnd('/'))
+    private val checker = UpdateChecker(apiUrl = server.url("/").toString().trimEnd('/'), webUrl = server.url("/web").toString())
 
     @After
     fun tearDown() = server.shutdown()
@@ -51,5 +51,28 @@ class UpdateCheckerTest {
         assertTrue(isNewer("0.2.1", "0.2"))
         assertFalse(isNewer("0.2.0", "0.2.0"))
         assertFalse(isNewer("0.2.0-beta", "0.2.0"))
+    }
+
+    @Test
+    fun `a rate-limited api falls back to the release page redirect`() {
+        val web = server.url("/web").toString()
+        server.enqueue(MockResponse().setResponseCode(403).setBody("""{"message":"API rate limit exceeded"}"""))
+        server.enqueue(MockResponse().setResponseCode(302).setHeader("Location", "$web/keshtoim/Forge/releases/tag/v0.3.0"))
+        // The asset list is HTML; whatever the APK is called, its download link is picked up.
+        server.enqueue(MockResponse().setResponseCode(200).setBody("""<a href="/web/keshtoim/Forge/releases/download/v0.3.0/forge.apk" rel="nofollow">forge.apk</a>"""))
+
+        val update = runBlocking { checker.check("0.2.0") }!!
+
+        assertEquals("0.3.0", update.version)
+        assertEquals("$web/keshtoim/Forge/releases/download/v0.3.0/forge.apk", update.apkUrl)
+        assertNull(update.sha256)
+        server.takeRequest()
+        assertEquals("/web/keshtoim/Forge/releases/latest", server.takeRequest().path)
+        assertEquals("/web/keshtoim/Forge/releases/expanded_assets/v0.3.0", server.takeRequest().path)
+
+        // Before the first release the page redirects to the release list.
+        server.enqueue(MockResponse().setResponseCode(429))
+        server.enqueue(MockResponse().setResponseCode(302).setHeader("Location", "$web/keshtoim/Forge/releases"))
+        assertNull(runBlocking { checker.check("0.2.0") })
     }
 }

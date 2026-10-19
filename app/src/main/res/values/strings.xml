@@ -397,4 +397,26 @@
     <string name="advice_target">AI suggests: %1$s</string>
     <string name="advice_apply">Apply</string>
     <string name="advice_dismiss">Hide</string>
+    <string name="update_title">Updates</string>
+    <string name="update_available">Version %1$s is available</string>
+    <string name="update_current">Installed: %1$s</string>
+    <string name="update_check">Check</string>
+    <string name="update_checking">Checking…</string>
+    <string name="update_latest">You have the latest version, %1$s</string>
+    <string name="update_download">Download and update · %1$s</string>
+    <string name="update_download_plain">Download and update</string>
+    <string name="update_downloading">Downloading…</string>
+    <string name="update_downloading_percent">Downloading: %1$d%%</string>
+    <string name="update_ready">Downloaded and verified</string>
+    <string name="update_install">Install</string>
+    <string name="update_retry">Download again</string>
+    <string name="update_open_page">Open the release on GitHub</string>
+    <string name="update_auto">Check for updates once a day</string>
+    <string name="update_allow_install">Allow Forge to install apps, then come back and tap Install</string>
+    <string name="update_notes_more">What is new</string>
+    <string name="update_notes_less">Collapse</string>
+    <string name="update_failed_check">Could not check: no internet or GitHub is unreachable</string>
+    <string name="update_failed_download">The download failed. Check the internet and try again</string>
+    <string name="update_failed_corrupted">The file got corrupted while downloading, download it again</string>
+    <string name="update_failed_signature">This build cannot be updated in place: it is signed with another key, like a debug build from CI. Save your data with export and install the release version</string>
 </resources>

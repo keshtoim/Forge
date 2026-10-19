@@ -56,6 +56,7 @@ fun MoreScreen(onOpenProfile: () -> Unit, onOpenProgress: () -> Unit, onOpenSett
                     MenuItem(Icons.Filled.Settings, stringResource(R.string.settings), onClick = onOpenSettings)
                 }
             }
+            UpdateCard()
             ForgeCard(Modifier.fillMaxWidth()) {
                 Column {
                     MenuItem(

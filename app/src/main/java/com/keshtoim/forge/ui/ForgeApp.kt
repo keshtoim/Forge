@@ -25,6 +25,8 @@ import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -135,6 +137,7 @@ private fun MainScreen(viewModel: ForgeViewModel) {
     val currentTab = Tab.entries.firstOrNull { tab -> destination?.hierarchy?.any { it.hasRoute(tab.route::class) } == true }
     val activeWorkout by viewModel.activeWorkout.collectAsStateWithLifecycle()
     val rest by viewModel.rest.collectAsStateWithLifecycle()
+    val updateWaiting by viewModel.updateWaiting.collectAsStateWithLifecycle()
 
     Scaffold(
         bottomBar = {
@@ -157,7 +160,9 @@ private fun MainScreen(viewModel: ForgeViewModel) {
                                         restoreState = true
                                     }
                                 },
-                                icon = { Icon(tab.icon, contentDescription = null) },
+                                icon = {
+                                    BadgedBox(badge = { if (tab == Tab.More && updateWaiting) Badge() }) { Icon(tab.icon, contentDescription = null) }
+                                },
                                 label = { FitText(stringResource(tab.label)) },
                                 colors = NavigationBarItemDefaults.colors(
                                     indicatorColor = MaterialTheme.colorScheme.primaryContainer,

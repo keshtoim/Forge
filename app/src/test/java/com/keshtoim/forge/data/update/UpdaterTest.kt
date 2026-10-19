@@ -23,7 +23,7 @@ class UpdaterTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val server = MockWebServer().apply { start() }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val updater = Updater(context, scope, UpdateChecker(server.url("/").toString().trimEnd('/')))
+    private val updater = Updater(context, scope, UpdateChecker(apiUrl = server.url("/").toString().trimEnd('/')), automatic = true)
 
     @After
     fun tearDown() {

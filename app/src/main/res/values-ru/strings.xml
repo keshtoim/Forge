@@ -396,4 +396,26 @@
     <string name="advice_target">ИИ советует: %1$s</string>
     <string name="advice_apply">Применить</string>
     <string name="advice_dismiss">Скрыть</string>
+    <string name="update_title">Обновления</string>
+    <string name="update_available">Доступна версия %1$s</string>
+    <string name="update_current">Сейчас установлена %1$s</string>
+    <string name="update_check">Проверить</string>
+    <string name="update_checking">Проверяю…</string>
+    <string name="update_latest">Установлена последняя версия %1$s</string>
+    <string name="update_download">Скачать и обновить · %1$s</string>
+    <string name="update_download_plain">Скачать и обновить</string>
+    <string name="update_downloading">Скачиваю…</string>
+    <string name="update_downloading_percent">Скачиваю: %1$d%%</string>
+    <string name="update_ready">Файл скачан и проверен</string>
+    <string name="update_install">Установить</string>
+    <string name="update_retry">Скачать заново</string>
+    <string name="update_open_page">Открыть релиз на GitHub</string>
+    <string name="update_auto">Проверять обновления раз в день</string>
+    <string name="update_allow_install">Разреши Forge устанавливать приложения и вернись, чтобы нажать «Установить»</string>
+    <string name="update_notes_more">Что нового</string>
+    <string name="update_notes_less">Свернуть</string>
+    <string name="update_failed_check">Не удалось проверить: нет интернета или GitHub недоступен</string>
+    <string name="update_failed_download">Скачивание не удалось. Проверь интернет и попробуй ещё раз</string>
+    <string name="update_failed_corrupted">Файл повреждён при скачивании, скачай заново</string>
+    <string name="update_failed_signature">Эту сборку нельзя обновить поверх: она подписана другим ключом, например отладочная из CI. Сохрани данные через экспорт и установи версию из релиза</string>
 </resources>
