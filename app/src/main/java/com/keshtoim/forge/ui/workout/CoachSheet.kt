@@ -298,7 +298,7 @@ private fun newPhotoUri(context: Context): Uri {
     val dir = File(context.cacheDir, "photos").apply { mkdirs() }
     dir.listFiles()?.forEach { it.delete() }
     val file = File(dir, "coach-${System.currentTimeMillis()}.jpg")
-    return FileProvider.getUriForFile(context, "${context.packageName}.photos", file)
+    return FileProvider.getUriForFile(context, "${context.packageName}.files", file)
 }
 
 // Sits at the bottom of the current set's card: ask, wait, then apply or dismiss the suggestion.
