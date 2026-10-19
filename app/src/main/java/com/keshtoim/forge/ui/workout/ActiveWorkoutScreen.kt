@@ -322,7 +322,7 @@ fun ActiveWorkoutScreen(
             status = aiStatus,
             chat = viewModel.chat,
             busy = viewModel.coachBusy,
-            failure = viewModel.coachFailure,
+            error = viewModel.coachError,
             onAsk = { viewModel.askCoach(it, names, focus?.workoutExercise?.id) },
             onRetry = { viewModel.retryCoach(names, focus?.workoutExercise?.id) },
             onDismiss = { coachOpen = false },

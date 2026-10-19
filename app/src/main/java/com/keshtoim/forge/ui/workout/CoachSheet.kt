@@ -47,14 +47,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.keshtoim.forge.R
-import com.keshtoim.forge.data.ai.AiFailure
+import com.keshtoim.forge.data.ai.AiException
 import com.keshtoim.forge.data.ai.AiStatus
 import com.keshtoim.forge.data.ai.AiTurn
 import com.keshtoim.forge.data.ai.SetAdvice
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.WorkoutSet
+import com.keshtoim.forge.ui.AiErrorText
 import com.keshtoim.forge.ui.AiIndicator
-import com.keshtoim.forge.ui.labelRes
 import com.keshtoim.forge.ui.summary
 
 private val SUGGESTIONS = listOf(R.string.coach_q_weight, R.string.coach_q_rest, R.string.coach_q_swap, R.string.coach_q_form)
@@ -65,7 +65,7 @@ fun CoachSheet(
     status: AiStatus,
     chat: List<AiTurn>,
     busy: Boolean,
-    failure: AiFailure?,
+    error: AiException?,
     onAsk: (String) -> Unit,
     onRetry: () -> Unit,
     onDismiss: () -> Unit,
@@ -74,7 +74,7 @@ fun CoachSheet(
     var draft by rememberSaveable { mutableStateOf("") }
     val list = rememberLazyListState()
     // Counted from the data, not from layoutInfo, which still describes the previous frame.
-    val itemCount = (if (chat.isEmpty()) 1 else 0) + chat.size + (if (busy) 1 else 0) + (if (failure != null) 1 else 0)
+    val itemCount = (if (chat.isEmpty()) 1 else 0) + chat.size + (if (busy) 1 else 0) + (if (error != null) 1 else 0)
     LaunchedEffect(itemCount) { list.animateScrollToItem((itemCount - 1).coerceAtLeast(0)) }
     val send = { text: String ->
         onAsk(text)
@@ -110,10 +110,10 @@ fun CoachSheet(
                 }
                 items(chat) { Bubble(it) }
                 if (busy) item { Bubble(AiTurn(fromUser = false, text = stringResource(R.string.coach_thinking)), muted = true) }
-                failure?.let {
+                error?.let {
                     item {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(it.labelRes), style = MaterialTheme.typography.bodyMedium, color = colors.error, modifier = Modifier.weight(1f))
+                            AiErrorText(it, Modifier.weight(1f))
                             TextButton(onClick = onRetry) { Text(stringResource(R.string.coach_retry)) }
                         }
                     }
@@ -177,7 +177,7 @@ fun AdviceRow(state: AdviceState?, type: ExerciseType, onAsk: () -> Unit, onAppl
             Text(stringResource(R.string.advice_loading), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 10.dp))
         }
         is AdviceState.Failed -> Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(state.failure.labelRes), style = MaterialTheme.typography.bodySmall, color = colors.error, modifier = Modifier.weight(1f))
+            AiErrorText(state.error, Modifier.weight(1f))
             TextButton(onClick = onAsk) { Text(stringResource(R.string.coach_retry)) }
         }
         is AdviceState.Ready -> Surface(shape = RoundedCornerShape(14.dp), color = colors.secondaryContainer, modifier = Modifier.fillMaxWidth()) {

@@ -370,6 +370,8 @@
     <string name="ai_error_key">Ключ не подошёл</string>
     <string name="ai_error_model">Такой модели нет. Проверь название</string>
     <string name="ai_error_limit">Лимит запросов исчерпан, попробуй позже</string>
+    <string name="ai_error_credit">На аккаунте нет средств или закончилась квота. Пополни баланс или подожди сброса лимита</string>
+    <string name="ai_error_region">Сервис недоступен в твоём регионе. Включи VPN или выбери другой сервис</string>
     <string name="ai_error_refused">Модель отказалась отвечать на этот запрос</string>
     <string name="ai_error_other">Не получилось. Попробуй ещё раз</string>
     <string name="coach_title">ИИ-тренер</string>

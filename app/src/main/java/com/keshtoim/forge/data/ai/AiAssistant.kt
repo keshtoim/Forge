@@ -5,10 +5,6 @@ import com.anthropic.client.okhttp.AnthropicOkHttpClient
 import com.anthropic.core.JsonValue
 import com.anthropic.errors.AnthropicIoException
 import com.anthropic.errors.AnthropicServiceException
-import com.anthropic.errors.NotFoundException
-import com.anthropic.errors.PermissionDeniedException
-import com.anthropic.errors.RateLimitException
-import com.anthropic.errors.UnauthorizedException
 import com.anthropic.models.beta.messages.BetaStopReason
 import com.google.genai.Client
 import com.google.genai.errors.ApiException
@@ -60,16 +56,24 @@ fun selectModel(current: String, available: List<String>, preferred: String): St
     else -> available.first()
 }
 
+// Providers list models for speech, images, embeddings and live audio next to chat ones; picking one of those breaks every answer.
+private val NOT_FOR_CHAT = listOf(
+    "embedding", "tts", "whisper", "dall-e", "moderation", "image", "imagen", "veo", "realtime", "audio", "live",
+    "transcribe", "search", "instruct", "codex", "computer-use", "robotics", "aqa",
+)
+
+fun isChatModel(id: String) = NOT_FOR_CHAT.none { it in id.lowercase() }
+
 // OpenAI lists every model the key can reach; only the ones that answer chat completions are useful here.
 fun isOpenAiChatModel(id: String): Boolean {
     val chatFamily = id.startsWith("gpt-") || id.startsWith("chatgpt-") || Regex("^o\\d").containsMatchIn(id)
-    val otherUse = listOf("embedding", "tts", "whisper", "dall-e", "moderation", "image", "realtime", "audio", "transcribe", "search", "instruct", "codex", "computer-use")
-    return chatFamily && otherUse.none { it in id }
+    return chatFamily && isChatModel(id)
 }
 
-enum class AiFailure { NO_CONNECTION, BAD_KEY, BAD_MODEL, RATE_LIMIT, REFUSED, OTHER }
+enum class AiFailure { NO_CONNECTION, BAD_KEY, BAD_MODEL, RATE_LIMIT, NO_CREDIT, REGION, REFUSED, OTHER }
 
-class AiException(val failure: AiFailure, cause: Throwable? = null) : Exception(failure.name, cause)
+// [detail] is the provider's own explanation, shown next to our message when there is one.
+class AiException(val failure: AiFailure, cause: Throwable? = null, val detail: String? = null) : Exception(failure.name, cause)
 
 data class AiConfig(val provider: AiProvider, val apiKey: String, val model: String)
 
@@ -99,7 +103,7 @@ object AiAssistant {
         when (config.provider) {
             AiProvider.GEMINI -> withGemini(config, baseUrl) { client ->
                 client.models.list(ListModelsConfig.builder().pageSize(100).build())
-                    .filter { "generateContent" in it.supportedActions().orElse(emptyList()) }
+                    .filter { "generateContent" in it.supportedActions().orElse(emptyList()) && isChatModel(it.name().orElse("")) }
                     .map { model ->
                         val id = model.name().orElse("").removePrefix("models/")
                         AiModel(id, model.displayName().orElse(id))
@@ -122,7 +126,7 @@ object AiAssistant {
         } catch (e: AiException) {
             throw e
         } catch (e: Exception) {
-            throw AiException(classify(e, config.provider), e)
+            throw classify(e)
         }
     }
 
@@ -189,24 +193,36 @@ object AiAssistant {
         }
     }
 
-    private fun classify(e: Exception, provider: AiProvider): AiFailure = when (e) {
-        is UnauthorizedException, is PermissionDeniedException -> AiFailure.BAD_KEY
-        is NotFoundException -> AiFailure.BAD_MODEL
-        is RateLimitException -> AiFailure.RATE_LIMIT
-        is AnthropicServiceException -> status(e.statusCode(), provider)
-        is OpenAIServiceException -> status(e.statusCode(), provider)
-        is ApiException -> status(e.code(), provider)
-        is AnthropicIoException, is OpenAIIoException, is IOException -> AiFailure.NO_CONNECTION
-        else -> if (e.cause is IOException) AiFailure.NO_CONNECTION else AiFailure.OTHER
+    private fun classify(e: Exception): AiException = when (e) {
+        is AnthropicServiceException -> serviceFailure(e.statusCode(), "${e.message} ${e.body()}", e)
+        is OpenAIServiceException -> serviceFailure(e.statusCode(), "${e.message} ${e.body()}", e)
+        is ApiException -> serviceFailure(e.code(), e.message.orEmpty(), e)
+        is AnthropicIoException, is OpenAIIoException, is IOException -> AiException(AiFailure.NO_CONNECTION, e)
+        else -> AiException(if (e.cause is IOException) AiFailure.NO_CONNECTION else AiFailure.OTHER, e, e.message)
     }
 
-    // Gemini answers a bad key with 400, the others with 401 or 403.
-    private fun status(code: Int, provider: AiProvider) = when {
-        code == 401 || code == 403 || (code == 400 && provider == AiProvider.GEMINI) -> AiFailure.BAD_KEY
-        code == 404 -> AiFailure.BAD_MODEL
-        code == 429 -> AiFailure.RATE_LIMIT
-        else -> AiFailure.OTHER
+    // Region and billing problems arrive under the same status codes as a bad key, so the provider's text decides.
+    private fun serviceFailure(code: Int, text: String, cause: Exception): AiException {
+        val lower = text.lowercase()
+        val failure = when {
+            REGION_HINTS.any { it in lower } -> AiFailure.REGION
+            CREDIT_HINTS.any { it in lower } || code == 402 -> AiFailure.NO_CREDIT
+            code == 401 || code == 403 || (code == 400 && KEY_HINTS.any { it in lower }) -> AiFailure.BAD_KEY
+            code == 404 -> AiFailure.BAD_MODEL
+            code == 429 -> AiFailure.RATE_LIMIT
+            else -> AiFailure.OTHER
+        }
+        return AiException(failure, cause, readableMessage(text))
     }
+
+    // Error bodies are JSON with a "message" field; that sentence is what the user can act on.
+    private fun readableMessage(text: String): String =
+        Regex(""""message"\s*:\s*"((?:[^"\\]|\\.)*)"""").find(text)?.groupValues?.get(1)?.replace("\\n", " ")?.trim()
+            ?.takeIf { it.isNotEmpty() } ?: text.trim().replace(Regex("""^\d{3}\s+[A-Z_]+\.\s*"""), "").take(300)
+
+    private val REGION_HINTS = listOf("location is not supported", "unsupported_country", "country, region, or territory", "request not allowed")
+    private val CREDIT_HINTS = listOf("insufficient_quota", "credit balance", "billing", "exceeded your current quota")
+    private val KEY_HINTS = listOf("api key", "api_key")
 
     private val CLAUDE_FALLBACK_MODELS = setOf("claude-fable-5-1", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5-5")
 }

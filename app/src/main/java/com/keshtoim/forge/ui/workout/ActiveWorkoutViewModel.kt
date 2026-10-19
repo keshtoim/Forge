@@ -73,7 +73,7 @@ class ActiveWorkoutViewModel(
     val chat = mutableStateListOf<AiTurn>()
     var coachBusy by mutableStateOf(false)
         private set
-    var coachFailure by mutableStateOf<AiFailure?>(null)
+    var coachError by mutableStateOf<AiException?>(null)
         private set
 
     // [names] are display names by exerciseId; the prompt is rebuilt on every question so the coach sees the latest sets.
@@ -93,12 +93,12 @@ class ActiveWorkoutViewModel(
     private fun sendCoach(names: Map<Long, String>, focusId: Long?) {
         val workout = detail.value ?: return
         coachBusy = true
-        coachFailure = null
+        coachError = null
         viewModelScope.launch {
             try {
                 chat += AiTurn(false, ai.ask(coachSystem(workout, names, focusId), chat.toList()))
             } catch (e: AiException) {
-                coachFailure = e.failure
+                coachError = e
             }
             coachBusy = false
         }
@@ -117,9 +117,9 @@ class ActiveWorkoutViewModel(
             advice[set.id] = try {
                 val question = setAdviceRequest(names[exerciseId].orEmpty(), exercises.value[exerciseId]?.type ?: ExerciseType.WEIGHT_REPS, number)
                 parseSetAdvice(ai.ask(coachSystem(workout, names, focusId), listOf(AiTurn(true, question))))
-                    ?.let { AdviceState.Ready(it) } ?: AdviceState.Failed(AiFailure.OTHER)
+                    ?.let { AdviceState.Ready(it) } ?: AdviceState.Failed(AiException(AiFailure.OTHER))
             } catch (e: AiException) {
-                AdviceState.Failed(e.failure)
+                AdviceState.Failed(e)
             }
         }
     }
@@ -281,5 +281,5 @@ class ActiveWorkoutViewModel(
 sealed interface AdviceState {
     data object Loading : AdviceState
     data class Ready(val advice: SetAdvice) : AdviceState
-    data class Failed(val failure: AiFailure) : AdviceState
+    data class Failed(val error: AiException) : AdviceState
 }

@@ -7,10 +7,12 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +28,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.keshtoim.forge.R
+import com.keshtoim.forge.data.ai.AiException
 import com.keshtoim.forge.data.ai.AiStatus
 import com.keshtoim.forge.ui.theme.ForgeTheme
 
@@ -70,4 +73,17 @@ private fun Dot(color: Color, modifier: Modifier) {
 private fun PulsingDot(color: Color) {
     val pulse by rememberInfiniteTransition(label = "ai").animateFloat(1f, 0.3f, infiniteRepeatable(tween(700), RepeatMode.Reverse), label = "pulse")
     Dot(color, Modifier.graphicsLayer { alpha = pulse })
+}
+
+// Our explanation first; the provider's own message below it says what exactly went wrong.
+@Composable
+fun AiErrorText(error: AiException, modifier: Modifier = Modifier) {
+    Column(modifier) {
+        Text(stringResource(error.failure.labelRes), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+        error.detail?.let {
+            SelectionContainer {
+                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
+            }
+        }
+    }
 }

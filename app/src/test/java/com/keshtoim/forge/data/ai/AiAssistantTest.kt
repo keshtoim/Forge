@@ -134,5 +134,35 @@ class AiAssistantTest {
         assertEquals("gpt-4", selectModel("gpt-4", emptyList(), "gpt-5"))
         assertTrue(isOpenAiChatModel("o4-mini") && isOpenAiChatModel("chatgpt-4o-latest"))
         assertTrue(listOf("gpt-4o-realtime-preview", "gpt-image-1", "omni-moderation-latest", "gpt-5-codex", "whisper-1").none(::isOpenAiChatModel))
+        assertTrue(listOf("gemini-2.5-flash-preview-tts", "gemini-2.5-flash-image", "gemini-live-2.5-flash", "text-embedding-004").none(::isChatModel))
+        assertTrue(isChatModel("gemini-3.5-flash-lite") && isChatModel("gemma-3-27b-it"))
+    }
+
+    private fun error(provider: AiProvider) = runCatching { ask(provider) }.exceptionOrNull() as AiException
+
+    @Test
+    fun `region and billing problems are not mistaken for a bad key`() {
+        server.enqueue(json(400, """{"error":{"code":400,"message":"User location is not supported for the API use.","status":"FAILED_PRECONDITION"}}"""))
+        error(AiProvider.GEMINI).let {
+            assertEquals(AiFailure.REGION, it.failure)
+            assertEquals("User location is not supported for the API use.", it.detail)
+        }
+        server.enqueue(json(403, """{"error":{"code":"unsupported_country_region_territory","message":"Country, region, or territory not supported","type":"request_forbidden"}}"""))
+        assertEquals(AiFailure.REGION, error(AiProvider.OPENAI).failure)
+        server.enqueue(json(403, """{"type":"error","error":{"type":"forbidden","message":"Request not allowed"}}"""))
+        assertEquals(AiFailure.REGION, error(AiProvider.CLAUDE).failure)
+
+        // The SDK retries a 429 twice, so every attempt needs an answer.
+        repeat(3) {
+            server.enqueue(json(429, """{"error":{"message":"You exceeded your current quota, please check your plan and billing details.","type":"insufficient_quota","code":"insufficient_quota"}}"""))
+        }
+        assertEquals(AiFailure.NO_CREDIT, error(AiProvider.OPENAI).failure)
+        server.enqueue(json(400, """{"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API."}}"""))
+        assertEquals(AiFailure.NO_CREDIT, error(AiProvider.CLAUDE).failure)
+
+        server.enqueue(json(400, """{"error":{"code":400,"message":"API key not valid. Please pass a valid API key.","status":"INVALID_ARGUMENT"}}"""))
+        assertEquals(AiFailure.BAD_KEY, error(AiProvider.GEMINI).failure)
+        server.enqueue(json(400, """{"error":{"code":400,"message":"Invalid value at 'contents'","status":"INVALID_ARGUMENT"}}"""))
+        assertEquals(AiFailure.OTHER, error(AiProvider.GEMINI).failure)
     }
 }

@@ -217,6 +217,8 @@ val AiFailure.labelRes: Int
         AiFailure.BAD_KEY -> R.string.ai_error_key
         AiFailure.BAD_MODEL -> R.string.ai_error_model
         AiFailure.RATE_LIMIT -> R.string.ai_error_limit
+        AiFailure.NO_CREDIT -> R.string.ai_error_credit
+        AiFailure.REGION -> R.string.ai_error_region
         AiFailure.REFUSED -> R.string.ai_error_refused
         AiFailure.OTHER -> R.string.ai_error_other
     }

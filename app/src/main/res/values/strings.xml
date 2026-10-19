@@ -371,6 +371,8 @@
     <string name="ai_error_key">The key was rejected</string>
     <string name="ai_error_model">No such model. Check the name</string>
     <string name="ai_error_limit">Request limit reached, try again later</string>
+    <string name="ai_error_credit">No funds or quota left on the account. Top it up or wait for the limit to reset</string>
+    <string name="ai_error_region">The service is not available in your region. Turn on a VPN or pick another service</string>
     <string name="ai_error_refused">The model declined this request</string>
     <string name="ai_error_other">Something went wrong. Try again</string>
     <string name="coach_title">AI coach</string>

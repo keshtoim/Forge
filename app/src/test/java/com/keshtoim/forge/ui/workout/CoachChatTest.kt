@@ -103,7 +103,7 @@ class CoachChatTest {
         server.enqueue(answer(401))
         viewModel.askCoach("Какой вес дальше?", mapOf(bench to "Жим лёжа"), focusId = null)
         awaitIdle()
-        assertEquals(AiFailure.BAD_KEY, viewModel.coachFailure)
+        assertEquals(AiFailure.BAD_KEY, viewModel.coachError?.failure)
 
         server.enqueue(answer(200, "Попробуй 60 кг"))
         viewModel.askCoach("И сколько повторов?", mapOf(bench to "Жим лёжа"), focusId = null)
