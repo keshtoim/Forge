@@ -13,7 +13,7 @@
 
 </div>
 
-Forge logs your gym sessions: which exercises, how many sets, what weight and how hard it felt. Everything stays on your phone. There's no account, no ads and no subscription. The app goes online only for the AI assistant, and only if you turn it on.
+Forge logs your gym sessions: which exercises, how many sets, what weight and how hard it felt. Everything stays on your phone. There's no account, no ads and no subscription. The app goes online only for the AI assistant if you turn it on, and once a day to check GitHub for updates (you can switch that off). Workout data leaves the phone only when you ask the AI.
 
 ## How a workout goes
 
@@ -62,6 +62,8 @@ Workout data goes only to the service you picked and only when you ask. The key 
 
 Grab the APK from [releases](https://github.com/keshtoim/Forge/releases). Requires Android 8.0 or newer.
 
+After that the app updates itself: "More" shows "Version X is available", Forge downloads the APK, checks its checksum and signature and opens the system installer over the current version, keeping your data. Only release builds update this way: a debug APK from Actions is signed with another key.
+
 Build it yourself:
 
 ```bash
@@ -99,4 +101,5 @@ Tests run on Robolectric, Compose UI flows included, so they don't need an emula
 - **Foreground service**: keeps the timer running while the app is in the background.
 - **Exact alarms and boot completed**: reminders arrive on time, including after a reboot.
 - **Vibration and wake lock**: the rest-over signal with the screen off.
-- **Internet and network state**: only for the AI assistant and its connection indicator.
+- **Internet and network state**: the AI assistant, its connection indicator and the update check.
+- **Install apps**: to open the system installer for a downloaded update; Android asks once.
