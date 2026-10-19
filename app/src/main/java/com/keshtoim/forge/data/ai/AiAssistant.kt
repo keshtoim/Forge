@@ -5,7 +5,10 @@ import com.anthropic.client.okhttp.AnthropicOkHttpClient
 import com.anthropic.core.JsonValue
 import com.anthropic.errors.AnthropicIoException
 import com.anthropic.errors.AnthropicServiceException
+import com.anthropic.models.beta.messages.BetaBase64ImageSource
+import com.anthropic.models.beta.messages.BetaContentBlockParam
 import com.anthropic.models.beta.messages.BetaStopReason
+import com.anthropic.models.beta.messages.MessageCreateParams as ClaudeParams
 import com.google.genai.Client
 import com.google.genai.errors.ApiException
 import com.google.genai.types.Content
@@ -17,12 +20,15 @@ import com.openai.client.OpenAIClient
 import com.openai.client.okhttp.OpenAIOkHttpClient
 import com.openai.errors.OpenAIIoException
 import com.openai.errors.OpenAIServiceException
+import com.openai.models.chat.completions.ChatCompletionContentPart
+import com.openai.models.chat.completions.ChatCompletionContentPartImage
+import com.openai.models.chat.completions.ChatCompletionContentPartText
 import com.openai.models.chat.completions.ChatCompletionCreateParams
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import java.io.IOException
-import com.anthropic.models.beta.messages.MessageCreateParams as ClaudeParams
+import java.util.Base64
 
 // [knownModels] are offered until the provider's own list is loaded; the first one is the default.
 enum class AiProvider(val title: String, val knownModels: List<String>, val keyUrl: String, val modelsUrl: String) {
@@ -44,7 +50,10 @@ enum class AiProvider(val title: String, val knownModels: List<String>, val keyU
     val defaultModel get() = knownModels.first()
 }
 
-data class AiTurn(val fromUser: Boolean, val text: String)
+// [images] are JPEG bytes the user attached; replies never carry any.
+data class AiTurn(val fromUser: Boolean, val text: String, val images: List<ByteArray> = emptyList())
+
+private fun ByteArray.base64(): String = Base64.getEncoder().encodeToString(this)
 
 @Serializable
 data class AiModel(val id: String, val name: String)
@@ -132,7 +141,16 @@ object AiAssistant {
             .maxTokens(16_000L)
             .system(system)
             .apply {
-                turns.forEach { if (it.fromUser) addUserMessage(it.text) else addAssistantMessage(it.text) }
+                turns.forEach { turn ->
+                    when {
+                        !turn.fromUser -> addAssistantMessage(turn.text)
+                        turn.images.isEmpty() -> addUserMessage(turn.text)
+                        else -> addUserMessageOfBetaContentBlockParams(
+                            turn.images.map { BetaContentBlockParam.ofImage(BetaBase64ImageSource.builder().data(it.base64()).mediaType(BetaBase64ImageSource.MediaType.IMAGE_JPEG).build()) } +
+                                listOfNotNull(turn.text.takeIf { it.isNotBlank() }?.let { BetaContentBlockParam.ofText(it) }),
+                        )
+                    }
+                }
                 // A declined request is retried server-side on the model Anthropic picks for that refusal category.
                 if (config.model in CLAUDE_FALLBACK_MODELS) {
                     addBeta("server-side-fallback-2026-07-01")
@@ -149,7 +167,20 @@ object AiAssistant {
         val params = ChatCompletionCreateParams.builder()
             .model(config.model)
             .addSystemMessage(system)
-            .apply { turns.forEach { if (it.fromUser) addUserMessage(it.text) else addAssistantMessage(it.text) } }
+            .apply {
+                turns.forEach { turn ->
+                    when {
+                        !turn.fromUser -> addAssistantMessage(turn.text)
+                        turn.images.isEmpty() -> addUserMessage(turn.text)
+                        else -> addUserMessageOfArrayOfContentParts(
+                            turn.images.map { image ->
+                                val url = ChatCompletionContentPartImage.ImageUrl.builder().url("data:image/jpeg;base64,${image.base64()}").build()
+                                ChatCompletionContentPart.ofImageUrl(ChatCompletionContentPartImage.builder().imageUrl(url).build())
+                            } + listOfNotNull(turn.text.takeIf { it.isNotBlank() }?.let { ChatCompletionContentPart.ofText(ChatCompletionContentPartText.builder().text(it).build()) }),
+                        )
+                    }
+                }
+            }
             .build()
         val message = client.chat().completions().create(params).choices().firstOrNull()?.message() ?: return@withOpenAi ""
         if (message.refusal().isPresent) throw AiException(AiFailure.REFUSED)
@@ -157,7 +188,10 @@ object AiAssistant {
     }
 
     private fun gemini(config: AiConfig, system: String, turns: List<AiTurn>, baseUrl: String?): String = withGemini(config, baseUrl) { client ->
-        val contents = turns.map { Content.builder().role(if (it.fromUser) "user" else "model").parts(Part.fromText(it.text)).build() }
+        val contents = turns.map { turn ->
+            val parts = turn.images.map { Part.fromBytes(it, "image/jpeg") } + listOfNotNull(turn.text.takeIf { it.isNotBlank() }?.let { Part.fromText(it) })
+            Content.builder().role(if (turn.fromUser) "user" else "model").parts(parts).build()
+        }
         val settings = GenerateContentConfig.builder().systemInstruction(Content.fromParts(Part.fromText(system))).build()
         client.models.generateContent(config.model, contents, settings).text().orEmpty()
     }

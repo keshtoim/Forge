@@ -165,4 +165,36 @@ class AiAssistantTest {
         server.enqueue(json(400, """{"error":{"code":400,"message":"Invalid value at 'contents'","status":"INVALID_ARGUMENT"}}"""))
         assertEquals(AiFailure.OTHER, error(AiProvider.GEMINI).failure)
     }
+
+    @Test
+    fun `attached photos go out in each provider's image format`() {
+        val photo = byteArrayOf(1, 2, 3)
+        val encoded = java.util.Base64.getEncoder().encodeToString(photo)
+        val withPhoto = listOf(AiTurn(true, "Что это за тренажёр?", listOf(photo)))
+        fun send(provider: AiProvider) =
+            runBlocking { AiAssistant.reply(AiConfig(provider, "key", provider.defaultModel), "Ты тренер.", withPhoto, server.url("/").toString()) }
+
+        server.enqueue(json(200, """{"candidates":[{"content":{"role":"model","parts":[{"text":"Жим ногами"}]},"finishReason":"STOP"}]}"""))
+        send(AiProvider.GEMINI)
+        assertTrue(server.takeRequest().body.readUtf8().let { """"mimeType":"image/jpeg"""" in it && encoded in it && "Что это за тренажёр?" in it })
+
+        server.enqueue(
+            json(
+                200,
+                """{"id":"c1","object":"chat.completion","created":1,"model":"gpt-5","choices":[{"index":0,"message":{"role":"assistant","content":"Жим ногами","refusal":null},"finish_reason":"stop","logprobs":null}]}""",
+            ),
+        )
+        send(AiProvider.OPENAI)
+        assertTrue(server.takeRequest().body.readUtf8().contains("data:image/jpeg;base64,$encoded"))
+
+        server.enqueue(
+            json(
+                200,
+                """{"id":"msg_1","type":"message","role":"assistant","model":"claude-opus-5-5","content":[{"type":"text","text":"Жим ногами"}],""" +
+                    """"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":10,"output_tokens":5}}""",
+            ),
+        )
+        send(AiProvider.CLAUDE)
+        assertTrue(server.takeRequest().body.readUtf8().let { """"media_type":"image/jpeg"""" in it && """"data":"$encoded"""" in it })
+    }
 }
