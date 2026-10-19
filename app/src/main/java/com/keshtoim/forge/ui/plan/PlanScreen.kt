@@ -88,6 +88,7 @@ import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
 import com.keshtoim.forge.ui.displayName
+import com.keshtoim.forge.ui.forgeSegmentColors
 import com.keshtoim.forge.ui.templates.editableExercises
 import java.time.DayOfWeek
 import java.time.Instant
@@ -164,6 +165,7 @@ fun PlanScreen(
                                 selected = viewModel.own == own,
                                 onClick = { viewModel.own = own },
                                 shape = SegmentedButtonDefaults.itemShape(index, 2),
+                                colors = forgeSegmentColors(),
                                 icon = {},
                             ) { FitText(stringResource(label)) }
                         }

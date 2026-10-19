@@ -75,6 +75,7 @@ import com.keshtoim.forge.data.waistToHipRisk
 import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
+import com.keshtoim.forge.ui.forgeSegmentColors
 import com.keshtoim.forge.ui.history.ReadingsChart
 import com.keshtoim.forge.ui.relativeDay
 import com.keshtoim.forge.ui.workout.formatNumber
@@ -166,7 +167,7 @@ private fun ParamsCard(state: ProfileState, onSex: (BodyType) -> Unit, onEdit: (
                             selected = state.sex == sex,
                             onClick = { onSex(sex) },
                             shape = SegmentedButtonDefaults.itemShape(index, 2),
-                            colors = SegmentedButtonDefaults.colors(activeContainerColor = colors.primaryContainer, activeContentColor = colors.onPrimaryContainer),
+                            colors = forgeSegmentColors(),
                             icon = {},
                         ) { FitText(stringResource(label)) }
                     }

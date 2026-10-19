@@ -42,6 +42,7 @@ import com.keshtoim.forge.data.db.BodyMeasurement
 import com.keshtoim.forge.data.series
 import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.ForgeCard
+import com.keshtoim.forge.ui.forgeSegmentColors
 import com.keshtoim.forge.ui.profile.ProfileViewModel
 import com.keshtoim.forge.ui.profile.one
 import java.time.LocalDate
@@ -177,7 +178,7 @@ private fun TrendCard(measurements: List<BodyMeasurement>) {
                         selected = entry == period,
                         onClick = { period = entry },
                         shape = SegmentedButtonDefaults.itemShape(index, Period.entries.size),
-                        colors = SegmentedButtonDefaults.colors(activeContainerColor = colors.primaryContainer, activeContentColor = colors.onPrimaryContainer),
+                        colors = forgeSegmentColors(),
                         icon = {},
                     ) { FitText(stringResource(entry.labelRes)) }
                 }

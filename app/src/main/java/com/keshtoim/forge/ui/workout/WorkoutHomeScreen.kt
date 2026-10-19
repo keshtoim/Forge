@@ -83,6 +83,7 @@ import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
 import com.keshtoim.forge.ui.exercises.MuscleMap
 import com.keshtoim.forge.ui.exercises.MuscleMapDefaults
+import com.keshtoim.forge.ui.forgeSegmentColors
 import com.keshtoim.forge.ui.moment
 import com.keshtoim.forge.ui.relativeDay
 import com.keshtoim.forge.ui.theme.ForgeTheme
@@ -533,10 +534,7 @@ private fun WeeksCard(weeks: List<WeekBar>) {
                         selected = entry == metric,
                         onClick = { metric = entry },
                         shape = SegmentedButtonDefaults.itemShape(index, ChartMetric.entries.size),
-                        colors = SegmentedButtonDefaults.colors(
-                            activeContainerColor = colors.primaryContainer,
-                            activeContentColor = colors.onPrimaryContainer,
-                        ),
+                        colors = forgeSegmentColors(),
                         icon = {},
                     ) { FitText(stringResource(entry.label)) }
                 }

@@ -50,6 +50,7 @@ import com.keshtoim.forge.data.ThemeMode
 import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
+import com.keshtoim.forge.ui.forgeSegmentColors
 import com.keshtoim.forge.ui.labelRes
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -85,11 +86,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenAi: () -> Unit, viewModel: Settings
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             val itemColors = ListItemDefaults.colors(containerColor = Color.Transparent)
-            val segmentColors = SegmentedButtonDefaults.colors(
-                activeContainerColor = MaterialTheme.colorScheme.primary,
-                activeContentColor = MaterialTheme.colorScheme.onPrimary,
-                activeBorderColor = MaterialTheme.colorScheme.primary,
-            )
+            val segmentColors = forgeSegmentColors(solid = true)
             ForgeCard(Modifier.fillMaxWidth()) {
                 ListItem(
                     colors = itemColors,

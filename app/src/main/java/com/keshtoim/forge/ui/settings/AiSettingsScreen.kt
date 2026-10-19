@@ -68,6 +68,7 @@ import com.keshtoim.forge.ui.AiErrorText
 import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.ScreenHeader
+import com.keshtoim.forge.ui.forgeSegmentColors
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -165,6 +166,7 @@ fun AiSettingsScreen(onBack: () -> Unit, viewModel: AiSettingsViewModel = viewMo
                                 selected = option == provider,
                                 onClick = { viewModel.setProvider(option) },
                                 shape = SegmentedButtonDefaults.itemShape(index, AiProvider.entries.size),
+                                colors = forgeSegmentColors(solid = true),
                                 icon = {},
                             ) { FitText(option.title) }
                         }

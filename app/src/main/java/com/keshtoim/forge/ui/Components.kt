@@ -22,6 +22,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButtonColors
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -137,4 +139,16 @@ fun SearchField(query: String, onQueryChange: (String) -> Unit, placeholder: Str
             unfocusedIndicatorColor = Color.Transparent,
         ),
     )
+}
+
+// Material tints the selected segment with secondaryContainer, which is pink in our palette; the accent is purple.
+// Settings use the solid accent like a toggle, content screens the softer container.
+@Composable
+fun forgeSegmentColors(solid: Boolean = false): SegmentedButtonColors {
+    val colors = MaterialTheme.colorScheme
+    return if (solid) {
+        SegmentedButtonDefaults.colors(activeContainerColor = colors.primary, activeContentColor = colors.onPrimary, activeBorderColor = colors.primary)
+    } else {
+        SegmentedButtonDefaults.colors(activeContainerColor = colors.primaryContainer, activeContentColor = colors.onPrimaryContainer)
+    }
 }
