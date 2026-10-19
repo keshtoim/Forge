@@ -3,8 +3,8 @@ package com.keshtoim.forge.data.ai
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.ExifInterface
 import android.net.Uri
+import androidx.exifinterface.media.ExifInterface
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.runBlocking

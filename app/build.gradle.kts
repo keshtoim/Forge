@@ -87,6 +87,7 @@ dependencies {
     implementation(libs.anthropic.java)
     implementation(libs.openai.java)
     implementation(libs.google.genai)
+    implementation(libs.androidx.exifinterface)
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
 
