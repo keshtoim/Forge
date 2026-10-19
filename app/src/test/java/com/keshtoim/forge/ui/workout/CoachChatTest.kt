@@ -130,4 +130,19 @@ class CoachChatTest {
         assertEquals(6, applied.exercises.single().sets.first { it.id == set.id }.reps)
         assertEquals(null, viewModel.advice[set.id])
     }
+
+    @Test
+    fun `a photo can be sent without text and leaves the attachments empty`() {
+        server.enqueue(answer(200, "Это жим ногами"))
+        viewModel.attachPhoto(byteArrayOf(7, 7, 7))
+        repeat(COACH_MAX_PHOTOS) { viewModel.attachPhoto(byteArrayOf(1)) }
+        assertEquals(COACH_MAX_PHOTOS, viewModel.coachPhotos.size)
+
+        viewModel.askCoach("", mapOf(bench to "Жим лёжа"), focusId = null)
+        awaitIdle()
+
+        assertEquals(0, viewModel.coachPhotos.size)
+        assertEquals(COACH_MAX_PHOTOS, viewModel.chat.first().images.size)
+        assertTrue(server.takeRequest().body.readUtf8().contains(java.util.Base64.getEncoder().encodeToString(byteArrayOf(7, 7, 7))))
+    }
 }

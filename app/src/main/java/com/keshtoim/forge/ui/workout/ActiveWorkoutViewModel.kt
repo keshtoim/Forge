@@ -77,12 +77,29 @@ class ActiveWorkoutViewModel(
         private set
 
     // [names] are display names by exerciseId; the prompt is rebuilt on every question so the coach sees the latest sets.
+    // Photos waiting to go out with the next question; kept here so they survive a rotation.
+    val coachPhotos = mutableStateListOf<ByteArray>()
+
+    fun attachPhoto(photo: ByteArray) {
+        if (coachPhotos.size < COACH_MAX_PHOTOS) coachPhotos += photo
+    }
+
+    fun removePhoto(index: Int) {
+        coachPhotos.removeAt(index)
+    }
+
     fun askCoach(text: String, names: Map<Long, String>, focusId: Long?) {
         val question = text.trim()
-        if (question.isEmpty() || coachBusy) return
+        val photos = coachPhotos.toList()
+        if ((question.isEmpty() && photos.isEmpty()) || coachBusy) return
+        coachPhotos.clear()
         // After a failed request the question is still unanswered: append to it so turns keep alternating.
         val last = chat.lastOrNull()
-        if (last?.fromUser == true) chat[chat.lastIndex] = last.copy(text = last.text + "\n" + question) else chat += AiTurn(true, question)
+        if (last?.fromUser == true) {
+            chat[chat.lastIndex] = last.copy(text = listOf(last.text, question).filter { it.isNotEmpty() }.joinToString("\n"), images = last.images + photos)
+        } else {
+            chat += AiTurn(true, question, photos)
+        }
         sendCoach(names, focusId)
     }
 
@@ -283,3 +300,6 @@ sealed interface AdviceState {
     data class Ready(val advice: SetAdvice) : AdviceState
     data class Failed(val error: AiException) : AdviceState
 }
+
+// More photos make every following question in the chat heavier, since the whole dialog is sent each time.
+const val COACH_MAX_PHOTOS = 3

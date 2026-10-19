@@ -378,11 +378,16 @@
     <string name="ai_error_other">Something went wrong. Try again</string>
     <string name="coach_title">AI coach</string>
     <string name="coach_open">Open the AI coach</string>
-    <string name="coach_intro">Ask about weight, rest, form or a swap for an exercise. The coach sees this workout and your past results.</string>
+    <string name="coach_intro">Ask about weight, rest, form or a swap for an exercise. The coach sees this workout and your past results, and you can attach a photo of a machine or your form.</string>
     <string name="coach_hint">Ask the coach</string>
     <string name="coach_send">Send</string>
     <string name="coach_thinking">Thinking…</string>
     <string name="coach_retry">Retry</string>
+    <string name="coach_attach">Attach a photo</string>
+    <string name="coach_gallery">Gallery</string>
+    <string name="coach_camera">Camera</string>
+    <string name="coach_photo">Photo</string>
+    <string name="coach_photo_remove">Remove photo</string>
     <string name="coach_q_weight">What weight next?</string>
     <string name="coach_q_rest">How long to rest?</string>
     <string name="coach_q_swap">Machine is taken, what instead?</string>

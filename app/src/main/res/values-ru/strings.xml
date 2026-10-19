@@ -377,11 +377,16 @@
     <string name="ai_error_other">Не получилось. Попробуй ещё раз</string>
     <string name="coach_title">ИИ-тренер</string>
     <string name="coach_open">Открыть ИИ-тренера</string>
-    <string name="coach_intro">Спроси о весе, отдыхе, технике или замене упражнения. Тренер видит эту тренировку и прошлые результаты.</string>
+    <string name="coach_intro">Спроси о весе, отдыхе, технике или замене упражнения. Тренер видит эту тренировку и прошлые результаты, а ещё можно приложить фото тренажёра или техники.</string>
     <string name="coach_hint">Спроси тренера</string>
     <string name="coach_send">Отправить</string>
     <string name="coach_thinking">Думаю…</string>
     <string name="coach_retry">Повторить</string>
+    <string name="coach_attach">Прикрепить фото</string>
+    <string name="coach_gallery">Галерея</string>
+    <string name="coach_camera">Камера</string>
+    <string name="coach_photo">Фото</string>
+    <string name="coach_photo_remove">Убрать фото</string>
     <string name="coach_q_weight">Какой вес взять дальше?</string>
     <string name="coach_q_rest">Сколько отдыхать?</string>
     <string name="coach_q_swap">Тренажёр занят, чем заменить?</string>
