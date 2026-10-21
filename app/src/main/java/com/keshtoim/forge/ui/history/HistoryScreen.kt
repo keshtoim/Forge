@@ -53,6 +53,8 @@ import com.keshtoim.forge.data.db.WorkoutDetail
 import com.keshtoim.forge.data.db.isWorking
 import com.keshtoim.forge.data.repeats
 import com.keshtoim.forge.ui.ForgeCard
+import com.keshtoim.forge.ui.NoteDialog
+import com.keshtoim.forge.ui.NoteLine
 import com.keshtoim.forge.ui.ScreenHeader
 import com.keshtoim.forge.ui.displayName
 import com.keshtoim.forge.ui.formatDateTime
@@ -218,6 +220,7 @@ fun WorkoutDetailScreen(onBack: () -> Unit, viewModel: WorkoutDetailViewModel = 
     val exercises by viewModel.exercises.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var confirmDelete by remember { mutableStateOf(false) }
+    var editingNote by rememberSaveable { mutableStateOf(false) }
     val workout = detail ?: return
 
     Scaffold(
@@ -237,6 +240,7 @@ fun WorkoutDetailScreen(onBack: () -> Unit, viewModel: WorkoutDetailViewModel = 
             item {
                 Text(formatDateTime(workout.workout.startedAt), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            item { NoteLine(workout.workout.note, onEdit = { editingNote = true }) }
             item { StatsPanel(workout) }
             items(workout.exercises.sortedBy { it.workoutExercise.position }, key = { it.workoutExercise.id }) { item ->
                 val exercise = exercises[item.workoutExercise.exerciseId] ?: return@items
@@ -268,6 +272,12 @@ fun WorkoutDetailScreen(onBack: () -> Unit, viewModel: WorkoutDetailViewModel = 
         }
     }
 
+    if (editingNote) {
+        NoteDialog(stringResource(R.string.note_workout), workout.workout.note, onDismiss = { editingNote = false }) {
+            viewModel.setNote(it)
+            editingNote = false
+        }
+    }
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },

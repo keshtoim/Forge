@@ -50,10 +50,18 @@ data class ExerciseLog(
     val sets: List<WorkoutSet>,
     val lastTime: List<WorkoutSet>,
     val onScreen: Boolean,
+    val note: String? = null,
 )
 
 // The coach sees exactly what the athlete logged; the prompt is in English, the answer in the app's language.
-fun coachPrompt(language: String, athlete: Athlete, workoutName: String, minutesIn: Long, exercises: List<ExerciseLog>): String = buildString {
+fun coachPrompt(
+    language: String,
+    athlete: Athlete,
+    workoutName: String,
+    minutesIn: Long,
+    exercises: List<ExerciseLog>,
+    workoutNote: String? = null,
+): String = buildString {
     appendLine("You are a strength coach inside Forge, a workout log app, talking to the athlete between sets of a workout in progress.")
     appendLine("Answer in $language. Keep replies short enough to read between sets: a few sentences or a short list, plain text without headings or tables.")
     appendLine("Base advice on the log below; if something you need isn't there, ask instead of guessing. You can't edit the log, so say what to enter.")
@@ -69,12 +77,14 @@ fun coachPrompt(language: String, athlete: Athlete, workoutName: String, minutes
         athlete.bodyFatPercent?.let { "body fat about ${it.roundToInt()}% by the US Navy tape method" },
         athlete.leanMassKg?.let { "lean mass ${number(it)} kg" },
     ).takeIf { it.isNotEmpty() }?.let { appendLine("Athlete: ${it.joinToString()}.") }
+    if (!workoutNote.isNullOrBlank()) appendLine("Athlete's note for this workout: $workoutNote")
     appendLine("Workout \"$workoutName\", started $minutesIn min ago. Exercises in order, > marks the one on screen:")
     exercises.forEachIndexed { i, e ->
         val superset = e.superset?.let { " [superset $it: done back to back, rest after the round]" }.orEmpty()
         appendLine("${if (e.onScreen) ">" else " "} ${i + 1}. ${e.name}$superset")
         appendLine("   today: ${e.sets.sortedBy { it.position }.mapIndexed { n, s -> "${n + 1}) ${setText(e.type, s)}" }.joinToString("; ").ifEmpty { "no sets" }}")
         if (e.lastTime.isNotEmpty()) appendLine("   last time: ${e.lastTime.joinToString("; ") { setText(e.type, it) }}")
+        if (!e.note.isNullOrBlank()) appendLine("   athlete's note: ${e.note}")
     }
     appendLine()
     append("Set levels: warm-up (not counted in records), light (many reps in reserve), medium (3-4 in reserve), heavy (1-2 in reserve), max (to failure or a record).")

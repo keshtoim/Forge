@@ -123,6 +123,8 @@ import com.keshtoim.forge.data.db.WorkoutSet
 import com.keshtoim.forge.rest.Rest
 import com.keshtoim.forge.ui.AiIndicator
 import com.keshtoim.forge.ui.FitText
+import com.keshtoim.forge.ui.NoteDialog
+import com.keshtoim.forge.ui.NoteLine
 import com.keshtoim.forge.ui.displayName
 import com.keshtoim.forge.ui.hintRes
 import com.keshtoim.forge.ui.labelRes
@@ -149,6 +151,8 @@ fun ActiveWorkoutScreen(
     var listOpen by rememberSaveable { mutableStateOf(false) }
     var confirmDiscard by remember { mutableStateOf(false) }
     var coachOpen by rememberSaveable { mutableStateOf(false) }
+    var noteForExercise by rememberSaveable { mutableStateOf<Long?>(null) }
+    var noteForWorkout by rememberSaveable { mutableStateOf(false) }
 
     val view = LocalView.current
     DisposableEffect(view) {
@@ -234,6 +238,7 @@ fun ActiveWorkoutScreen(
                     onAddRound = { viewModel.addSets(group.map { it.workoutExercise.id }) },
                     onOpenExercise = onOpenExercise,
                     footer = adviceFooter,
+                    onEditNote = { noteForExercise = it.id },
                 )
             } else {
                 Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -248,6 +253,7 @@ fun ActiveWorkoutScreen(
                         Icon(Icons.Outlined.Info, contentDescription = stringResource(R.string.exercise_info), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
+                NoteLine(exercise.note, onEdit = { noteForExercise = exercise.id })
                 SetList(
                     sets = sets,
                     current = current,
@@ -343,8 +349,25 @@ fun ActiveWorkoutScreen(
                 onRemoveSet = { e -> e.sets.filter { !it.completed }.maxByOrNull { it.position }?.let(viewModel::deleteSet) },
                 onRemove = viewModel::removeExercise,
                 onAddExercises = { listOpen = false; onAddExercises() },
+                workoutNote = workout.workout.note,
+                onEditWorkoutNote = { listOpen = false; noteForWorkout = true },
                 onDiscard = { listOpen = false; confirmDiscard = true },
             )
+        }
+    }
+
+    noteForExercise?.let { id ->
+        exercises[id]?.let { exercise ->
+            NoteDialog(stringResource(R.string.note_exercise), exercise.note, onDismiss = { noteForExercise = null }) {
+                viewModel.setExerciseNote(exercise, it)
+                noteForExercise = null
+            }
+        }
+    }
+    if (noteForWorkout) {
+        NoteDialog(stringResource(R.string.note_workout), workout.workout.note, onDismiss = { noteForWorkout = false }) {
+            viewModel.setWorkoutNote(it)
+            noteForWorkout = false
         }
     }
 
@@ -497,6 +520,7 @@ private fun SupersetRound(
     onAddRound: () -> Unit,
     onOpenExercise: (Long) -> Unit,
     footer: @Composable (WorkoutSet) -> Unit,
+    onEditNote: (Exercise) -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
     val context = LocalContext.current
@@ -534,6 +558,7 @@ private fun SupersetRound(
                             Icon(Icons.Outlined.Info, contentDescription = stringResource(R.string.exercise_info), tint = colors.onSurfaceVariant)
                         }
                     }
+                    exercise.note?.let { NoteLine(it, onEdit = { onEditNote(exercise) }) }
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         sets.forEachIndexed { n, done ->
                             if (done.completed) DoneChip(n + 1, done, exercise) { onReopen(done) }
@@ -940,6 +965,8 @@ private fun ExerciseList(
     onRemoveSet: (WorkoutExerciseWithSets) -> Unit,
     onRemove: (WorkoutExerciseWithSets) -> Unit,
     onAddExercises: () -> Unit,
+    workoutNote: String?,
+    onEditWorkoutNote: () -> Unit,
     onDiscard: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -979,6 +1006,11 @@ private fun ExerciseList(
             }
         }
         HorizontalDivider(Modifier.padding(vertical = 8.dp), color = colors.outlineVariant)
+        if (workoutNote.isNullOrBlank()) {
+            TextButton(onClick = onEditWorkoutNote, modifier = Modifier.padding(horizontal = 8.dp)) { Text(stringResource(R.string.note_workout)) }
+        } else {
+            NoteLine(workoutNote, onEdit = onEditWorkoutNote, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+        }
         TextButton(onClick = onAddExercises, modifier = Modifier.padding(horizontal = 8.dp)) {
             Icon(Icons.Filled.Add, contentDescription = null)
             Text(stringResource(R.string.add_exercises), modifier = Modifier.padding(start = 8.dp))

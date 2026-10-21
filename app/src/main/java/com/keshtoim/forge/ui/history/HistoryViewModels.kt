@@ -58,6 +58,10 @@ class WorkoutDetailViewModel(
         .map { list -> list.associateBy { it.id } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
 
+    fun setNote(note: String) {
+        viewModelScope.launch { workoutDao.setNote(workoutId, note.trim().ifEmpty { null }) }
+    }
+
     fun delete(onDone: () -> Unit) {
         viewModelScope.launch {
             workoutDao.deleteWorkout(workoutId)

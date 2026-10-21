@@ -59,4 +59,19 @@ class CoachPromptTest {
         assertTrue(prompt.contains("Athlete: male, height 180 cm, age 28, body weight 82.5 kg (-1.5 kg over the last 30 days), body fat about"))
         assertTrue(prompt.contains("lean mass"))
     }
+
+    @Test
+    fun `notes reach the coach`() {
+        val prompt = coachPrompt(
+            "Russian",
+            Athlete(),
+            "Ноги",
+            5,
+            listOf(ExerciseLog("Жим ногами", ExerciseType.WEIGHT_REPS, null, emptyList(), emptyList(), onScreen = true, note = "Сиденье на 4")),
+            workoutNote = "Плохо спал",
+        )
+        assertTrue(prompt.contains("Athlete's note for this workout: Плохо спал"))
+        assertTrue(prompt.contains("athlete's note: Сиденье на 4"))
+        assertFalse(prompt.contains("Athlete:"))
+    }
 }

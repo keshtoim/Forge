@@ -387,6 +387,11 @@
     <string name="coach_camera">Камера</string>
     <string name="coach_photo">Фото</string>
     <string name="coach_photo_remove">Убрать фото</string>
+    <string name="note">Заметка</string>
+    <string name="note_add">Заметка</string>
+    <string name="note_hint">Например: сиденье на 4, болит левое плечо</string>
+    <string name="note_exercise">Заметка к упражнению</string>
+    <string name="note_workout">Заметка к тренировке</string>
     <string name="coach_q_weight">Какой вес взять дальше?</string>
     <string name="coach_q_rest">Сколько отдыхать?</string>
     <string name="coach_q_swap">Тренажёр занят, чем заменить?</string>

@@ -132,6 +132,9 @@ interface WorkoutDao {
     @Query("SELECT COUNT(*) FROM workout_exercises WHERE workoutId = :workoutId")
     suspend fun countExercises(workoutId: Long): Int
 
+    @Query("UPDATE workouts SET note = :note WHERE id = :workoutId")
+    suspend fun setNote(workoutId: Long, note: String?)
+
     @Query("UPDATE workouts SET finishedAt = :finishedAt WHERE id = :workoutId")
     suspend fun setFinished(workoutId: Long, finishedAt: Long)
 

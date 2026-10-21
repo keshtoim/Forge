@@ -160,11 +160,12 @@ class ActiveWorkoutViewModel(
                 sets = e.sets,
                 lastTime = previous[exerciseId].orEmpty(),
                 onScreen = e.workoutExercise.id == focusId,
+                note = exercises.value[exerciseId]?.note,
             )
         }
         val athlete = athlete(preferences.bodyType.value, preferences.heightCm.value, preferences.birthDate.value, measurements.observeAll().first(), LocalDate.now())
         val minutes = (System.currentTimeMillis() - workout.workout.startedAt) / 60_000
-        return coachPrompt(Locale.getDefault().getDisplayLanguage(Locale.ENGLISH), athlete, workout.workout.name, minutes, logs)
+        return coachPrompt(Locale.getDefault().getDisplayLanguage(Locale.ENGLISH), athlete, workout.workout.name, minutes, logs, workout.workout.note)
     }
 
     // Sets of the last finished workout per exerciseId, shown as placeholders.
@@ -238,6 +239,14 @@ class ActiveWorkoutViewModel(
                 }
             }
         }
+    }
+
+    fun setExerciseNote(exercise: Exercise, note: String) {
+        viewModelScope.launch { exerciseDao.update(exercise.copy(note = note.trim().ifEmpty { null })) }
+    }
+
+    fun setWorkoutNote(note: String) {
+        viewModelScope.launch { workoutDao.setNote(workoutId, note.trim().ifEmpty { null }) }
     }
 
     fun setBar(exercise: Exercise, barKg: Double?) {

@@ -388,6 +388,11 @@
     <string name="coach_camera">Camera</string>
     <string name="coach_photo">Photo</string>
     <string name="coach_photo_remove">Remove photo</string>
+    <string name="note">Note</string>
+    <string name="note_add">Note</string>
+    <string name="note_hint">For example: seat on 4, left shoulder hurts</string>
+    <string name="note_exercise">Exercise note</string>
+    <string name="note_workout">Workout note</string>
     <string name="coach_q_weight">What weight next?</string>
     <string name="coach_q_rest">How long to rest?</string>
     <string name="coach_q_swap">Machine is taken, what instead?</string>

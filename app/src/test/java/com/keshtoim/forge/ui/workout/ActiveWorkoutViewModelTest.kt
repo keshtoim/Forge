@@ -134,4 +134,16 @@ class ActiveWorkoutViewModelTest {
         assertEquals(80.0, added.weightKg!!, 0.0)
         assertEquals(1, added.position)
     }
+
+    @Test
+    fun `notes are saved and an empty one removes the note`() {
+        val exercise = runBlocking { db.exerciseDao().observeAll().first().single() }
+        viewModel.setExerciseNote(exercise, "  Сиденье на 4 ")
+        viewModel.setWorkoutNote("Плохо спал")
+        await({ db.exerciseDao().observeAll().first().single() }) { it.note == "Сиденье на 4" }
+        await({ db.workoutDao().observeDetail(workoutId).first() }) { it.workout.note == "Плохо спал" }
+
+        viewModel.setWorkoutNote("   ")
+        await({ db.workoutDao().observeDetail(workoutId).first() }) { it.workout.note == null }
+    }
 }
