@@ -399,6 +399,11 @@
     <string name="rest_less">Меньше на 15 секунд</string>
     <string name="rest_more">Больше на 15 секунд</string>
     <string name="warmup_add">Разминка</string>
+    <string name="progression_target">Цель: %1$s кг × %2$d</string>
+    <string name="progression_weight">Все подходы дошли до верха диапазона — прибавь вес</string>
+    <string name="progression_rep">Тот же вес, на повтор больше</string>
+    <string name="progression_hold">В прошлый раз был максимум — держи вес</string>
+    <string name="progression_apply">Подставить</string>
     <string name="coach_q_weight">Какой вес взять дальше?</string>
     <string name="coach_q_rest">Сколько отдыхать?</string>
     <string name="coach_q_swap">Тренажёр занят, чем заменить?</string>

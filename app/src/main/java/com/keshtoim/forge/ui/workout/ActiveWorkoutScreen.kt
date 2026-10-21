@@ -124,6 +124,7 @@ import com.keshtoim.forge.data.db.SetEffort
 import com.keshtoim.forge.data.db.WorkoutExerciseWithSets
 import com.keshtoim.forge.data.db.WorkoutSet
 import com.keshtoim.forge.data.restSeconds
+import com.keshtoim.forge.data.traits
 import com.keshtoim.forge.rest.Rest
 import com.keshtoim.forge.rest.RestTimer
 import com.keshtoim.forge.ui.AiIndicator
@@ -214,9 +215,15 @@ fun ActiveWorkoutScreen(
         val round = group.currentRound().takeIf { group.size > 1 }
         val next = workout.exercises.nextUnfinished(focus.workoutExercise.id)
         val nextName = next?.let { exercises[it.workoutExercise.exerciseId]?.displayName(context) }
-        val adviceFooter: @Composable (WorkoutSet) -> Unit = { set ->
-            val type = workout.exercises.firstOrNull { it.workoutExercise.id == set.workoutExerciseId }
-                ?.let { exercises[it.workoutExercise.exerciseId]?.type } ?: ExerciseType.WEIGHT_REPS
+        val setFooter: @Composable (WorkoutSet) -> Unit = { set ->
+            val owner = workout.exercises.firstOrNull { it.workoutExercise.id == set.workoutExerciseId }?.let { exercises[it.workoutExercise.exerciseId] }
+            val type = owner?.type ?: ExerciseType.WEIGHT_REPS
+            // The offline target shows on an untouched working set; once something is typed it would only be in the way.
+            if (owner != null && type == ExerciseType.WEIGHT_REPS && set.effort != SetEffort.WARMUP && set.weightKg == null && set.reps == null) {
+                progression(viewModel.previous[owner.id].orEmpty(), owner.traits.mechanics, owner.traits.equipment)?.let { target ->
+                    ProgressionHint(target) { viewModel.editSet(set.id) { it.copy(weightKg = target.weightKg, reps = target.reps) } }
+                }
+            }
             if (aiStatus != AiStatus.Off) {
                 AdviceRow(
                     state = viewModel.advice[set.id],
@@ -243,7 +250,7 @@ fun ActiveWorkoutScreen(
                     onBarChange = viewModel::setBar,
                     onAddRound = { viewModel.addSets(group.map { it.workoutExercise.id }) },
                     onOpenExercise = onOpenExercise,
-                    footer = adviceFooter,
+                    footer = setFooter,
                     onEditNote = { noteForExercise = it.id },
                 )
             } else {
@@ -285,7 +292,7 @@ fun ActiveWorkoutScreen(
                     onEdit = { transform -> current?.let { viewModel.editSet(it.id, transform) } },
                     onBarChange = { viewModel.setBar(exercise, it) },
                     onAdd = { viewModel.addSet(focus.workoutExercise.id) },
-                    footer = adviceFooter,
+                    footer = setFooter,
                 )
                 if (current == null) {
                     Text(
@@ -1086,4 +1093,29 @@ private fun RestDialog(exercise: Exercise, onDismiss: () -> Unit, onSave: (Int?)
         confirmButton = { TextButton(onClick = { onSave(seconds) }) { Text(stringResource(R.string.save)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
+}
+
+@Composable
+private fun ProgressionHint(target: Progression, onApply: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    val reason = stringResource(
+        when (target.step) {
+            ProgressionStep.ADD_WEIGHT -> R.string.progression_weight
+            ProgressionStep.ADD_REP -> R.string.progression_rep
+            ProgressionStep.HOLD -> R.string.progression_hold
+        },
+    )
+    Surface(shape = RoundedCornerShape(14.dp), color = colors.primaryContainer.copy(alpha = 0.5f), modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.progression_target, formatNumber(target.weightKg), target.reps),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = colors.onPrimaryContainer,
+                )
+                Text(reason, style = MaterialTheme.typography.bodySmall, color = colors.onPrimaryContainer)
+            }
+            TextButton(onClick = onApply) { Text(stringResource(R.string.progression_apply)) }
+        }
+    }
 }
