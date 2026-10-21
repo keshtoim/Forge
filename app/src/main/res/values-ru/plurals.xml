@@ -59,4 +59,10 @@
         <item quantity="many">Список загружен: %d моделей</item>
         <item quantity="other">Список загружен: %d модели</item>
     </plurals>
+    <plurals name="program_save">
+        <item quantity="one">Сохранить %d шаблон</item>
+        <item quantity="few">Сохранить %d шаблона</item>
+        <item quantity="many">Сохранить %d шаблонов</item>
+        <item quantity="other">Сохранить %d шаблона</item>
+    </plurals>
 </resources>

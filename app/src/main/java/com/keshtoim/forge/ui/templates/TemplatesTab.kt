@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -96,6 +97,7 @@ class TemplatesViewModel(templateDao: TemplateDao, exerciseDao: ExerciseDao, pri
 fun TemplatesTab(
     onOpenTemplate: (Long) -> Unit,
     onOpenWorkout: (Long) -> Unit,
+    onOpenProgram: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: TemplatesViewModel = viewModel(factory = TemplatesViewModel.Factory),
 ) {
@@ -116,6 +118,17 @@ fun TemplatesTab(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            item {
+                ForgeCard(Modifier.fillMaxWidth(), onClick = onOpenProgram) {
+                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                            Text(stringResource(R.string.program_title), style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.program_card_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
             items(current.templates, key = { it.template.id }) { summary ->
                 ForgeCard(Modifier.fillMaxWidth(), onClick = { onOpenTemplate(summary.template.id) }) {
                     Row(Modifier.padding(start = 16.dp, end = 12.dp, top = 14.dp, bottom = 14.dp), verticalAlignment = Alignment.CenterVertically) {

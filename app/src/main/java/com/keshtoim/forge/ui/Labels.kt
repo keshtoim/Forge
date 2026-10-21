@@ -7,6 +7,8 @@ import com.keshtoim.forge.data.BodyType
 import com.keshtoim.forge.data.ThemeMode
 import com.keshtoim.forge.data.Upcoming
 import com.keshtoim.forge.data.ai.AiFailure
+import com.keshtoim.forge.data.ai.ProgramGoal
+import com.keshtoim.forge.data.ai.ProgramLevel
 import com.keshtoim.forge.data.builtIn
 import com.keshtoim.forge.data.db.Discipline
 import com.keshtoim.forge.data.db.Equipment
@@ -221,4 +223,21 @@ val AiFailure.labelRes: Int
         AiFailure.REGION -> R.string.ai_error_region
         AiFailure.REFUSED -> R.string.ai_error_refused
         AiFailure.OTHER -> R.string.ai_error_other
+    }
+
+@get:StringRes
+val ProgramGoal.labelRes: Int
+    get() = when (this) {
+        ProgramGoal.MUSCLE -> R.string.goal_muscle
+        ProgramGoal.STRENGTH -> R.string.goal_strength
+        ProgramGoal.FAT_LOSS -> R.string.goal_fat_loss
+        ProgramGoal.FITNESS -> R.string.goal_fitness
+    }
+
+@get:StringRes
+val ProgramLevel.labelRes: Int
+    get() = when (this) {
+        ProgramLevel.BEGINNER -> R.string.level_beginner
+        ProgramLevel.INTERMEDIATE -> R.string.level_intermediate
+        ProgramLevel.ADVANCED -> R.string.level_advanced
     }

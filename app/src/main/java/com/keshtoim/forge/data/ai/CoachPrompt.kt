@@ -87,7 +87,7 @@ fun reviewPrompt(
     appendLog(athlete, workoutNote, "Workout \"$workoutName\", took $minutes min. Exercises in order:", exercises)
 }
 
-private fun StringBuilder.appendLog(athlete: Athlete, workoutNote: String?, header: String, exercises: List<ExerciseLog>) {
+internal fun StringBuilder.appendAthlete(athlete: Athlete) {
     listOfNotNull(
         athlete.sex?.let { if (it == BodyType.MALE) "male" else "female" },
         athlete.heightCm?.let { "height $it cm" },
@@ -98,6 +98,10 @@ private fun StringBuilder.appendLog(athlete: Athlete, workoutNote: String?, head
         athlete.bodyFatPercent?.let { "body fat about ${it.roundToInt()}% by the US Navy tape method" },
         athlete.leanMassKg?.let { "lean mass ${number(it)} kg" },
     ).takeIf { it.isNotEmpty() }?.let { appendLine("Athlete: ${it.joinToString()}.") }
+}
+
+private fun StringBuilder.appendLog(athlete: Athlete, workoutNote: String?, header: String, exercises: List<ExerciseLog>) {
+    appendAthlete(athlete)
     if (!workoutNote.isNullOrBlank()) appendLine("Athlete's note for this workout: $workoutNote")
     appendLine(header)
     exercises.forEachIndexed { i, e ->

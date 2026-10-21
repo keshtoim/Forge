@@ -438,4 +438,27 @@
     <string name="update_failed_download">Скачивание не удалось. Проверь интернет и попробуй ещё раз</string>
     <string name="update_failed_corrupted">Файл повреждён при скачивании, скачай заново</string>
     <string name="update_failed_signature">Эту сборку нельзя обновить поверх: она подписана другим ключом, например отладочная из CI. Сохрани данные через экспорт и установи версию из релиза</string>
+    <string name="program_title">Программа от ИИ</string>
+    <string name="program_card_hint">Ответь на пару вопросов, и ИИ составит шаблоны под цель</string>
+    <string name="program_intro">ИИ подберёт упражнения из справочника под цель, время и оборудование. Посмотришь программу и сохранишь её шаблонами.</string>
+    <string name="program_goal">Цель</string>
+    <string name="program_days">Тренировок в неделю</string>
+    <string name="program_minutes">Длительность</string>
+    <string name="program_minutes_value">%1$d мин</string>
+    <string name="program_level">Уровень</string>
+    <string name="program_equipment">Оборудование</string>
+    <string name="program_bodyweight">Свой вес</string>
+    <string name="program_wishes">Пожелания и ограничения</string>
+    <string name="program_wishes_hint">Например: без приседа, болит колено</string>
+    <string name="program_needs_ai">Включи ИИ-помощника в настройках, чтобы составить программу</string>
+    <string name="program_build">Составить программу</string>
+    <string name="program_building">ИИ составляет программу…</string>
+    <string name="program_again">Составить заново</string>
+    <string name="goal_muscle">Масса</string>
+    <string name="goal_strength">Сила</string>
+    <string name="goal_fat_loss">Похудение</string>
+    <string name="goal_fitness">Общая форма</string>
+    <string name="level_beginner">Новичок</string>
+    <string name="level_intermediate">Средний</string>
+    <string name="level_advanced">Опытный</string>
 </resources>

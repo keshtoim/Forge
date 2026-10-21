@@ -39,4 +39,8 @@
         <item quantity="one">List loaded: %d model</item>
         <item quantity="other">List loaded: %d models</item>
     </plurals>
+    <plurals name="program_save">
+        <item quantity="one">Save %d template</item>
+        <item quantity="other">Save %d templates</item>
+    </plurals>
 </resources>

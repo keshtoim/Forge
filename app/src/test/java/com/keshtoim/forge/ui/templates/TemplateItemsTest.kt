@@ -1,6 +1,7 @@
 package com.keshtoim.forge.ui.templates
 
 import com.keshtoim.forge.data.db.TemplateExercise
+import com.keshtoim.forge.data.runs
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
