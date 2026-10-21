@@ -141,7 +141,6 @@ fun SearchField(query: String, onQueryChange: (String) -> Unit, placeholder: Str
     )
 }
 
-// Material tints the selected segment with secondaryContainer, which is pink in our palette; the accent is purple.
 // Settings use the solid accent like a toggle, content screens the softer container.
 @Composable
 fun forgeSegmentColors(solid: Boolean = false): SegmentedButtonColors {

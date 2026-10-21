@@ -23,7 +23,8 @@ import com.keshtoim.forge.data.ThemeMode
 private val Ink = Color(0xFF16121F)
 
 // Lilac shell with an athletic core: violet for actions, coral (secondary) for energy and records,
-// mint (tertiary) for rest.
+// mint (tertiary) for rest. Material fills selected and tonal controls with secondaryContainer, so that one stays violet:
+// coral is kept for accents, never for what the user picked.
 private val LightColors = lightColorScheme(
     primary = Color(0xFF6C4CF5),
     onPrimary = Color.White,
@@ -32,8 +33,8 @@ private val LightColors = lightColorScheme(
     inversePrimary = Color(0xFFB6A4FF),
     secondary = Color(0xFFFF5A47),
     onSecondary = Ink,
-    secondaryContainer = Color(0xFFFFE4DF),
-    onSecondaryContainer = Color(0xFFB5321F),
+    secondaryContainer = Color(0xFFE6DEFF),
+    onSecondaryContainer = Color(0xFF4A2FC4),
     tertiary = Color(0xFF1E8C6E),
     onTertiary = Color.White,
     tertiaryContainer = Color(0xFFDDF4EC),
@@ -65,8 +66,8 @@ private val DarkColors = darkColorScheme(
     inversePrimary = Color(0xFF6C4CF5),
     secondary = Color(0xFFFF8A7A),
     onSecondary = Color(0xFF3A0A04),
-    secondaryContainer = Color(0xFF5C2219),
-    onSecondaryContainer = Color(0xFFFFDAD3),
+    secondaryContainer = Color(0xFF34286E),
+    onSecondaryContainer = Color(0xFFE4DCFF),
     tertiary = Color(0xFF5FC4A3),
     onTertiary = Color(0xFF00382A),
     tertiaryContainer = Color(0xFF124A3C),
