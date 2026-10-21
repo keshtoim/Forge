@@ -45,6 +45,10 @@ data class Exercise(
     val discipline: Discipline? = null,
     val equipment: Equipment? = null,
     val force: Force? = null,
+    // The user's own reminder for this exercise, like a seat setting; shown during workouts and to the AI coach.
+    val note: String? = null,
+    // Rest after a set of this exercise; null falls back to a default by its mechanics.
+    val restSec: Int? = null,
 )
 
 @Serializable
@@ -89,6 +93,9 @@ data class Workout(
     val startedAt: Long,
     // null while the workout is in progress; used to restore it after process death.
     val finishedAt: Long? = null,
+    val note: String? = null,
+    // The AI coach's look back at this workout, kept so it is asked for only once.
+    val review: String? = null,
 )
 
 @Serializable

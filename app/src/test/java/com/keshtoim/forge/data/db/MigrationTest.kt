@@ -95,6 +95,22 @@ class MigrationTest {
     }
 
     @Test
+    fun `migration 9 to 10 leaves notes, rest and review empty`() = runBlocking {
+        helper.createDatabase(9).use {
+            it.execSQL("INSERT INTO exercises (id, builtInKey, name, muscleGroup, secondaryMuscles, type, archived) VALUES (1, NULL, 'Dip', 'CHEST', '', 'REPS', 0)")
+            it.execSQL("INSERT INTO workouts (id, templateId, name, startedAt, finishedAt) VALUES (1, NULL, 'Push', 0, 1)")
+        }
+        helper.runMigrationsAndValidate(10).close()
+
+        val db = Room.databaseBuilder(context, ForgeDatabase::class.java, DB).build()
+        val exercise = db.exerciseDao().observeAll().first().single()
+        assertEquals(null to null, exercise.note to exercise.restSec)
+        val workout = db.workoutDao().observeFinishedWorkouts().first().single()
+        assertEquals(null to null, workout.note to workout.review)
+        db.close()
+    }
+
+    @Test
     fun `secondary muscles survive a round trip`() = runBlocking {
         val db = Room.inMemoryDatabaseBuilder(context, ForgeDatabase::class.java).build()
         val muscles = listOf(MuscleGroup.TRICEPS, MuscleGroup.SHOULDERS)
