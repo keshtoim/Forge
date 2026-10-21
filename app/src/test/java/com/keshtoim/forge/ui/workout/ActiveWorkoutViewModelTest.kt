@@ -9,6 +9,7 @@ import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.ForgeDatabase
 import com.keshtoim.forge.data.db.MuscleGroup
+import com.keshtoim.forge.data.db.SetEffort
 import com.keshtoim.forge.data.db.StartItem
 import com.keshtoim.forge.data.db.WorkoutSet
 import kotlinx.coroutines.Dispatchers
@@ -161,5 +162,17 @@ class ActiveWorkoutViewModelTest {
         viewModel.adjustRest(15)
         await({ db.exerciseDao().observeAll().first().single() }) { it.restSec == 195 }
         watching.cancel()
+    }
+
+    @Test
+    fun `warm-up sets go in front of the working set`() {
+        val exercise = runBlocking { db.exerciseDao().observeAll().first().single() }
+        viewModel.addWarmup(workoutExerciseId, 100.0, exercise)
+
+        val sets = await({ db.workoutDao().observeDetail(workoutId).first() }) { d -> d.exercises.single().sets.size == 4 }
+            .exercises.single().sets.sortedBy { it.position }
+        assertEquals(listOf(40.0, 60.0, 80.0, null), sets.map { it.weightKg })
+        assertEquals(setId, sets.last().id)
+        assertEquals(3, sets.count { it.effort == SetEffort.WARMUP })
     }
 }

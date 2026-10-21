@@ -59,6 +59,7 @@ import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.Whatshot
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -258,12 +259,21 @@ fun ActiveWorkoutScreen(
                         Icon(Icons.Outlined.Info, contentDescription = stringResource(R.string.exercise_info), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                // Offered until the first set is done, from the weight typed in or the one used last time.
+                val workingKg = (current?.weightKg ?: previous.firstOrNull { it.effort != SetEffort.WARMUP }?.weightKg)
+                    ?.takeIf { exercise.type == ExerciseType.WEIGHT_REPS && sets.none { it.completed || it.effort == SetEffort.WARMUP } }
+                FlowRow(verticalArrangement = Arrangement.Center) {
                     TextButton(onClick = { restForExercise = exercise.id }) {
                         Icon(Icons.Outlined.Timer, contentDescription = null, modifier = Modifier.size(16.dp))
                         Text(stringResource(R.string.rest_chip, formatRest(exercise.restSeconds())), modifier = Modifier.padding(start = 4.dp))
                     }
                     if (exercise.note.isNullOrBlank()) NoteLine(null, onEdit = { noteForExercise = exercise.id })
+                    workingKg?.let { kg ->
+                        TextButton(onClick = { viewModel.addWarmup(focus.workoutExercise.id, kg, exercise) }) {
+                            Icon(Icons.Outlined.Whatshot, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Text(stringResource(R.string.warmup_add), modifier = Modifier.padding(start = 4.dp))
+                        }
+                    }
                 }
                 if (!exercise.note.isNullOrBlank()) NoteLine(exercise.note, onEdit = { noteForExercise = exercise.id })
                 SetList(
@@ -309,7 +319,7 @@ fun ActiveWorkoutScreen(
                             if (group.sumOf { e -> e.sets.count { !it.completed } } == roundSets.size) next?.let { focusedId = it.workoutExercise.id }
                         }
                         current != null && group.size == 1 -> {
-                            viewModel.toggleCompleted(current.id, previous.getOrNull(currentIndex))
+                            viewModel.toggleCompleted(current.id, ghosts(sets, previous)[currentIndex])
                             // Finishing the last set moves on to the next exercise that still has sets left.
                             if (sets.count { !it.completed } == 1) next?.let { focusedId = it.workoutExercise.id }
                         }
@@ -501,12 +511,13 @@ private fun SetList(
     // Rows present when the exercise is opened appear at once; only sets added afterwards animate in.
     val initial = remember(exercise.id) { sets.map { it.id }.toSet() }
     var explaining by rememberSaveable { mutableStateOf(false) }
+    val lastTime = ghosts(sets, previous)
     Column(Modifier.padding(top = 12.dp).animateContentSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         SetHeader(fields)
         sets.forEachIndexed { index, set ->
             key(set.id) {
                 AppearOnce(animate = set.id !in initial) {
-                    val ghost = previous.getOrNull(index)
+                    val ghost = lastTime[index]
                     when {
                         set.completed -> DoneRow(index + 1, set, ghost, fields) { onReopen(set) }
                         set == current -> SetCard(index + 1, set, ghost, exercise, onEdit, onBarChange, onExplain = { explaining = true }, footer = { footer(set) })

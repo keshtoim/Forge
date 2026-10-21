@@ -26,14 +26,17 @@ import com.keshtoim.forge.data.ai.coachPrompt
 import com.keshtoim.forge.data.ai.parseSetAdvice
 import com.keshtoim.forge.data.ai.setAdviceRequest
 import com.keshtoim.forge.data.db.BodyMeasurementDao
+import com.keshtoim.forge.data.db.Equipment
 import com.keshtoim.forge.data.db.Exercise
 import com.keshtoim.forge.data.db.ExerciseDao
 import com.keshtoim.forge.data.db.ExerciseType
+import com.keshtoim.forge.data.db.SetEffort
 import com.keshtoim.forge.data.db.WorkoutDao
 import com.keshtoim.forge.data.db.WorkoutDetail
 import com.keshtoim.forge.data.db.WorkoutExerciseWithSets
 import com.keshtoim.forge.data.db.WorkoutSet
 import com.keshtoim.forge.data.restSeconds
+import com.keshtoim.forge.data.traits
 import com.keshtoim.forge.rest.RestTimer
 import com.keshtoim.forge.ui.ActiveWorkoutRoute
 import kotlinx.coroutines.flow.SharingStarted
@@ -248,6 +251,15 @@ class ActiveWorkoutViewModel(
 
     fun setWorkoutNote(note: String) {
         viewModelScope.launch { workoutDao.setNote(workoutId, note.trim().ifEmpty { null }) }
+    }
+
+    fun addWarmup(workoutExerciseId: Long, workingKg: Double, exercise: Exercise) {
+        val step = if (exercise.traits.equipment == Equipment.DUMBBELL) 1.0 else 2.5
+        val sets = warmupSets(workingKg, step, exercise.barKg).map {
+            WorkoutSet(workoutExerciseId = workoutExerciseId, position = 0, weightKg = it.weightKg, reps = it.reps, effort = SetEffort.WARMUP)
+        }
+        if (sets.isEmpty()) return
+        viewModelScope.launch { setWrites.withLock { workoutDao.insertWarmup(workoutExerciseId, sets) } }
     }
 
     fun setBar(exercise: Exercise, barKg: Double?) {

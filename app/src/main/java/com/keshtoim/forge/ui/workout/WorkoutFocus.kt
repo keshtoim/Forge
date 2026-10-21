@@ -1,5 +1,6 @@
 package com.keshtoim.forge.ui.workout
 
+import com.keshtoim.forge.data.db.SetEffort
 import com.keshtoim.forge.data.db.WorkoutExerciseWithSets
 import com.keshtoim.forge.data.db.WorkoutSet
 
@@ -37,4 +38,13 @@ fun List<WorkoutExerciseWithSets>.supersetOf(focus: WorkoutExerciseWithSets): Li
 fun List<WorkoutExerciseWithSets>.currentRound(): Int? {
     val sets = map { e -> e.sets.sortedBy { it.position } }
     return (0 until (sets.maxOfOrNull { it.size } ?: 0)).firstOrNull { r -> sets.any { it.getOrNull(r)?.completed == false } }
+}
+
+// Last time's set to compare each set with: warm-ups pair with last time's warm-ups and working sets with working sets,
+// so adding a warm-up in front does not shift every comparison by one.
+fun ghosts(sets: List<WorkoutSet>, previous: List<WorkoutSet>): List<WorkoutSet?> {
+    val (warmups, working) = previous.partition { it.effort == SetEffort.WARMUP }
+    var warmupIndex = 0
+    var workingIndex = 0
+    return sets.map { if (it.effort == SetEffort.WARMUP) warmups.getOrNull(warmupIndex++) else working.getOrNull(workingIndex++) }
 }

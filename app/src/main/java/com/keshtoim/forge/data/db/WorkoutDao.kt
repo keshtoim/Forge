@@ -132,6 +132,16 @@ interface WorkoutDao {
     @Query("SELECT COUNT(*) FROM workout_exercises WHERE workoutId = :workoutId")
     suspend fun countExercises(workoutId: Long): Int
 
+    @Query("UPDATE workout_sets SET position = position + :by WHERE workoutExerciseId = :workoutExerciseId")
+    suspend fun shiftSets(workoutExerciseId: Long, by: Int)
+
+    // Warm-up sets go in front of the working ones, which move down to make room.
+    @Transaction
+    suspend fun insertWarmup(workoutExerciseId: Long, sets: List<WorkoutSet>) {
+        shiftSets(workoutExerciseId, sets.size)
+        insertSets(sets.mapIndexed { i, set -> set.copy(workoutExerciseId = workoutExerciseId, position = i) })
+    }
+
     @Query("UPDATE workouts SET note = :note WHERE id = :workoutId")
     suspend fun setNote(workoutId: Long, note: String?)
 
