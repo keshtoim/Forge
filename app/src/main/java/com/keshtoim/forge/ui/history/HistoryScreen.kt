@@ -15,10 +15,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,9 +53,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.keshtoim.forge.R
+import com.keshtoim.forge.data.ai.AiException
+import com.keshtoim.forge.data.ai.AiStatus
 import com.keshtoim.forge.data.db.WorkoutDetail
 import com.keshtoim.forge.data.db.isWorking
 import com.keshtoim.forge.data.repeats
+import com.keshtoim.forge.ui.AiErrorText
 import com.keshtoim.forge.ui.ForgeCard
 import com.keshtoim.forge.ui.NoteDialog
 import com.keshtoim.forge.ui.NoteLine
@@ -218,6 +225,7 @@ private fun WorkoutRow(detail: WorkoutDetail, onClick: () -> Unit) {
 fun WorkoutDetailScreen(onBack: () -> Unit, viewModel: WorkoutDetailViewModel = viewModel(factory = WorkoutDetailViewModel.Factory)) {
     val detail by viewModel.detail.collectAsStateWithLifecycle()
     val exercises by viewModel.exercises.collectAsStateWithLifecycle()
+    val aiStatus by viewModel.aiStatus.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var confirmDelete by remember { mutableStateOf(false) }
     var editingNote by rememberSaveable { mutableStateOf(false) }
@@ -242,6 +250,14 @@ fun WorkoutDetailScreen(onBack: () -> Unit, viewModel: WorkoutDetailViewModel = 
             }
             item { NoteLine(workout.workout.note, onEdit = { editingNote = true }) }
             item { StatsPanel(workout) }
+            // Without the assistant the card would only advertise a feature that is switched off; a saved review still shows.
+            if (workout.workout.review != null || aiStatus != AiStatus.Off) {
+                item {
+                    ReviewCard(workout.workout.review, viewModel.reviewBusy, viewModel.reviewError) {
+                        viewModel.review(exercises.mapValues { it.value.displayName(context) })
+                    }
+                }
+            }
             items(workout.exercises.sortedBy { it.workoutExercise.position }, key = { it.workoutExercise.id }) { item ->
                 val exercise = exercises[item.workoutExercise.exerciseId] ?: return@items
                 ForgeCard(Modifier.fillMaxWidth()) {
@@ -311,6 +327,30 @@ private fun StatsPanel(detail: WorkoutDetail) {
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(value, style = MaterialTheme.typography.headlineSmall, maxLines = 1)
                     Text(label, style = MaterialTheme.typography.bodySmall, color = ForgeTheme.panel.onPanel.copy(alpha = 0.65f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReviewCard(review: String?, busy: Boolean, error: AiException?, onReview: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    ForgeCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = colors.primary, modifier = Modifier.size(20.dp))
+                Text(stringResource(R.string.review_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 8.dp))
+            }
+            when {
+                review != null -> SelectionContainer { Text(review, style = MaterialTheme.typography.bodyMedium) }
+                busy -> Row(verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                    Text(stringResource(R.string.review_loading), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 10.dp))
+                }
+                else -> {
+                    error?.let { AiErrorText(it) }
+                    Button(onClick = onReview, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.review_ask)) }
                 }
             }
         }

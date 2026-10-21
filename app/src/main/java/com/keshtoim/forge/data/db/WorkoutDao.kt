@@ -90,6 +90,18 @@ interface WorkoutDao {
     )
     suspend fun previousSets(exerciseId: Long): List<WorkoutSet>
 
+    // The same exercise in the last finished workout that started before [before]: what a workout is compared against.
+    @Query(
+        """
+        SELECT * FROM workout_sets WHERE workoutExerciseId = (
+            SELECT we.id FROM workout_exercises we JOIN workouts w ON w.id = we.workoutId
+            WHERE we.exerciseId = :exerciseId AND w.finishedAt IS NOT NULL AND w.startedAt < :before
+            ORDER BY w.startedAt DESC, we.position LIMIT 1
+        ) ORDER BY position
+        """
+    )
+    suspend fun previousSetsBefore(exerciseId: Long, before: Long): List<WorkoutSet>
+
     @Query("SELECT * FROM workout_sets WHERE id = :id")
     suspend fun getSet(id: Long): WorkoutSet?
 
@@ -141,6 +153,9 @@ interface WorkoutDao {
         shiftSets(workoutExerciseId, sets.size)
         insertSets(sets.mapIndexed { i, set -> set.copy(workoutExerciseId = workoutExerciseId, position = i) })
     }
+
+    @Query("UPDATE workouts SET review = :review WHERE id = :workoutId")
+    suspend fun setReview(workoutId: Long, review: String)
 
     @Query("UPDATE workouts SET note = :note WHERE id = :workoutId")
     suspend fun setNote(workoutId: Long, note: String?)

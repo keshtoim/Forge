@@ -67,6 +67,27 @@ fun coachPrompt(
     appendLine("Base advice on the log below; if something you need isn't there, ask instead of guessing. You can't edit the log, so say what to enter.")
     appendLine("If the athlete mentions pain or injury, advise stopping that exercise and seeing a professional rather than training through it.")
     appendLine()
+    appendLog(athlete, workoutNote, "Workout \"$workoutName\", started $minutesIn min ago. Exercises in order, > marks the one on screen:", exercises)
+}
+
+// A look back at a finished workout: compared with last time, in a few lines the athlete reads after training.
+fun reviewPrompt(
+    language: String,
+    athlete: Athlete,
+    workoutName: String,
+    minutes: Long,
+    exercises: List<ExerciseLog>,
+    workoutNote: String? = null,
+): String = buildString {
+    appendLine("You are a strength coach inside Forge, a workout log app. The athlete has just finished the workout below.")
+    appendLine("Write a short review in $language: three or four short lines of plain text without headings, lists of numbers or tables.")
+    appendLine("Say what improved compared with last time, what dropped and a likely reason if the log shows one, and one concrete focus for next time.")
+    appendLine("Use only the log; if there is no earlier session to compare with, say what to aim for next time instead.")
+    appendLine()
+    appendLog(athlete, workoutNote, "Workout \"$workoutName\", took $minutes min. Exercises in order:", exercises)
+}
+
+private fun StringBuilder.appendLog(athlete: Athlete, workoutNote: String?, header: String, exercises: List<ExerciseLog>) {
     listOfNotNull(
         athlete.sex?.let { if (it == BodyType.MALE) "male" else "female" },
         athlete.heightCm?.let { "height $it cm" },
@@ -78,7 +99,7 @@ fun coachPrompt(
         athlete.leanMassKg?.let { "lean mass ${number(it)} kg" },
     ).takeIf { it.isNotEmpty() }?.let { appendLine("Athlete: ${it.joinToString()}.") }
     if (!workoutNote.isNullOrBlank()) appendLine("Athlete's note for this workout: $workoutNote")
-    appendLine("Workout \"$workoutName\", started $minutesIn min ago. Exercises in order, > marks the one on screen:")
+    appendLine(header)
     exercises.forEachIndexed { i, e ->
         val superset = e.superset?.let { " [superset $it: done back to back, rest after the round]" }.orEmpty()
         appendLine("${if (e.onScreen) ">" else " "} ${i + 1}. ${e.name}$superset")

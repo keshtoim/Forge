@@ -404,6 +404,9 @@
     <string name="progression_rep">Тот же вес, на повтор больше</string>
     <string name="progression_hold">В прошлый раз был максимум — держи вес</string>
     <string name="progression_apply">Подставить</string>
+    <string name="review_title">Разбор от ИИ</string>
+    <string name="review_ask">Разобрать тренировку</string>
+    <string name="review_loading">ИИ разбирает тренировку…</string>
     <string name="coach_q_weight">Какой вес взять дальше?</string>
     <string name="coach_q_rest">Сколько отдыхать?</string>
     <string name="coach_q_swap">Тренажёр занят, чем заменить?</string>

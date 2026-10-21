@@ -74,4 +74,13 @@ class CoachPromptTest {
         assertTrue(prompt.contains("athlete's note: Сиденье на 4"))
         assertFalse(prompt.contains("Athlete:"))
     }
+
+    @Test
+    fun `the review prompt asks for a short look back at the finished workout`() {
+        val prompt = reviewPrompt("Russian", Athlete(), "Ноги", 52, emptyList(), workoutNote = "Плохо спал")
+        assertTrue(prompt.contains("has just finished the workout below"))
+        assertTrue(prompt.contains("Write a short review in Russian"))
+        assertTrue(prompt.contains("Workout \"Ноги\", took 52 min."))
+        assertTrue(prompt.contains("Athlete's note for this workout: Плохо спал"))
+    }
 }
