@@ -949,6 +949,13 @@ private fun BigField(
                         style = MaterialTheme.typography.labelSmall,
                         color = colors.onSurfaceVariant,
                     )
+                    plates.platesFor(total)?.takeIf { it.isNotEmpty() }?.let { side ->
+                        FitText(
+                            stringResource(R.string.plates_side, side.joinToString(" + ") { formatNumber(it) }),
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = colors.primary,
+                        )
+                    }
                 }
             }
         }

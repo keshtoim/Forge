@@ -38,4 +38,15 @@ class PlateLoadingTest {
     fun `a total lighter than the bar shows no plates`() {
         assertEquals(0.0, plates.toSide(empty.copy(weightKg = 10.0)).weightKg!!, 0.0)
     }
+
+    @Test
+    fun `plates per side come heaviest first from a standard set`() {
+        val olympic = PlateLoading(20.0)
+        assertEquals(listOf(25.0, 15.0, 2.5), olympic.platesFor(105.0))
+        assertEquals(listOf(1.25), olympic.platesFor(22.5))
+        assertEquals(emptyList<Double>(), olympic.platesFor(20.0))
+        // A weight the set can't make, or lighter than the bar, has no loading.
+        assertNull(olympic.platesFor(21.0))
+        assertNull(olympic.platesFor(15.0))
+    }
 }

@@ -257,6 +257,7 @@
     <string name="unit_t">т</string>
     <string name="unit_kg_per_side">кг на сторону</string>
     <string name="plates_total">всего %s кг с грифом</string>
+    <string name="plates_side">вешай: %1$s</string>
     <string name="bar_none">Общий вес</string>
     <string name="bar_weight">Гриф %s кг + блины</string>
     <string name="stat_time">ч:мин</string>
