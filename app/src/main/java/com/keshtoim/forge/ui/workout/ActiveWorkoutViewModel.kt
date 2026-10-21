@@ -19,9 +19,9 @@ import com.keshtoim.forge.data.ai.AiConnection
 import com.keshtoim.forge.data.ai.AiException
 import com.keshtoim.forge.data.ai.AiFailure
 import com.keshtoim.forge.data.ai.AiTurn
-import com.keshtoim.forge.data.ai.Athlete
 import com.keshtoim.forge.data.ai.ExerciseLog
 import com.keshtoim.forge.data.ai.SetAdvice
+import com.keshtoim.forge.data.ai.athlete
 import com.keshtoim.forge.data.ai.coachPrompt
 import com.keshtoim.forge.data.ai.parseSetAdvice
 import com.keshtoim.forge.data.ai.setAdviceRequest
@@ -37,13 +37,13 @@ import com.keshtoim.forge.rest.RestTimer
 import com.keshtoim.forge.ui.ActiveWorkoutRoute
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.time.LocalDate
-import java.time.Period
 import java.util.Locale
 
 class ActiveWorkoutViewModel(
@@ -162,11 +162,7 @@ class ActiveWorkoutViewModel(
                 onScreen = e.workoutExercise.id == focusId,
             )
         }
-        val athlete = Athlete(
-            heightCm = preferences.heightCm.value,
-            age = preferences.birthDate.value?.let { Period.between(it, LocalDate.now()).years },
-            weightKg = measurements.latestWeight(),
-        )
+        val athlete = athlete(preferences.bodyType.value, preferences.heightCm.value, preferences.birthDate.value, measurements.observeAll().first(), LocalDate.now())
         val minutes = (System.currentTimeMillis() - workout.workout.startedAt) / 60_000
         return coachPrompt(Locale.getDefault().getDisplayLanguage(Locale.ENGLISH), athlete, workout.workout.name, minutes, logs)
     }
