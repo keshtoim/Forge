@@ -31,7 +31,7 @@ class RestTimerServiceTest {
 
     @Test
     fun `skip action clears the rest`() {
-        app.restTimer.start()
+        app.restTimer.start(90)
 
         Robolectric.buildService(RestTimerService::class.java, Intent(app, RestTimerService::class.java).setAction("com.keshtoim.forge.rest.SKIP"))
             .create()

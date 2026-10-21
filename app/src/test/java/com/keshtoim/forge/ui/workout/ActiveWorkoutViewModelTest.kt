@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -145,5 +146,20 @@ class ActiveWorkoutViewModelTest {
 
         viewModel.setWorkoutNote("   ")
         await({ db.workoutDao().observeDetail(workoutId).first() }) { it.workout.note == null }
+    }
+
+    @Test
+    fun `rest follows the exercise and a longer rest is remembered for it`() = runBlocking {
+        // The screen keeps the exercise map collected; the test has to do the same.
+        val watching = launch(Dispatchers.Default) { viewModel.exercises.collect {} }
+        withTimeout(5_000) { viewModel.exercises.first { it.isNotEmpty() } }
+
+        viewModel.toggleCompleted(setId, WorkoutSet(workoutExerciseId = 0, position = 0, weightKg = 60.0, reps = 8))
+        val rest = withTimeout(5_000) { app.restTimer.state.first { it != null } }!!
+        assertEquals(180, rest.totalSec)
+
+        viewModel.adjustRest(15)
+        await({ db.exerciseDao().observeAll().first().single() }) { it.restSec == 195 }
+        watching.cancel()
     }
 }

@@ -33,6 +33,7 @@ import com.keshtoim.forge.data.db.WorkoutDao
 import com.keshtoim.forge.data.db.WorkoutDetail
 import com.keshtoim.forge.data.db.WorkoutExerciseWithSets
 import com.keshtoim.forge.data.db.WorkoutSet
+import com.keshtoim.forge.data.restSeconds
 import com.keshtoim.forge.rest.RestTimer
 import com.keshtoim.forge.ui.ActiveWorkoutRoute
 import kotlinx.coroutines.flow.SharingStarted
@@ -200,7 +201,7 @@ class ActiveWorkoutViewModel(
 
     fun toggleCompleted(id: Long, ghost: WorkoutSet?) = editSet(id) { set ->
         if (set.completed) return@editSet set.copy(completed = false)
-        set.completedWith(ghost)?.also { restTimer.start() }
+        set.completedWith(ghost)?.also { startRest(listOf(it.workoutExerciseId)) }
     }
 
     // Completes every set of a superset round; rest starts once, after the whole round.
@@ -209,7 +210,7 @@ class ActiveWorkoutViewModel(
             setWrites.withLock {
                 val done = sets.mapNotNull { (id, ghost) -> workoutDao.getSet(id)?.takeIf { !it.completed }?.completedWith(ghost) }
                 done.forEach { workoutDao.update(it) }
-                if (done.isNotEmpty()) restTimer.start()
+                if (done.isNotEmpty()) startRest(done.map { it.workoutExerciseId })
             }
         }
     }
@@ -242,7 +243,7 @@ class ActiveWorkoutViewModel(
     }
 
     fun setExerciseNote(exercise: Exercise, note: String) {
-        viewModelScope.launch { exerciseDao.update(exercise.copy(note = note.trim().ifEmpty { null })) }
+        viewModelScope.launch { exerciseDao.update(latest(exercise).copy(note = note.trim().ifEmpty { null })) }
     }
 
     fun setWorkoutNote(note: String) {
@@ -261,7 +262,28 @@ class ActiveWorkoutViewModel(
         viewModelScope.launch { workoutDao.delete(exercise.workoutExercise) }
     }
 
-    fun adjustRest(deltaSec: Int) = restTimer.adjust(deltaSec)
+    // Exercises whose sets started the running rest; a change to it is remembered for them.
+    private var resting: List<Exercise> = emptyList()
+
+    // A superset rests as long as the longest rest among its exercises.
+    private fun startRest(workoutExerciseIds: List<Long>) {
+        val owners = detail.value?.exercises.orEmpty().filter { it.workoutExercise.id in workoutExerciseIds }
+        resting = owners.mapNotNull { exercises.value[it.workoutExercise.exerciseId] }
+        restTimer.start(resting.maxOfOrNull { it.restSeconds() } ?: DEFAULT_REST_SECONDS)
+    }
+
+    fun adjustRest(deltaSec: Int) {
+        val total = restTimer.adjust(deltaSec) ?: return
+        resting.forEach { setRest(it, total) }
+    }
+
+    // The screen may hold an older copy; writing it back would undo a note or rest saved since.
+    private fun latest(exercise: Exercise) = exercises.value[exercise.id] ?: exercise
+
+    // null brings back the default for the exercise's mechanics.
+    fun setRest(exercise: Exercise, seconds: Int?) {
+        viewModelScope.launch { exerciseDao.update(latest(exercise).copy(restSec = seconds)) }
+    }
 
     fun skipRest() = restTimer.stop()
 
@@ -308,3 +330,6 @@ sealed interface AdviceState {
 
 // More photos make every following question in the chat heavier, since the whole dialog is sent each time.
 const val COACH_MAX_PHOTOS = 3
+
+// Used when the exercise of a finished set is not known yet, which only happens while the screen is still loading.
+private const val DEFAULT_REST_SECONDS = 90

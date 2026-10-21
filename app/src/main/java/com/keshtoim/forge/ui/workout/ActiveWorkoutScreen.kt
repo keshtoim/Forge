@@ -58,6 +58,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -80,6 +81,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -120,7 +122,9 @@ import com.keshtoim.forge.data.db.ExerciseType
 import com.keshtoim.forge.data.db.SetEffort
 import com.keshtoim.forge.data.db.WorkoutExerciseWithSets
 import com.keshtoim.forge.data.db.WorkoutSet
+import com.keshtoim.forge.data.restSeconds
 import com.keshtoim.forge.rest.Rest
+import com.keshtoim.forge.rest.RestTimer
 import com.keshtoim.forge.ui.AiIndicator
 import com.keshtoim.forge.ui.FitText
 import com.keshtoim.forge.ui.NoteDialog
@@ -153,6 +157,7 @@ fun ActiveWorkoutScreen(
     var coachOpen by rememberSaveable { mutableStateOf(false) }
     var noteForExercise by rememberSaveable { mutableStateOf<Long?>(null) }
     var noteForWorkout by rememberSaveable { mutableStateOf(false) }
+    var restForExercise by rememberSaveable { mutableStateOf<Long?>(null) }
 
     val view = LocalView.current
     DisposableEffect(view) {
@@ -253,7 +258,14 @@ fun ActiveWorkoutScreen(
                         Icon(Icons.Outlined.Info, contentDescription = stringResource(R.string.exercise_info), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                NoteLine(exercise.note, onEdit = { noteForExercise = exercise.id })
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = { restForExercise = exercise.id }) {
+                        Icon(Icons.Outlined.Timer, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Text(stringResource(R.string.rest_chip, formatRest(exercise.restSeconds())), modifier = Modifier.padding(start = 4.dp))
+                    }
+                    if (exercise.note.isNullOrBlank()) NoteLine(null, onEdit = { noteForExercise = exercise.id })
+                }
+                if (!exercise.note.isNullOrBlank()) NoteLine(exercise.note, onEdit = { noteForExercise = exercise.id })
                 SetList(
                     sets = sets,
                     current = current,
@@ -361,6 +373,14 @@ fun ActiveWorkoutScreen(
             NoteDialog(stringResource(R.string.note_exercise), exercise.note, onDismiss = { noteForExercise = null }) {
                 viewModel.setExerciseNote(exercise, it)
                 noteForExercise = null
+            }
+        }
+    }
+    restForExercise?.let { id ->
+        exercises[id]?.let { exercise ->
+            RestDialog(exercise, onDismiss = { restForExercise = null }) {
+                viewModel.setRest(exercise, it)
+                restForExercise = null
             }
         }
     }
@@ -1019,4 +1039,33 @@ private fun ExerciseList(
             Text(stringResource(R.string.workout_discard), color = colors.error)
         }
     }
+}
+
+private fun formatRest(seconds: Int) = "%d:%02d".format(seconds / 60, seconds % 60)
+
+// Saving null returns the exercise to the default for its mechanics.
+@Composable
+private fun RestDialog(exercise: Exercise, onDismiss: () -> Unit, onSave: (Int?) -> Unit) {
+    var seconds by rememberSaveable { mutableIntStateOf(exercise.restSeconds()) }
+    val default = exercise.copy(restSec = null).restSeconds()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.rest_dialog_title)) },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    StepButton(Icons.Filled.Remove, stringResource(R.string.rest_less), 44.dp) {
+                        seconds = (seconds - 15).coerceAtLeast(RestTimer.MIN_REST_SECONDS)
+                    }
+                    Text(formatRest(seconds), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(horizontal = 24.dp))
+                    StepButton(Icons.Filled.Add, stringResource(R.string.rest_more), 44.dp) { seconds += 15 }
+                }
+                TextButton(onClick = { onSave(null) }, modifier = Modifier.padding(top = 8.dp)) {
+                    Text(stringResource(R.string.rest_default, formatRest(default)))
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { onSave(seconds) }) { Text(stringResource(R.string.save)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
 }

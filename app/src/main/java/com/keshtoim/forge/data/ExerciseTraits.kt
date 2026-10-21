@@ -165,3 +165,10 @@ data class TraitFilter(
 
     private fun <T> T?.passes(picked: Set<T>) = picked.isEmpty() || this in picked
 }
+
+// Heavy compound lifts need longer to recover between sets than isolation work; cardio and holds need the least.
+fun Exercise.restSeconds(): Int = restSec ?: when (traits.mechanics) {
+    Mechanics.COMPOUND -> 180
+    Mechanics.ISOLATION -> 90
+    else -> 60
+}
